@@ -30,7 +30,7 @@ public final class ConfigManager {
     public static void saveConfigs(ArrayList<Module<?>> modules) {
         File config = getConfigFile();
 
-        AllModulesSerializer serializer = new AllModulesSerializer(modules);
+        MainConfigSerializer serializer = new MainConfigSerializer(modules);
         SerializedStringBuilder builder = new SerializedStringBuilder();
         serializer.serialize(modules, builder);
 
@@ -53,7 +53,7 @@ public final class ConfigManager {
             throw new RuntimeException(e);
         }
 
-        AllModulesSerializer serializer = new AllModulesSerializer(modules);
+        MainConfigSerializer serializer = new MainConfigSerializer(modules);
         serializer.deserialize(source, modules);
 
         Lifestolen.LOG.info("[ConfigManager::loadConfigs] All configs loaded");

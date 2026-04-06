@@ -12,22 +12,22 @@ public final class TokenStream {
     }
 
     public void expect(TokenType type) {
-        TokenType actualType = next().type;
+        TokenType actualType = next().type();
         if (actualType != type)
             throw new SerializerError("[TokenStream::expect] Expected token " + type + " but got " + actualType);
     }
 
     public String nextTokenText(TokenType type) {
         Token token = next();
-        if (token.type != type)
-            throw new SerializerError("[TokenStream::nextTokenText] Expected token " + type + " but got " + token.type);
+        if (token.type() != type)
+            throw new SerializerError("[TokenStream::nextTokenText] Expected token " + type + " but got " + token.type());
 
-        return token.text;
+        return token.text();
     }
 
     /// Returns false on consumption, true otherwise. Useful for while loops.
     public boolean consumeTokenIfType(TokenType type) {
-        if (peek().type == type) {
+        if (peek().type() == type) {
             next();
             return false;
         }

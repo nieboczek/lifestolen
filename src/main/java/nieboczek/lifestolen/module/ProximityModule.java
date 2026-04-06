@@ -37,7 +37,7 @@ public final class ProximityModule extends Module<ProximityModule.Config> {
     private static final AABB BIG_AABB = new AABB(-65_535.0, -65_535.0, -65_535.0, 65_535.0, 65_535.0, 65_535.0);
 
     @Override
-    public void tick(Minecraft mc) {
+    public void tick() {
         // TODO: multiple mobs at once
         Entity entityCandidate = null;
         EntityParameters paramsCandidate = null;
@@ -212,7 +212,7 @@ public final class ProximityModule extends Module<ProximityModule.Config> {
 //            return true;
 //        }
 
-    public static class Config {
+    public static final class Config {
         Map<EntityType<?>, EntityParameters> entities = new HashMap<>();
         List<String> playerWhitelist = new ArrayList<>();
     }

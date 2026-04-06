@@ -35,7 +35,7 @@ public class ListSerializer<T> extends Serializer<List<T>> {
     public List<T> deserialize(TokenStream stream) {
         stream.expect(TokenType.L_BRACKET);
         List<T> list = new ArrayList<>();
-        while (stream.peek().type != TokenType.R_BRACKET) {
+        while (stream.peek().type() != TokenType.R_BRACKET) {
             list.add(elementSerializer.deserialize(stream));
             stream.expect(TokenType.SEMICOLON);
         }

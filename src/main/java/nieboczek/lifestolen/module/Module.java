@@ -1,9 +1,12 @@
 package nieboczek.lifestolen.module;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -12,7 +15,9 @@ import nieboczek.lifestolen.serializer.base.ISerializable;
 
 public abstract class Module<C> implements ISerializable<C> {
     public boolean enabled = true;
+    public Minecraft mc;
     public C cfg;
+
 
     public static void sendChat(CommandContext<FabricClientCommandSource> ctx, MutableComponent msg) {
         ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(msg.withColor(0xFFFFFF)));
@@ -30,10 +35,17 @@ public abstract class Module<C> implements ISerializable<C> {
         mc.player.displayClientMessage(msg, false);
     }
 
-    public void tick(Minecraft mc) {
+    public void tick() {
     }
 
     public abstract String getId();
 
-    public abstract void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context);
+    public void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
+    }
+
+    public void render2d(GuiGraphics context) {
+    }
+
+    public void render3d() {
+    }
 }

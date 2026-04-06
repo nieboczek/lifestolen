@@ -46,7 +46,7 @@ public class ObjectSerializer<T> extends Serializer<T> {
         stream.expect(TokenType.L_BRACE);
         stream.expect(TokenType.L_BRACE);
         T obj = constructor.get();
-        while (stream.peek().type != TokenType.R_BRACE) {
+        while (stream.peek().type() != TokenType.R_BRACE) {
             String fieldName = stream.nextTokenText(TokenType.IDENTIFIER);
             stream.expect(TokenType.EQUAL);
             boolean found = false;

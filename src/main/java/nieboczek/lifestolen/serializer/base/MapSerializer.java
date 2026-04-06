@@ -39,7 +39,7 @@ public class MapSerializer<K, V> extends Serializer<Map<K, V>> {
     public Map<K, V> deserialize(TokenStream stream) {
         stream.expect(TokenType.L_BRACE);
         Map<K, V> map = new HashMap<>();
-        while (stream.peek().type != TokenType.R_BRACE) {
+        while (stream.peek().type() != TokenType.R_BRACE) {
             K key = keySerializer.deserialize(stream);
             stream.expect(TokenType.EQUAL);
             V value = valueSerializer.deserialize(stream);
