@@ -91,6 +91,10 @@ public final class Lifestolen implements ModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildCtx) -> {
             dispatcher.register(createReplyCommand());
             dispatcher.register(createToggleCommand());
+            dispatcher.register(literal("lifestolen:reload_configs").executes(ctx -> {
+                ConfigManager.loadConfigs(modules);
+                return 1;
+            }));
             dispatcher.register(literal("lifestolen:save_configs").executes(ctx -> {
                 ConfigManager.saveConfigs(modules);
                 return 1;
