@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,14 +15,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import nieboczek.lifestolen.Commands;
-import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.serializer.base.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
 import static com.mojang.brigadier.arguments.DoubleArgumentType.getDouble;
@@ -66,6 +63,7 @@ public final class ProximityModule extends Module<ProximityModule.Config> {
         }
 
         if (paramsCandidate == null) return;
+        // TODO: Remove sendStatus and use custom widgets instead
         sendStatus(paramsCandidate.getName(entityCandidate).append(green(" ⇔ ")).append(red(String.format("%.2fm", distanceCandidate))), mc);
     }
 

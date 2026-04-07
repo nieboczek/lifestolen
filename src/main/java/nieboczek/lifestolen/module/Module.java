@@ -1,12 +1,10 @@
 package nieboczek.lifestolen.module;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,7 +16,6 @@ public abstract class Module<C> implements ISerializable<C> {
     public Minecraft mc;
     public C cfg;
 
-
     public static void sendChat(CommandContext<FabricClientCommandSource> ctx, MutableComponent msg) {
         ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(msg.withColor(0xFFFFFF)));
     }
@@ -27,6 +24,7 @@ public abstract class Module<C> implements ISerializable<C> {
         ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(Component.literal(msg).withColor(0xFFFFFF)));
     }
 
+    // TODO: Remove and use custom widgets instead
     public static void sendStatus(Component msg, Minecraft mc) {
         mc.player.displayClientMessage(msg, true);
     }
