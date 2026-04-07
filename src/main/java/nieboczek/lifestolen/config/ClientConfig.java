@@ -1,4 +1,4 @@
-package nieboczek.lifestolen;
+package nieboczek.lifestolen.config;
 
 import nieboczek.lifestolen.serializer.base.*;
 

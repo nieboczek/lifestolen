@@ -14,6 +14,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import nieboczek.lifestolen.config.ClientConfig;
+import nieboczek.lifestolen.config.ConfigManager;
 import nieboczek.lifestolen.module.FakeLagModule;
 import nieboczek.lifestolen.module.KillAuraModule;
 import nieboczek.lifestolen.module.Module;

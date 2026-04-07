@@ -1,5 +1,6 @@
-package nieboczek.lifestolen;
+package nieboczek.lifestolen.config;
 
+import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.module.Module;
 import nieboczek.lifestolen.serializer.base.Serializer;
 import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder;
