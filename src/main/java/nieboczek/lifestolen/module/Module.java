@@ -33,12 +33,13 @@ public abstract class Module<C> implements ISerializable<C> {
         mc.player.displayClientMessage(msg, false);
     }
 
-    public void tick() {
-    }
 
     public abstract String getId();
 
     public void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
+    }
+
+    public void tick() {
     }
 
     public void render2d(GuiGraphics context) {

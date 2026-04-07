@@ -8,6 +8,7 @@
   "contact": {},
   "license": "GPL-3.0",
   "icon": "assets/lifestolen/icon.png",
+  "accessWidener": "lifestolen.accesswidener",
   "environment": "client",
   "entrypoints": {
     "main": [

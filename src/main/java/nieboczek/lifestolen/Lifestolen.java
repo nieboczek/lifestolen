@@ -7,12 +7,14 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import nieboczek.lifestolen.module.FakeLagModule;
 import nieboczek.lifestolen.module.KillAuraModule;
 import nieboczek.lifestolen.module.Module;
 import nieboczek.lifestolen.module.ProximityModule;
@@ -61,6 +63,7 @@ public final class Lifestolen implements ModInitializer {
     public void onInitialize() {
         modules.add(new ProximityModule());
         modules.add(new KillAuraModule());
+        modules.add(new FakeLagModule());
 
         ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, bound, timestamp) -> {
             if (bound.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
@@ -84,6 +87,14 @@ public final class Lifestolen implements ModInitializer {
         ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
             ConfigManager.loadConfigs(modules);
             modules.forEach(m -> m.mc = mc);
+        });
+
+        ClientPlayConnectionEvents.INIT.register((listener, mc) -> {
+            listener.getConnection().channel.pipeline().addBefore(
+                    "packet_handler",
+                    "lifestolen_packet_intercept",
+                    new FakeLagChannelHandler()
+            );
         });
 
         ClientLifecycleEvents.CLIENT_STOPPING.register($ -> ConfigManager.saveConfigs(modules));
