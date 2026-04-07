@@ -12,9 +12,10 @@ import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.serializer.base.ISerializable;
 
 public abstract class Module<C> implements ISerializable<C> {
-    public boolean enabled = true;
     public Minecraft mc;
     public C cfg;
+
+    private boolean enabled;
 
     public static void sendChat(CommandContext<FabricClientCommandSource> ctx, MutableComponent msg) {
         ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(msg.withColor(0xFFFFFF)));
@@ -31,6 +32,19 @@ public abstract class Module<C> implements ISerializable<C> {
 
     public static void sendChat(Component msg, Minecraft mc) {
         mc.player.displayClientMessage(msg, false);
+    }
+
+    public final void toggle() {
+        setEnabled(!enabled);
+    }
+
+    public final void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        Lifestolen.cfg.enabledModules.put(getId(), enabled);
+    }
+
+    public final boolean isEnabled() {
+        return enabled;
     }
 
 

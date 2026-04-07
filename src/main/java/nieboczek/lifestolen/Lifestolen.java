@@ -49,13 +49,20 @@ public final class Lifestolen implements ModInitializer {
         }
 
         modules.forEach(m -> {
-            if (m.enabled) m.render2d(context);
+            if (m.isEnabled()) m.render2d(context);
         });
     }
 
     public static void render3d() {
         modules.forEach(m -> {
-            if (m.enabled) m.render3d();
+            if (m.isEnabled()) m.render3d();
+        });
+    }
+
+    public static void reloadedConfig() {
+        cfg.enabledModules.forEach((moduleId, enabled) -> {
+            Module<?> mod = modules.stream().filter(m -> moduleId.equals(m.getId())).findFirst().orElseThrow();
+            mod.setEnabled(enabled);
         });
     }
 
@@ -80,7 +87,7 @@ public final class Lifestolen implements ModInitializer {
                 return;
 
             for (Module<?> module : modules)
-                if (module.enabled)
+                if (module.isEnabled())
                     module.tick();
         });
 
@@ -136,8 +143,8 @@ public final class Lifestolen implements ModInitializer {
 
         for (Module<?> module : modules) {
             toggleCommand.then(literal(module.getId()).executes(ctx -> {
-                module.enabled = !module.enabled;
-                MutableComponent status = module.enabled ? green("enabled") : red("disabled");
+                module.toggle();
+                MutableComponent status = module.isEnabled() ? green("enabled") : red("disabled");
                 Module.sendChat(ctx, Component.literal("Module " + module.getId() + " has been ").append(status));
                 return 1;
             }));

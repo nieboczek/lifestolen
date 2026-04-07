@@ -56,6 +56,7 @@ public final class ConfigManager {
         MainConfigSerializer serializer = new MainConfigSerializer(modules);
         serializer.deserialize(source, modules);
 
+        Lifestolen.reloadedConfig();
         Lifestolen.LOG.info("[ConfigManager::loadConfigs] All configs loaded");
     }
 }
