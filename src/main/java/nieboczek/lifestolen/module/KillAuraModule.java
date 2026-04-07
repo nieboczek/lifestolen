@@ -1,6 +1,5 @@
 package nieboczek.lifestolen.module;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -8,7 +7,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import nieboczek.lifestolen.Renderer3d;
-import nieboczek.lifestolen.serializer.base.*;
+import nieboczek.lifestolen.serializer.base.BooleanSerializer;
+import nieboczek.lifestolen.serializer.base.DoubleSerializer;
+import nieboczek.lifestolen.serializer.base.ObjectSerializer;
+import nieboczek.lifestolen.serializer.base.Serializer;
 
 import java.util.List;
 import java.util.Random;
@@ -16,24 +18,17 @@ import java.util.Random;
 public final class KillAuraModule extends Module<KillAuraModule.Config> {
     private static final AABB BIG_AABB = new AABB(-65_535.0, -65_535.0, -65_535.0, 65_535.0, 65_535.0, 65_535.0);
 
-    private int attackTimer = 0;
     private final Random random = new Random();
 
     @Override
     public void tick() {
-        if (!enabled || mc.player == null) return;
+        Entity target = getNearestEnemy();
+        if (target == null || !mc.player.gameMode().isSurvival()) return;
+        if (mc.player.isBlocking()) return; // don't attack if shield blocking
 
-        Entity target = getNearestEnemy(mc);
-        if (target == null) return;
-
-        attackTimer++;
-
-        int needed = cfg.minCps + random.nextInt(cfg.maxCps - cfg.minCps + 1);
-
-        if (attackTimer >= needed) {
+        if (mc.player.getAttackStrengthScale(0.5f) >= 0.95) {
             mc.gameMode.attack(mc.player, target);
             mc.player.swing(InteractionHand.MAIN_HAND);
-            attackTimer = 0;
         }
     }
 
@@ -46,8 +41,6 @@ public final class KillAuraModule extends Module<KillAuraModule.Config> {
     public Serializer<Config> getSerializer() {
         return ObjectSerializer.of(Config::new)
                 .field("range", DoubleSerializer.of(), c -> c.range, (c, v) -> c.range = v)
-                .field("minCps", IntegerSerializer.of(), c -> c.minCps, (c, v) -> c.minCps = v)
-                .field("maxCps", IntegerSerializer.of(), c -> c.maxCps, (c, v) -> c.maxCps = v)
                 .field("attackOnlyPlayers", BooleanSerializer.of(), c -> c.attackOnlyPlayers, (c, v) -> c.attackOnlyPlayers = v);
     }
 
@@ -62,7 +55,7 @@ public final class KillAuraModule extends Module<KillAuraModule.Config> {
         Renderer3d.renderCircleOutline(64, 0xFFFFFFFF, (float) cfg.range, partialTickPos);
     }
 
-    private Entity getNearestEnemy(Minecraft mc) {
+    private Entity getNearestEnemy() {
         Entity best = null;
         double bestDistSq = cfg.range * cfg.range;
 
@@ -86,8 +79,6 @@ public final class KillAuraModule extends Module<KillAuraModule.Config> {
 
     public static final class Config {
         public double range;
-        public int minCps;
-        public int maxCps;
         public boolean attackOnlyPlayers;
     }
 }
