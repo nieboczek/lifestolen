@@ -75,6 +75,8 @@ public abstract class Module<C> implements ISerializable<C> {
 
     public abstract String getDisplayName();
 
+    public abstract Category getCategory();
+
     public void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
     }
 
@@ -85,5 +87,19 @@ public abstract class Module<C> implements ISerializable<C> {
     }
 
     public void render3d() {
+    }
+
+    public enum Category {
+        COMBAT,
+        MOVEMENT,
+        ;
+
+        @Override
+        public String toString() {
+            return switch (this) {
+                case COMBAT -> "Combat";
+                case MOVEMENT -> "Movement";
+            };
+        }
     }
 }

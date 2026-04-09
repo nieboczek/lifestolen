@@ -43,6 +43,11 @@ public final class KillAuraModule extends Module<KillAuraModule.Config> {
     }
 
     @Override
+    public Category getCategory() {
+        return Category.COMBAT;
+    }
+
+    @Override
     public Serializer<Config> getSerializer() {
         return ObjectSerializer.of(Config::new)
                 .field("range", DoubleSerializer.of(), c -> c.range, (c, v) -> c.range = v)

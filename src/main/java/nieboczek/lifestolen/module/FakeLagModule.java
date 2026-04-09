@@ -22,6 +22,11 @@ public final class FakeLagModule extends Module<FakeLagModule.Config> {
     }
 
     @Override
+    public Category getCategory() {
+        return Category.MOVEMENT;
+    }
+
+    @Override
     public Serializer<Config> getSerializer() {
         return ObjectSerializer.of(Config::new)
                 .field("delayMsMin", IntegerSerializer.of(), c -> c.delayMsMin, (c, v) -> c.delayMsMin = v)
