@@ -7,16 +7,16 @@ import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder;
 import nieboczek.lifestolen.serializer.lang.TokenStream;
 import nieboczek.lifestolen.serializer.lang.TokenType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public final class MainConfigSerializer extends Serializer<ArrayList<Module<?>>> {
+public final class MainConfigSerializer extends Serializer<List<Module<?>>> {
     private final Map<String, Serializer<Object>> moduleSerializers = new HashMap<>();
     private final Map<String, Integer> moduleIndices = new HashMap<>();
 
     @SuppressWarnings("unchecked")
-    public MainConfigSerializer(ArrayList<Module<?>> modules) {
+    public MainConfigSerializer(List<Module<?>> modules) {
         for (int i = 0; i < modules.size(); i++) {
             Module<?> module = modules.get(i);
             moduleSerializers.put(module.getId(), (Serializer<Object>) module.getSerializer());
@@ -26,7 +26,7 @@ public final class MainConfigSerializer extends Serializer<ArrayList<Module<?>>>
     }
 
     @Override
-    public void serialize(ArrayList<Module<?>> value, SerializedStringBuilder builder) {
+    public void serialize(List<Module<?>> value, SerializedStringBuilder builder) {
         builder.text('{').newLine();
         builder.indent();
 
@@ -47,11 +47,11 @@ public final class MainConfigSerializer extends Serializer<ArrayList<Module<?>>>
     }
 
     @Override
-    public ArrayList<Module<?>> deserialize(TokenStream stream) {
+    public List<Module<?>> deserialize(TokenStream stream) {
         throw new UnsupportedOperationException("Use deserialize(String, ArrayList<Module<?>>) instead");
     }
 
-    public void deserialize(String source, ArrayList<Module<?>> modules) {
+    public void deserialize(String source, List<Module<?>> modules) {
         TokenStream stream = new TokenStream(source);
         stream.expect(TokenType.L_BRACE);
         while (stream.peek().type() != TokenType.R_BRACE) {

@@ -73,6 +73,11 @@ public final class ProximityModule extends Module<ProximityModule.Config> {
     }
 
     @Override
+    public String getDisplayName() {
+        return "Proximity";
+    }
+
+    @Override
     public void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
         LiteralArgumentBuilder<FabricClientCommandSource> distanceCommand = literal("distance");
         LiteralArgumentBuilder<FabricClientCommandSource> priorityCommand = literal("priority");

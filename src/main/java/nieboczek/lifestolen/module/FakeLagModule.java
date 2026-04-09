@@ -17,6 +17,11 @@ public final class FakeLagModule extends Module<FakeLagModule.Config> {
     }
 
     @Override
+    public String getDisplayName() {
+        return "FakeLag";
+    }
+
+    @Override
     public Serializer<Config> getSerializer() {
         return ObjectSerializer.of(Config::new)
                 .field("delayMsMin", IntegerSerializer.of(), c -> c.delayMsMin, (c, v) -> c.delayMsMin = v)

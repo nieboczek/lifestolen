@@ -2,14 +2,12 @@ package nieboczek.lifestolen.config;
 
 import net.minecraft.client.Minecraft;
 import nieboczek.lifestolen.Lifestolen;
-import nieboczek.lifestolen.module.Module;
 import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 
 public final class ConfigManager {
     private ConfigManager() {
@@ -28,12 +26,12 @@ public final class ConfigManager {
         return config;
     }
 
-    public static void saveConfigs(ArrayList<Module<?>> modules) {
+    public static void saveConfig() {
         File config = getConfigFile();
 
-        MainConfigSerializer serializer = new MainConfigSerializer(modules);
+        MainConfigSerializer serializer = new MainConfigSerializer(Lifestolen.modules);
         SerializedStringBuilder builder = new SerializedStringBuilder();
-        serializer.serialize(modules, builder);
+        serializer.serialize(Lifestolen.modules, builder);
 
         try (FileWriter writer = new FileWriter(config)) {
             writer.write(builder.getString());
@@ -44,7 +42,7 @@ public final class ConfigManager {
         Lifestolen.LOG.info("[ConfigManager::saveConfigs] All configs saved");
     }
 
-    public static void loadConfigs(ArrayList<Module<?>> modules) {
+    public static void loadConfig() {
         File config = getConfigFile();
 
         String source;
@@ -54,10 +52,9 @@ public final class ConfigManager {
             throw new RuntimeException(e);
         }
 
-        MainConfigSerializer serializer = new MainConfigSerializer(modules);
-        serializer.deserialize(source, modules);
+        MainConfigSerializer serializer = new MainConfigSerializer(Lifestolen.modules);
+        serializer.deserialize(source, Lifestolen.modules);
 
-        Lifestolen.reloadedConfig();
         Lifestolen.LOG.info("[ConfigManager::loadConfigs] All configs loaded");
     }
 }

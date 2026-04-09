@@ -1,5 +1,7 @@
 package nieboczek.lifestolen.module;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -8,14 +10,17 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import nieboczek.lifestolen.Formatting;
 import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.serializer.base.ISerializable;
 
 public abstract class Module<C> implements ISerializable<C> {
     public Minecraft mc;
     public C cfg;
+    public int keybind;
 
     private boolean enabled;
+    private boolean bindHeld;
 
     public static void sendChat(CommandContext<FabricClientCommandSource> ctx, MutableComponent msg) {
         ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(msg.withColor(0xFFFFFF)));
@@ -34,6 +39,24 @@ public abstract class Module<C> implements ISerializable<C> {
         mc.player.displayClientMessage(msg, false);
     }
 
+
+    public final void handleBindPress(Window window) {
+        if (keybind <= 0) {
+            bindHeld = false;
+            return;
+        }
+
+        boolean pressed = InputConstants.isKeyDown(window, keybind);
+        boolean shouldToggle = pressed && !bindHeld;
+        bindHeld = pressed;
+
+        if (shouldToggle) {
+            toggle();
+            MutableComponent status = enabled ? Formatting.green("enabled") : Formatting.red("disabled");
+            Module.sendStatus(Component.literal(getDisplayName()).append(" ").append(status), mc);
+        }
+    }
+
     public final void toggle() {
         setEnabled(!enabled);
     }
@@ -49,6 +72,8 @@ public abstract class Module<C> implements ISerializable<C> {
 
 
     public abstract String getId();
+
+    public abstract String getDisplayName();
 
     public void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext context) {
     }

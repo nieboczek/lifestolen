@@ -38,6 +38,11 @@ public final class KillAuraModule extends Module<KillAuraModule.Config> {
     }
 
     @Override
+    public String getDisplayName() {
+        return "KillAura";
+    }
+
+    @Override
     public Serializer<Config> getSerializer() {
         return ObjectSerializer.of(Config::new)
                 .field("range", DoubleSerializer.of(), c -> c.range, (c, v) -> c.range = v)

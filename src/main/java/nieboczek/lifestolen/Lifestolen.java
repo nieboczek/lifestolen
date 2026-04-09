@@ -1,5 +1,6 @@
 package nieboczek.lifestolen;
 
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -16,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import nieboczek.lifestolen.config.ClientConfig;
 import nieboczek.lifestolen.config.ConfigManager;
+import nieboczek.lifestolen.gui.ModuleGui;
 import nieboczek.lifestolen.module.FakeLagModule;
 import nieboczek.lifestolen.module.KillAuraModule;
 import nieboczek.lifestolen.module.Module;
@@ -25,8 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-import static com.mojang.brigadier.arguments.StringArgumentType.getString;
-import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
+import static com.mojang.brigadier.arguments.StringArgumentType.*;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 import static nieboczek.lifestolen.Formatting.*;
@@ -34,9 +35,9 @@ import static nieboczek.lifestolen.Formatting.*;
 public final class Lifestolen implements ModInitializer {
     public static final Component MSG_PREFIX = red("LS ").append(darkGray("» "));
     public static final Logger LOG = LoggerFactory.getLogger("Lifestolen");
+    public static final ArrayList<Module<?>> modules = new ArrayList<>();
     public static ClientConfig cfg;
 
-    private static final ArrayList<Module<?>> modules = new ArrayList<>();
     private static String lastSender = null;
     private static int rainbowColorOffset = 0;
 
@@ -61,13 +62,6 @@ public final class Lifestolen implements ModInitializer {
         });
     }
 
-    public static void reloadedConfig() {
-        cfg.enabledModules.forEach((moduleId, enabled) -> {
-            Module<?> mod = modules.stream().filter(m -> moduleId.equals(m.getId())).findFirst().orElseThrow();
-            mod.setEnabled(enabled);
-        });
-    }
-
     @Override
     public void onInitialize() {
         modules.add(new ProximityModule());
@@ -85,38 +79,60 @@ public final class Lifestolen implements ModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-            if (mc.player == null)
-                return;
+            boolean canHandleBinds = true;
+            while (mc.options.keySocialInteractions.consumeClick()) {
+                canHandleBinds = false;
+                if (mc.screen instanceof ModuleGui moduleGui) {
+                    if (moduleGui.consumeOpenGuiToggleGuard()) {
+                        continue;
+                    }
 
-            for (Module<?> module : modules)
-                if (module.isEnabled())
+                    if (!moduleGui.isAwaitingBind()) {
+                        mc.setScreen(null);
+                    }
+                } else {
+                    mc.setScreen(new ModuleGui());
+                }
+            }
+
+            if (mc.player == null) return;
+
+            Window window = mc.getWindow();
+            for (Module<?> module : modules) {
+                if (module.isEnabled()) {
                     module.tick();
+                }
+                if (!canHandleBinds) module.handleBindPress(window);
+            }
         });
 
         ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
-            ConfigManager.loadConfigs(modules);
+            ConfigManager.loadConfig();
             modules.forEach(m -> m.mc = mc);
         });
 
         ClientPlayConnectionEvents.INIT.register((listener, mc) -> {
-            listener.getConnection().channel.pipeline().addBefore(
-                    "packet_handler",
-                    "lifestolen_packet_intercept",
-                    new FakeLagChannelHandler()
-            );
+            if (listener.getConnection().channel.pipeline().get("lifestolen_packet_intercept") == null)
+                listener.getConnection().channel.pipeline().addBefore(
+                        "packet_handler",
+                        "lifestolen_packet_intercept",
+                        new FakeLagChannelHandler()
+                );
         });
 
-        ClientLifecycleEvents.CLIENT_STOPPING.register($ -> ConfigManager.saveConfigs(modules));
+        ClientLifecycleEvents.CLIENT_STOPPING.register($ -> ConfigManager.saveConfig());
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildCtx) -> {
             dispatcher.register(createReplyCommand());
             dispatcher.register(createToggleCommand());
+            dispatcher.register(createBindCommand());
+
             dispatcher.register(literal("lifestolen:reload_configs").executes(ctx -> {
-                ConfigManager.loadConfigs(modules);
+                ConfigManager.loadConfig();
                 return 1;
             }));
             dispatcher.register(literal("lifestolen:save_configs").executes(ctx -> {
-                ConfigManager.saveConfigs(modules);
+                ConfigManager.saveConfig();
                 return 1;
             }));
 
@@ -124,6 +140,26 @@ public final class Lifestolen implements ModInitializer {
                 module.registerCommands(dispatcher, buildCtx);
             }
         });
+    }
+
+    private static LiteralArgumentBuilder<FabricClientCommandSource> createBindCommand() {
+        LiteralArgumentBuilder<FabricClientCommandSource> bindCommand = literal("bind");
+
+        for (Module<?> module : modules) {
+            bindCommand.then(literal(module.getId())
+                    .then(argument("key", string())
+                            .executes(ctx -> {
+                                int keycode = BindUtils.getKeycode(ctx.getArgument("key", String.class));
+                                module.keybind = keycode;
+
+                                MutableComponent keyLabel = niceBlue(BindUtils.getKeyLabel(keycode));
+                                Module.sendChat(ctx, Component.literal("Bound module " + module.getDisplayName() + " to ").append(keyLabel));
+                                return 1;
+                            })
+                    ));
+        }
+
+        return bindCommand;
     }
 
     private static LiteralArgumentBuilder<FabricClientCommandSource> createReplyCommand() {
@@ -147,7 +183,7 @@ public final class Lifestolen implements ModInitializer {
             toggleCommand.then(literal(module.getId()).executes(ctx -> {
                 module.toggle();
                 MutableComponent status = module.isEnabled() ? green("enabled") : red("disabled");
-                Module.sendChat(ctx, Component.literal("Module " + module.getId() + " has been ").append(status));
+                Module.sendChat(ctx, Component.literal("Module " + module.getDisplayName() + " has been ").append(status));
                 return 1;
             }));
         }
