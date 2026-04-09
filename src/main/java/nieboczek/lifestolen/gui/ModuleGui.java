@@ -90,14 +90,16 @@ public final class ModuleGui extends OneToOneScreen {
         return alpha | (red << 16) | (green << 8) | blue;
     }
 
-    private void renderRoundedBox(GuiGraphics graphics, int x0, int y0, int x1, int y1, float radius, int backgroundColor, int borderColor) {
-        RenderPipeline pipeline = RenderPipelines.GUI;
-        Matrix3x2f pose = new Matrix3x2f(graphics.pose());
-        ScreenRectangle scissor = graphics.scissorStack.peek();
-
-        graphics.guiRenderState.submitGuiElement(
-                new RoundedBoxRenderState(pipeline, TextureSetup.noTexture(), pose, x0, y0, x1, y1, radius, backgroundColor, borderColor, scissor)
-        );
+    private void renderRoundedBox(GuiGraphics graphics, int x, int y, int width, int height, float radius, int backgroundColor, int borderColor) {
+        graphics.guiRenderState.submitGuiElement(new RoundedBoxRenderState(
+                RenderPipelines.GUI,
+                TextureSetup.noTexture(),
+                new Matrix3x2f(graphics.pose()),
+                x, y, width, height,
+                radius,
+                backgroundColor, borderColor,
+                graphics.scissorStack.peek()
+        ));
     }
 
     @Override
