@@ -47,7 +47,7 @@ public final class FontLoader {
             );
             FT_Face face = FT_Face.create(pb.get());
 
-            TrueTypeGlyphProvider provider = new TrueTypeGlyphProvider(buf, face, 16f, 2f, 0f, 0f, "");
+            TrueTypeGlyphProvider provider = new TrueTypeGlyphProvider(buf, face, 16f, 8f, 0f, 0f, "");
             return new Font(new UIFontProvider(provider));
         } catch (IOException e) {
             throw new RuntimeException(e);
