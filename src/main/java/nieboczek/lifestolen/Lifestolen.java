@@ -99,10 +99,11 @@ public final class Lifestolen implements ModInitializer {
 
             Window window = mc.getWindow();
             for (Module<?> module : modules) {
-                if (module.isEnabled()) {
+                if (module.isEnabled())
                     module.tick();
-                }
-                if (!canHandleBinds) module.handleBindPress(window);
+
+                if (canHandleBinds)
+                    module.handleBindPress(window);
             }
         });
 
