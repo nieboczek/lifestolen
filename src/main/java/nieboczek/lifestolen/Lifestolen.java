@@ -1,6 +1,8 @@
 package nieboczek.lifestolen;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -12,11 +14,16 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.resources.Identifier;
 import nieboczek.lifestolen.config.ClientConfig;
 import nieboczek.lifestolen.config.ConfigManager;
+import nieboczek.lifestolen.gui.FontLoader;
 import nieboczek.lifestolen.gui.ModuleGui;
 import nieboczek.lifestolen.module.FakeLagModule;
 import nieboczek.lifestolen.module.KillAuraModule;
@@ -25,6 +32,7 @@ import nieboczek.lifestolen.module.ProximityModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.*;
@@ -33,10 +41,14 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.lit
 import static nieboczek.lifestolen.Formatting.*;
 
 public final class Lifestolen implements ModInitializer {
+    public static final String MOD_ID = "lifestolen";
+    public static final String CLIENT_NAME = "Lifestolen";
+
     public static final Component MSG_PREFIX = red("LS ").append(darkGray("» "));
-    public static final Logger LOG = LoggerFactory.getLogger("Lifestolen");
+    public static final Logger LOG = LoggerFactory.getLogger(CLIENT_NAME);
     public static final ArrayList<Module<?>> modules = new ArrayList<>();
     public static ClientConfig cfg;
+    public static Font uiFont;
 
     private static String lastSender = null;
     private static int rainbowColorOffset = 0;
@@ -68,82 +80,90 @@ public final class Lifestolen implements ModInitializer {
         modules.add(new KillAuraModule());
         modules.add(new FakeLagModule());
 
-        ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, bound, timestamp) -> {
-            if (bound.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
-                if (sender == null) {
-                    Module.sendChat(Component.literal("Sender was not set to the right player due to being null"), Minecraft.getInstance());
-                    return;
-                }
-                lastSender = sender.name();
-            }
-        });
-
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
-            boolean canHandleBinds = true;
-            while (mc.options.keySocialInteractions.consumeClick()) {
-                canHandleBinds = false;
-                if (mc.screen instanceof ModuleGui moduleGui) {
-                    if (moduleGui.consumeOpenGuiToggleGuard()) {
-                        continue;
-                    }
-
-                    if (!moduleGui.isAwaitingBind()) {
-                        mc.setScreen(null);
-                    }
-                } else {
-                    mc.setScreen(new ModuleGui());
-                }
-            }
-
-            if (mc.player == null) return;
-
-            Window window = mc.getWindow();
-            for (Module<?> module : modules) {
-                if (module.isEnabled())
-                    module.tick();
-
-                if (canHandleBinds)
-                    module.handleBindPress(window);
-            }
-        });
-
-        ClientLifecycleEvents.CLIENT_STARTED.register(mc -> {
-            ConfigManager.loadConfig();
-            modules.forEach(m -> m.mc = mc);
-        });
-
-        ClientPlayConnectionEvents.INIT.register((listener, mc) -> {
-            if (listener.getConnection().channel.pipeline().get("lifestolen_packet_intercept") == null)
-                listener.getConnection().channel.pipeline().addBefore(
-                        "packet_handler",
-                        "lifestolen_packet_intercept",
-                        new FakeLagChannelHandler()
-                );
-        });
-
-        ClientLifecycleEvents.CLIENT_STOPPING.register($ -> ConfigManager.saveConfig());
-
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildCtx) -> {
-            dispatcher.register(createReplyCommand());
-            dispatcher.register(createToggleCommand());
-            dispatcher.register(createBindCommand());
-
-            dispatcher.register(literal("lifestolen:reload_configs").executes(ctx -> {
-                ConfigManager.loadConfig();
-                return 1;
-            }));
-            dispatcher.register(literal("lifestolen:save_configs").executes(ctx -> {
-                ConfigManager.saveConfig();
-                return 1;
-            }));
-
-            for (Module<?> module : modules) {
-                module.registerCommands(dispatcher, buildCtx);
-            }
-        });
+        ClientLifecycleEvents.CLIENT_STARTED.register(this::clientStarted);
+        ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> ConfigManager.saveConfig());
+        ClientTickEvents.END_CLIENT_TICK.register(this::clientTick);
+        ClientPlayConnectionEvents.INIT.register(this::initializeConnection);
+        ClientReceiveMessageEvents.CHAT.register(this::receiveChatMessage);
+        ClientCommandRegistrationCallback.EVENT.register(this::registerCommands);
     }
 
-    private static LiteralArgumentBuilder<FabricClientCommandSource> createBindCommand() {
+    private void clientStarted(Minecraft mc) {
+        ConfigManager.loadConfig();
+        LOG.info("[Lifestolen::clientStarted] Loading UI font");
+        uiFont = FontLoader.loadUiFont();
+        LOG.info("[Lifestolen::clientStarted] UI font loaded");
+        modules.forEach(m -> m.mc = mc);
+    }
+
+    private void clientTick(Minecraft mc) {
+        boolean canHandleBinds = true;
+        while (mc.options.keySocialInteractions.consumeClick()) {
+            canHandleBinds = false;
+            if (mc.screen instanceof ModuleGui moduleGui) {
+                if (moduleGui.consumeOpenGuiToggleGuard()) {
+                    continue;
+                }
+
+                if (!moduleGui.isAwaitingBind()) {
+                    mc.setScreen(null);
+                }
+            } else {
+                mc.setScreen(new ModuleGui());
+            }
+        }
+
+        if (mc.player == null) return;
+
+        Window window = mc.getWindow();
+        for (Module<?> module : modules) {
+            if (module.isEnabled())
+                module.tick();
+
+            if (canHandleBinds)
+                module.handleBindPress(window);
+        }
+    }
+
+    private void initializeConnection(ClientPacketListener listener, Minecraft mc) {
+        if (listener.getConnection().channel.pipeline().get("lifestolen_packet_intercept") == null)
+            listener.getConnection().channel.pipeline().addBefore(
+                    "packet_handler",
+                    "lifestolen_packet_intercept",
+                    new FakeLagChannelHandler()
+            );
+    }
+
+    private void receiveChatMessage(Component message, PlayerChatMessage signedMessage, GameProfile sender, ChatType.Bound bound, Instant timestamp) {
+        if (bound.chatType().is(ChatType.MSG_COMMAND_INCOMING)) {
+            if (sender == null) {
+                Module.sendChat(Component.literal("Sender was not set to the right player due to being null"), Minecraft.getInstance());
+                return;
+            }
+            lastSender = sender.name();
+        }
+    }
+
+    private void registerCommands(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext buildCtx) {
+        dispatcher.register(createReplyCommand());
+        dispatcher.register(createToggleCommand());
+        dispatcher.register(createBindCommand());
+
+        dispatcher.register(literal("lifestolen:reload_configs").executes(ctx -> {
+            ConfigManager.loadConfig();
+            return 1;
+        }));
+        dispatcher.register(literal("lifestolen:save_configs").executes(ctx -> {
+            ConfigManager.saveConfig();
+            return 1;
+        }));
+
+        for (Module<?> module : modules) {
+            module.registerCommands(dispatcher, buildCtx);
+        }
+    }
+
+    private LiteralArgumentBuilder<FabricClientCommandSource> createBindCommand() {
         LiteralArgumentBuilder<FabricClientCommandSource> bindCommand = literal("bind");
 
         for (Module<?> module : modules) {
@@ -163,7 +183,7 @@ public final class Lifestolen implements ModInitializer {
         return bindCommand;
     }
 
-    private static LiteralArgumentBuilder<FabricClientCommandSource> createReplyCommand() {
+    private LiteralArgumentBuilder<FabricClientCommandSource> createReplyCommand() {
         return literal("r")
                 .then(argument("message", greedyString())
                         .executes(ctx -> {
@@ -177,7 +197,7 @@ public final class Lifestolen implements ModInitializer {
                         }));
     }
 
-    private static LiteralArgumentBuilder<FabricClientCommandSource> createToggleCommand() {
+    private LiteralArgumentBuilder<FabricClientCommandSource> createToggleCommand() {
         LiteralArgumentBuilder<FabricClientCommandSource> toggleCommand = literal("t");
 
         for (Module<?> module : modules) {
@@ -190,5 +210,9 @@ public final class Lifestolen implements ModInitializer {
         }
 
         return toggleCommand;
+    }
+
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Lifestolen.MOD_ID, path);
     }
 }
