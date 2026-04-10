@@ -39,7 +39,7 @@ public final class ConfigManager {
             throw new RuntimeException(e);
         }
 
-        Lifestolen.LOG.info("[ConfigManager::saveConfigs] All configs saved");
+        Lifestolen.log.info("[ConfigManager::saveConfigs] All configs saved");
     }
 
     public static void loadConfig() {
@@ -55,6 +55,6 @@ public final class ConfigManager {
         MainConfigSerializer serializer = new MainConfigSerializer(Lifestolen.modules);
         serializer.deserialize(source, Lifestolen.modules);
 
-        Lifestolen.LOG.info("[ConfigManager::loadConfigs] All configs loaded");
+        Lifestolen.log.info("[ConfigManager::loadConfigs] All configs loaded");
     }
 }

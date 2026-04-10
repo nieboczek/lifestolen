@@ -16,7 +16,7 @@ public class FontTextureMixin {
     public FilterMode init(FilterMode filterMode, @Local(argsOnly = true) Supplier<String> identifierSupplier) {
         String identifier = identifierSupplier.get();
         if (identifier.startsWith(Lifestolen.MOD_ID)) {
-            Lifestolen.LOG.info("[FontTextureMixin::init] Set filter mode of {} to FilterMode.LINEAR", identifier);
+            Lifestolen.log.info("[FontTextureMixin::init] Set filter mode of {} to FilterMode.LINEAR", identifier);
             return FilterMode.LINEAR;
         }
         return filterMode;

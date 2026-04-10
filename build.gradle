@@ -1,14 +1,13 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
+	id "org.jetbrains.kotlin.jvm" version "2.3.20"
 }
 
 version = project.mod_version
 group = project.maven_group
-
-base {
-	archivesName = project.archives_base_name
-}
 
 repositories {
 	// Add repositories to retrieve artifacts from in here.
@@ -26,14 +25,7 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-	testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	
-}
-
-test {
-	useJUnitPlatform()
+	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 }
 
 processResources {
@@ -48,6 +40,12 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
 }
 
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_21
+	}
+}
+
 java {
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
@@ -59,10 +57,10 @@ java {
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
+	inputs.property "projectName", project.name
 
 	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
+		rename { "${it}_${project.name}"}
 	}
 }
 
@@ -70,7 +68,6 @@ jar {
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
 			from components.java
 		}
 	}

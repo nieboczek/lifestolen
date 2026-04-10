@@ -23,11 +23,11 @@ public abstract class Module<C> implements ISerializable<C> {
     private boolean bindHeld;
 
     public static void sendChat(CommandContext<FabricClientCommandSource> ctx, MutableComponent msg) {
-        ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(msg.withColor(0xFFFFFF)));
+        ctx.getSource().sendFeedback(Lifestolen.msgPrefix.copy().append(msg.withColor(0xFFFFFF)));
     }
 
     public static void sendChat(CommandContext<FabricClientCommandSource> ctx, String msg) {
-        ctx.getSource().sendFeedback(Lifestolen.MSG_PREFIX.copy().append(Component.literal(msg).withColor(0xFFFFFF)));
+        ctx.getSource().sendFeedback(Lifestolen.msgPrefix.copy().append(Component.literal(msg).withColor(0xFFFFFF)));
     }
 
     // TODO: Remove and use custom widgets instead
