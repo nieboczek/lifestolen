@@ -59,8 +59,8 @@ public final class MainConfigSerializer extends Serializer<List<Module<?>>> {
             stream.expect(TokenType.EQUAL);
             Serializer<Object> serializer = moduleSerializers.get(moduleId);
             if (serializer != null) {
+                Lifestolen.LOG.info("[MainConfigSerializer::deserialize] Deserializing {}", moduleId);
                 Object config = serializer.deserialize(stream);
-                Lifestolen.LOG.info("Deserialized {}", moduleId);
                 if (moduleId.equals(ClientConfig.ID)) {
                     Lifestolen.cfg = (ClientConfig) config;
                 } else {
