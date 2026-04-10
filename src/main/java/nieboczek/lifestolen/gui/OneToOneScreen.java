@@ -3,6 +3,8 @@ package nieboczek.lifestolen.gui;
 import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,8 +20,8 @@ public abstract class OneToOneScreen extends Screen {
     private double lastHorizontalAmount;
     private double lastVerticalAmount;
 
-    protected OneToOneScreen(Component component) {
-        super(component);
+    protected OneToOneScreen(Component component, Font font) {
+        super(Minecraft.getInstance(), font, component);
     }
 
     @Override
@@ -74,15 +76,20 @@ public abstract class OneToOneScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent mouse, double mouseX, double mouseY) {
+    public boolean mouseDragged(MouseButtonEvent mouse, double draggedDistanceX, double draggedDistanceY) {
         int guiScale = minecraft.getWindow().getGuiScale();
-        double scaledMouseX = mouseX * guiScale;
-        double scaledMouseY = mouseY * guiScale;
+        double scaledDistanceX = draggedDistanceX * guiScale;
+        double scaledDistanceY = draggedDistanceY * guiScale;
 
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
+        lastMouseX = draggedDistanceX;
+        lastMouseY = draggedDistanceY;
 
-        return mouseDraggedOneToOne(scaleMouseEvent(mouse), scaledMouseX, scaledMouseY);
+        return mouseDraggedOneToOne(scaleMouseEvent(mouse), scaledDistanceX, scaledDistanceY);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent mouse) {
+        return mouseReleasedOneToOne(scaleMouseEvent(mouse));
     }
 
     @Override
@@ -110,8 +117,14 @@ public abstract class OneToOneScreen extends Screen {
         return bl;
     }
 
-    protected boolean mouseDraggedOneToOne(MouseButtonEvent event, double mouseX, double mouseY) {
+    protected boolean mouseDraggedOneToOne(MouseButtonEvent event, double draggedDistanceX, double draggedDistanceY) {
         boolean bl = super.mouseDragged(lastUnscaledEvent, lastMouseX, lastMouseY);
+        lastUnscaledEvent = null;
+        return bl;
+    }
+
+    protected boolean mouseReleasedOneToOne(MouseButtonEvent event) {
+        boolean bl = super.mouseReleased(lastUnscaledEvent);
         lastUnscaledEvent = null;
         return bl;
     }
