@@ -22,8 +22,8 @@ import nieboczek.lifestolen.Formatting
 import java.util.function.Predicate
 
 object ProximityModule : Module("Proximity", Category.COMBAT) {
-    val playerWhitelist = mutableListOf<String>()
-    val entities = mutableMapOf<EntityType<*>, EntityParameters>()
+    val playerWhitelist by list("Player Whitelist", mutableListOf<String>())
+    val entities by map("Entities", mutableMapOf<EntityType<*>, EntityParameters>())
 
     private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
 
@@ -32,7 +32,7 @@ object ProximityModule : Module("Proximity", Category.COMBAT) {
         var entityCandidate: Entity? = null
         var paramsCandidate: EntityParameters? = null
         var distanceCandidate = 0.0
-        val entities = player.level().getEntities(mc.player, BIG_AABB, Predicate { _: Entity? -> true })
+        val entities = player.level().getEntities(mc.player, BIG_AABB, Predicate { _ -> true })
 
         for (entity in entities) {
             val params = this.entities[entity.type] ?: continue

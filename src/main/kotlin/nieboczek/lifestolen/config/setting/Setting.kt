@@ -8,4 +8,8 @@ open class Setting<T>(val name: String, default: T, val suffix: String = "") {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
         return value
     }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        this.value = value
+    }
 }

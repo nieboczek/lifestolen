@@ -12,6 +12,8 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import nieboczek.lifestolen.Formatting
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.ListSetting
+import nieboczek.lifestolen.config.setting.MapSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
 import nieboczek.lifestolen.config.setting.Setting
@@ -39,9 +41,10 @@ abstract class Module(val id: String, val category: Category) {
     val player
         get() = mc.player!!
 
-    var keybind = 0
-    var enabled = false
     val settings = ArrayList<Setting<*>>()
+
+    var keybind by int("Keybind", 0, 0..Int.MAX_VALUE)
+    var enabled by boolean("Enabled", false)
 
     private var bindHeld = false
 
@@ -89,6 +92,14 @@ abstract class Module(val id: String, val category: Category) {
 
     fun float(name: String, default: Float, allowed: ClosedFloatingPointRange<Float>, suffix: String = ""): Setting<Float> {
         return addSetting(NumberSetting(name, default, allowed, suffix))
+    }
+
+    fun <T> list(name: String, default: MutableList<T>): Setting<MutableList<T>> {
+        return addSetting(ListSetting(name, default))
+    }
+
+    fun <K, V> map(name: String, default: MutableMap<K, V>): Setting<MutableMap<K, V>> {
+        return addSetting(MapSetting(name, default))
     }
 
     private fun <T> addSetting(setting: Setting<T>): Setting<T> {
