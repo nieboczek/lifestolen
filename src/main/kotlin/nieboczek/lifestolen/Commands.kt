@@ -1,6 +1,5 @@
 package nieboczek.lifestolen
 
-import com.mojang.brigadier.Command
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
@@ -11,7 +10,10 @@ import nieboczek.lifestolen.module.Module
 
 object Commands {
     @Suppress("unchecked_cast")
-    fun <T: Any> getResourceHolder(argName: String, ctx: CommandContext<FabricClientCommandSource>): Holder.Reference<T> {
+    fun <T : Any> getResourceHolder(
+        argName: String,
+        ctx: CommandContext<FabricClientCommandSource>
+    ): Holder.Reference<T> {
         return ctx.getArgument(argName, Holder.Reference::class.java) as Holder.Reference<T>
     }
 
@@ -23,7 +25,7 @@ object Commands {
 
     @JvmStatic
     fun stringListManipulator(
-        list: MutableList<String?>,
+        list: MutableList<String>,
         commandName: String,
         elementName: String,
         objectName: String

@@ -10,12 +10,13 @@ import kotlin.math.sin
 object Renderer3d {
     @JvmField
     var bufferSource: MultiBufferSource.BufferSource? = null
+
     @JvmField
     var poseStack: PoseStack? = null
+
     @JvmField
     var tickDelta: Float = 0f
 
-    @JvmStatic
     fun computePartialTickPos(oldPos: Vec3, pos: Vec3, cameraPos: Vec3): Vec3 {
         val newX = oldPos.x + (pos.x - oldPos.x) * tickDelta - cameraPos.x
         val newY = oldPos.y + (pos.y - oldPos.y) * tickDelta - cameraPos.y
@@ -23,7 +24,6 @@ object Renderer3d {
         return Vec3(newX, newY, newZ)
     }
 
-    @JvmStatic
     fun renderCircleOutline(segments: Int, color: Int, radius: Float, pos: Vec3) {
         val consumer = bufferSource!!.getBuffer(RenderTypes.lines())
         val stack = poseStack!!

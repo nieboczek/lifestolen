@@ -48,15 +48,13 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
     private var currentDelay = 0
 
     override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-        if (msg !is Packet<*> || !FakeLagModule.INSTANCE.isEnabled) {
+        if (msg !is Packet<*> || !FakeLagModule.enabled) {
             super.write(ctx, msg, promise)
             return
         }
 
-        val cfg = FakeLagModule.INSTANCE.cfg
         val currentTime = System.currentTimeMillis()
-
-        if (currentTime - lastFlushTime < cfg.recoilTimeMs) {
+        if (currentTime - lastFlushTime < FakeLagModule.recoilTime) {
             super.write(ctx, msg, promise)
             return
         }
@@ -73,7 +71,7 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
 
         val firstPacket = packetQueue.peekFirst()
         if (firstPacket != null && currentTime - firstPacket.timestamp > currentDelay) {
-            currentDelay = random.nextInt(cfg.delayMsMin, cfg.delayMsMax + 1)
+            currentDelay = random.nextInt(FakeLagModule.delay.first, FakeLagModule.delay.last + 1)
             flushQueue(msg, ctx, promise)
             return
         }

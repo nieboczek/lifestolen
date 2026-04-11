@@ -43,15 +43,11 @@ class Lifestolen : ModInitializer {
         const val CLIENT_NAME: String = "Lifestolen"
 
         @JvmField
-        val msgPrefix: Component = Formatting.red("LS ").append(Formatting.darkGray("» "))
-        @JvmField
         val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
-        @JvmField
-        val modules: ArrayList<Module<*>> = ArrayList()
+        val msgPrefix: Component = Formatting.red("LS ").append(Formatting.darkGray("» "))
+        val modules: ArrayList<Module> = ArrayList()
 
-        @JvmField
         var cfg: ClientConfig? = null
-        @JvmField
         var uiFont: Font? = null
 
         private var lastSender: String? = null
@@ -68,32 +64,28 @@ class Lifestolen : ModInitializer {
                 context.drawString(font, "KupaDupa v2.1.3.7", 4, 4, color, true)
             }
 
-            modules.forEach { if (it.isEnabled) it.render2d(context) }
+            modules.forEach { if (it.enabled) it.render2d(context) }
         }
 
         @JvmStatic
         fun render3d() {
-            modules.forEach { if (it.isEnabled) it.render3d() }
+            modules.forEach { if (it.enabled) it.render3d() }
         }
 
         @JvmStatic
-        fun id(path: String): Identifier {
-            return Identifier.fromNamespaceAndPath(MOD_ID, path)
+        fun id(id: String): Identifier {
+            return Identifier.fromNamespaceAndPath(MOD_ID, id)
         }
     }
 
     override fun onInitialize() {
-        modules.add(ProximityModule())
-        modules.add(KillAuraModule())
-        modules.add(FakeLagModule())
-
-        ClientLifecycleEvents.CLIENT_STARTED.register(ClientStarted { mc: Minecraft -> this.clientStarted(mc) })
-        ClientLifecycleEvents.CLIENT_STOPPING.register(ClientStopping { _: Minecraft -> ConfigManager.saveConfig() })
-        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { mc: Minecraft -> this.clientTick(mc) })
-        ClientPlayConnectionEvents.INIT.register(ClientPlayConnectionEvents.Init { listener: ClientPacketListener?, _: Minecraft ->
+        ClientLifecycleEvents.CLIENT_STARTED.register(ClientStarted { _ -> this.clientStarted() })
+        ClientLifecycleEvents.CLIENT_STOPPING.register(ClientStopping { _ -> ConfigManager.saveConfig() })
+        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { mc -> this.clientTick(mc) })
+        ClientPlayConnectionEvents.INIT.register(ClientPlayConnectionEvents.Init { listener, _ ->
             this.initializeConnection(listener)
         })
-        ClientReceiveMessageEvents.CHAT.register(ClientReceiveMessageEvents.Chat { _: Component?, _: PlayerChatMessage?, sender: GameProfile?, bound: ChatType.Bound?, _: Instant? ->
+        ClientReceiveMessageEvents.CHAT.register(ClientReceiveMessageEvents.Chat { _, _, sender: GameProfile?, bound: ChatType.Bound?, _ ->
             this.receiveChatMessage(sender, bound)
         })
         ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource>, buildCtx: CommandBuildContext ->
@@ -101,14 +93,16 @@ class Lifestolen : ModInitializer {
         })
     }
 
-    private fun clientStarted(mc: Minecraft?) {
+    private fun clientStarted() {
+        modules.add(ProximityModule)
+        modules.add(KillAuraModule)
+        modules.add(FakeLagModule)
+
         ConfigManager.loadConfig()
         log.info("[Lifestolen::clientStarted] Loading UI font")
         uiFont = FontLoader.loadUiFont()
         log.info("[Lifestolen::clientStarted] UI font loaded")
-        modules.forEach { it.mc = mc }
     }
-
 
     private fun clientTick(mc: Minecraft) {
         var canHandleBinds = true
@@ -132,13 +126,13 @@ class Lifestolen : ModInitializer {
 
         val window = mc.window
         for (module in modules) {
-            if (module.isEnabled) module.tick()
+            if (module.enabled) module.tick()
             if (canHandleBinds) module.handleBindPress(window)
         }
     }
 
-    private fun initializeConnection(listener: ClientPacketListener?) {
-        if (listener!!.getConnection().channel.pipeline().get("lifestolen_packet_intercept") == null) {
+    private fun initializeConnection(listener: ClientPacketListener) {
+        if (listener.getConnection().channel.pipeline().get("lifestolen_packet_intercept") == null) {
             listener.getConnection().channel.pipeline().addBefore(
                 "packet_handler",
                 "lifestolen_packet_intercept",
@@ -193,18 +187,18 @@ class Lifestolen : ModInitializer {
 
         for (module in modules) {
             bindCommand.then(
-                ClientCommandManager.literal(module.getId())
+                ClientCommandManager.literal(module.id)
                     .then(
                         ClientCommandManager.argument<String>("key", StringArgumentType.string())
-                            .executes { ctx: CommandContext<FabricClientCommandSource?>? ->
+                            .executes { ctx: CommandContext<FabricClientCommandSource> ->
                                 val keycode =
-                                    BindUtils.getKeycode(ctx!!.getArgument("key", String::class.java))
+                                    BindUtils.getKeycode(ctx.getArgument("key", String::class.java))
                                 module.keybind = keycode
 
                                 val keyLabel = Formatting.niceBlue(BindUtils.getKeyLabel(keycode))
                                 Module.sendChat(
                                     ctx,
-                                    Component.literal("Bound module " + module.getDisplayName() + " to ")
+                                    Component.literal("Bound module ${module.id} to ")
                                         .append(keyLabel)
                                 )
                                 1
@@ -237,13 +231,13 @@ class Lifestolen : ModInitializer {
 
         for (module in modules) {
             toggleCommand.then(
-                ClientCommandManager.literal(module.getId())
+                ClientCommandManager.literal(module.id)
                     .executes { ctx: CommandContext<FabricClientCommandSource> ->
                         module.toggle()
-                        val status = if (module.isEnabled) Formatting.green("enabled") else Formatting.red("disabled")
+                        val status = if (module.enabled) Formatting.green("enabled") else Formatting.red("disabled")
                         Module.sendChat(
                             ctx,
-                            Component.literal("Module " + module.getDisplayName() + " has been ").append(status)
+                            Component.literal("Module ${module.id} has been ").append(status)
                         )
                         1
                     }
