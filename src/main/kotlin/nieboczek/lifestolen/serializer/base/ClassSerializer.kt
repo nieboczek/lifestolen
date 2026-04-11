@@ -21,7 +21,7 @@ class ClassSerializer<T>(val constructor: Supplier<T>) : Serializer<T>() {
     }
 
     override fun serialize(value: T, builder: SerializedStringBuilder) {
-        builder.text("{{").newLine()
+        builder.text("{").newLine()
         builder.indent()
         for (entry in fields) {
             builder.indented()
@@ -30,11 +30,10 @@ class ClassSerializer<T>(val constructor: Supplier<T>) : Serializer<T>() {
             builder.text(';').newLine()
         }
         builder.unindent()
-        builder.indented().text("}}")
+        builder.indented().text("}")
     }
 
     override fun deserialize(stream: TokenStream): T {
-        stream.expect(TokenType.L_BRACE)
         stream.expect(TokenType.L_BRACE)
         val obj = constructor.get()
 
@@ -55,7 +54,6 @@ class ClassSerializer<T>(val constructor: Supplier<T>) : Serializer<T>() {
             stream.expect(TokenType.SEMICOLON)
         }
 
-        stream.expect(TokenType.R_BRACE)
         stream.expect(TokenType.R_BRACE)
         return obj
     }
