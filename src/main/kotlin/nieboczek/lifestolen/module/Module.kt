@@ -10,7 +10,7 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import nieboczek.lifestolen.Formatting
+import nieboczek.lifestolen.util.Formatting
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.ListSetting
 import nieboczek.lifestolen.config.setting.MapSetting

@@ -1,4 +1,4 @@
-package nieboczek.lifestolen
+package nieboczek.lifestolen.util
 
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent

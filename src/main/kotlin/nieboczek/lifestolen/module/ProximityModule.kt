@@ -17,9 +17,9 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
-import nieboczek.lifestolen.Commands
-import nieboczek.lifestolen.Commands.stringListManipulator
-import nieboczek.lifestolen.Formatting
+import nieboczek.lifestolen.util.Commands
+import nieboczek.lifestolen.util.Commands.stringListManipulator
+import nieboczek.lifestolen.util.Formatting
 import nieboczek.lifestolen.serializer.base.ClassSerializer
 import nieboczek.lifestolen.serializer.base.DoubleSerializer
 import nieboczek.lifestolen.serializer.base.IntSerializer

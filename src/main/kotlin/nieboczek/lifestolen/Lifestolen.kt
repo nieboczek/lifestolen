@@ -33,6 +33,7 @@ import nieboczek.lifestolen.module.KillAuraModule
 import nieboczek.lifestolen.module.Module
 import nieboczek.lifestolen.module.ProximityModule
 import nieboczek.lifestolen.util.BindUtils
+import nieboczek.lifestolen.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color

@@ -5,7 +5,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
-import nieboczek.lifestolen.Renderer3d
+import nieboczek.lifestolen.util.Renderer3d
 import java.util.*
 import java.util.function.Predicate
 

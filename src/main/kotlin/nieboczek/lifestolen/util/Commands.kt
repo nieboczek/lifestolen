@@ -1,4 +1,4 @@
-package nieboczek.lifestolen
+package nieboczek.lifestolen.util
 
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
@@ -17,13 +17,11 @@ object Commands {
         return ctx.getArgument(argName, Holder.Reference::class.java) as Holder.Reference<T>
     }
 
-    @JvmStatic
     @Suppress("unchecked_cast")
     fun <T> getResource(argName: String?, ctx: CommandContext<FabricClientCommandSource>): T {
         return ctx.getArgument(argName, Holder.Reference::class.java).value() as T
     }
 
-    @JvmStatic
     fun stringListManipulator(
         list: MutableList<String>,
         commandName: String,
@@ -32,7 +30,7 @@ object Commands {
     ): LiteralArgumentBuilder<FabricClientCommandSource?>? {
         return ClientCommandManager.literal(commandName)
             .executes { ctx: CommandContext<FabricClientCommandSource> ->
-                Module.sendChat(ctx, "Contents of $objectName: $list")
+                Module.Companion.sendChat(ctx, "Contents of $objectName: $list")
                 1
             }.then(
                 ClientCommandManager.literal("add")
@@ -41,7 +39,7 @@ object Commands {
                             .executes { ctx: CommandContext<FabricClientCommandSource> ->
                                 val string = StringArgumentType.getString(ctx, elementName)
                                 list.add(string)
-                                Module.sendChat(ctx, "Added $string to $objectName")
+                                Module.Companion.sendChat(ctx, "Added $string to $objectName")
                                 1
                             }
                     )
@@ -52,7 +50,7 @@ object Commands {
                             .executes { ctx: CommandContext<FabricClientCommandSource> ->
                                 val string = StringArgumentType.getString(ctx, elementName)
                                 list.remove(string)
-                                Module.sendChat(ctx, "Removed $string from $objectName")
+                                Module.Companion.sendChat(ctx, "Removed $string from $objectName")
                                 1
                             }
                     )
