@@ -17,6 +17,12 @@ import nieboczek.lifestolen.config.setting.MapSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
 import nieboczek.lifestolen.config.setting.Setting
+import nieboczek.lifestolen.serializer.base.BooleanSerializer
+import nieboczek.lifestolen.serializer.base.DoubleSerializer
+import nieboczek.lifestolen.serializer.base.FloatSerializer
+import nieboczek.lifestolen.serializer.base.IntRangeSerializer
+import nieboczek.lifestolen.serializer.base.IntSerializer
+import nieboczek.lifestolen.serializer.base.Serializer
 
 abstract class Module(val id: String, val category: Category) {
     companion object {
@@ -43,8 +49,8 @@ abstract class Module(val id: String, val category: Category) {
 
     val settings = ArrayList<Setting<*>>()
 
-    var keybind by int("Keybind", 0, 0..Int.MAX_VALUE)
     var enabled by boolean("Enabled", false)
+    var keybind by int("Keybind", 0, 0..Int.MAX_VALUE)
 
     private var bindHeld = false
 
@@ -75,31 +81,31 @@ abstract class Module(val id: String, val category: Category) {
     }
 
     fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = ""): Setting<IntRange> {
-        return addSetting(RangeSetting(name, default, allowed, suffix))
+        return addSetting(RangeSetting(name, default, allowed, suffix, IntRangeSerializer()))
     }
 
     fun int(name: String, default: Int, allowed: IntRange, suffix: String = ""): Setting<Int> {
-        return addSetting(NumberSetting(name, default, allowed, suffix))
+        return addSetting(NumberSetting(name, default, allowed, suffix, IntSerializer()))
     }
 
     fun double(name: String, default: Double, allowed: ClosedFloatingPointRange<Double>, suffix: String = ""): Setting<Double> {
-        return addSetting(NumberSetting(name, default, allowed, suffix))
+        return addSetting(NumberSetting(name, default, allowed, suffix, DoubleSerializer()))
     }
 
     fun boolean(name: String, default: Boolean): Setting<Boolean> {
-        return addSetting(Setting(name, default))
+        return addSetting(Setting(name, default, BooleanSerializer()))
     }
 
     fun float(name: String, default: Float, allowed: ClosedFloatingPointRange<Float>, suffix: String = ""): Setting<Float> {
-        return addSetting(NumberSetting(name, default, allowed, suffix))
+        return addSetting(NumberSetting(name, default, allowed, suffix, FloatSerializer()))
     }
 
-    fun <T> list(name: String, default: MutableList<T>): Setting<MutableList<T>> {
-        return addSetting(ListSetting(name, default))
+    fun <T> list(name: String, default: MutableList<T>, elementSerializer: Serializer<T>): Setting<MutableList<T>> {
+        return addSetting(ListSetting(name, default, elementSerializer))
     }
 
-    fun <K, V> map(name: String, default: MutableMap<K, V>): Setting<MutableMap<K, V>> {
-        return addSetting(MapSetting(name, default))
+    fun <K, V> map(name: String, default: MutableMap<K, V>, keySerializer: Serializer<K>, valueSerializer: Serializer<V>): Setting<MutableMap<K, V>> {
+        return addSetting(MapSetting(name, default, keySerializer, valueSerializer))
     }
 
     private fun <T> addSetting(setting: Setting<T>): Setting<T> {

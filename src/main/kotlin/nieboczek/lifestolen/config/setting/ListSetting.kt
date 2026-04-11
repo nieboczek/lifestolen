@@ -1,6 +1,10 @@
 package nieboczek.lifestolen.config.setting
 
-open class ListSetting<T>(
+import nieboczek.lifestolen.serializer.base.ListSerializer
+import nieboczek.lifestolen.serializer.base.Serializer
+
+class ListSetting<T>(
     name: String,
-    default: MutableList<T>
-) : Setting<MutableList<T>>(name, default)
+    default: MutableList<T>,
+    elementSerializer: Serializer<T>,
+) : Setting<MutableList<T>>(name, default, ListSerializer(elementSerializer))

@@ -21,7 +21,7 @@ data class RoundedBoxRenderState(
     val radius: Float,
     val backgroundColor: Int,
     val borderColor: Int,
-    val scissorArea: ScreenRectangle
+    val scissorArea: ScreenRectangle?
 ) : GuiElementRenderState {
     override fun buildVertices(consumer: VertexConsumer) {
         if (width <= 0f || height <= 0f) return
@@ -123,7 +123,7 @@ data class RoundedBoxRenderState(
         return textureSetup
     }
 
-    override fun scissorArea(): ScreenRectangle {
+    override fun scissorArea(): ScreenRectangle? {
         return scissorArea
     }
 

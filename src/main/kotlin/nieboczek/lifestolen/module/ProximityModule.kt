@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.commands.arguments.ResourceArgument
 import net.minecraft.core.Holder
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
@@ -19,11 +20,23 @@ import net.minecraft.world.phys.AABB
 import nieboczek.lifestolen.Commands
 import nieboczek.lifestolen.Commands.stringListManipulator
 import nieboczek.lifestolen.Formatting
+import nieboczek.lifestolen.serializer.base.ClassSerializer
+import nieboczek.lifestolen.serializer.base.DoubleSerializer
+import nieboczek.lifestolen.serializer.base.IntSerializer
+import nieboczek.lifestolen.serializer.base.StringSerializer
+import nieboczek.lifestolen.serializer.minecraft.ResourceSerializer
 import java.util.function.Predicate
 
 object ProximityModule : Module("Proximity", Category.COMBAT) {
-    val playerWhitelist by list("Player Whitelist", mutableListOf<String>())
-    val entities by map("Entities", mutableMapOf<EntityType<*>, EntityParameters>())
+    val playerWhitelist by list("Player Whitelist", mutableListOf(), StringSerializer())
+    val entities by map(
+        "Entities",
+        mutableMapOf<EntityType<*>, EntityParameters>(),
+        ResourceSerializer(BuiltInRegistries.ENTITY_TYPE),
+        ClassSerializer { EntityParameters() }
+            .field("priority", IntSerializer(), { p -> p.priority }, { p, v -> p.priority = v })
+            .field("distance", DoubleSerializer(), { p -> p.distance }, { p, v -> p.distance = v })
+    )
 
     private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
 

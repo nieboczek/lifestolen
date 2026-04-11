@@ -201,7 +201,7 @@ class ModuleGui : OneToOneScreen(Component.literal(Lifestolen.CLIENT_NAME), Life
                 x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(),
                 radius,
                 backgroundColor, borderColor,
-                graphics.scissorStack.peek()!!
+                graphics.scissorStack.peek()
             )
         )
     }

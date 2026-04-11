@@ -1,8 +1,8 @@
-package nieboczek.lifestolen
+package nieboczek.lifestolen.util
 
 import com.mojang.blaze3d.platform.InputConstants
 import org.lwjgl.glfw.GLFW
-import java.util.*
+import java.util.Locale
 
 object BindUtils {
     fun getKeyLabel(keycode: Int): String {
