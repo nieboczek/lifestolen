@@ -13,7 +13,7 @@ public final class ClientConfig {
     public Map<String, Boolean> enabledModules;
 
     public static Serializer<ClientConfig> getSerializer() {
-        return ObjectSerializer.of(ClientConfig::new)
+        return ClassSerializer.of(ClientConfig::new)
                 .field("renderClientBrandText", BooleanSerializer.of(), c -> c.renderClientBrandText, (c, v) -> c.renderClientBrandText = v)
                 .field("textScale", FloatSerializer.of(), c -> c.textScale, (c, v) -> c.textScale = v)
                 .field("enabledModules", MapSerializer.of(IdentifierSerializer.of(), BooleanSerializer.of()), c -> c.enabledModules, (c, v) -> c.enabledModules = v);

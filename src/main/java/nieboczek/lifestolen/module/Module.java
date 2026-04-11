@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import nieboczek.lifestolen.Formatting;
 import nieboczek.lifestolen.Lifestolen;
-import nieboczek.lifestolen.serializer.base.ISerializable;
 
 public abstract class Module<C> implements ISerializable<C> {
     public Minecraft mc;

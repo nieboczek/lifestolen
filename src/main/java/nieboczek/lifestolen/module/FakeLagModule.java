@@ -1,9 +1,5 @@
 package nieboczek.lifestolen.module;
 
-import nieboczek.lifestolen.serializer.base.IntegerSerializer;
-import nieboczek.lifestolen.serializer.base.ObjectSerializer;
-import nieboczek.lifestolen.serializer.base.Serializer;
-
 public final class FakeLagModule extends Module<FakeLagModule.Config> {
     public static FakeLagModule INSTANCE;
 

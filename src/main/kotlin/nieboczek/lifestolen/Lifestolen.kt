@@ -151,7 +151,7 @@ class Lifestolen : ModInitializer {
         if (bound!!.chatType().`is`(ChatType.MSG_COMMAND_INCOMING)) {
             if (sender == null) {
                 Module.sendChat(
-                    Component.literal("Sender was not set to the right player due to being null"),
+                    Component.literal("Sender was not set correctly due to being null"),
                     Minecraft.getInstance()
                 )
                 return

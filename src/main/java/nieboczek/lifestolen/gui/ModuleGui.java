@@ -110,7 +110,6 @@ public final class ModuleGui extends OneToOneScreen {
             textScale = (textScale / 25) * 25;
 
             Lifestolen.cfg.textScale = textScale;
-            ConfigManager.saveConfig();
             return true;
         }
 
@@ -121,6 +120,7 @@ public final class ModuleGui extends OneToOneScreen {
     public boolean mouseReleasedOneToOne(MouseButtonEvent mouse) {
         if (draggingSlider && mouse.button() == 0) {
             draggingSlider = false;
+            ConfigManager.saveConfig();
             return true;
         }
         return super.mouseReleasedOneToOne(mouse);

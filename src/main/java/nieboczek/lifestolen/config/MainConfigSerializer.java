@@ -2,10 +2,8 @@ package nieboczek.lifestolen.config;
 
 import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.module.Module;
-import nieboczek.lifestolen.serializer.base.Serializer;
 import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder;
 import nieboczek.lifestolen.serializer.lang.TokenStream;
-import nieboczek.lifestolen.serializer.lang.TokenType;
 
 import java.util.HashMap;
 import java.util.List;

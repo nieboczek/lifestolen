@@ -7,10 +7,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import nieboczek.lifestolen.Renderer3d;
-import nieboczek.lifestolen.serializer.base.BooleanSerializer;
-import nieboczek.lifestolen.serializer.base.DoubleSerializer;
-import nieboczek.lifestolen.serializer.base.ObjectSerializer;
-import nieboczek.lifestolen.serializer.base.Serializer;
 
 import java.util.List;
 import java.util.Random;

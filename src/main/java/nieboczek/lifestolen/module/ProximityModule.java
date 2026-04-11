@@ -102,7 +102,7 @@ public final class ProximityModule extends Module<ProximityModule.Config> {
         );
 
         dispatcher.register(literal("proximity")
-                .then(Commands.stringListManipulator(cfg.playerWhitelist, "player_whitelist", "player whitelist"))
+                .then(Commands.stringListManipulator(cfg.playerWhitelist, "player_whitelist", "player", "player whitelist"))
                 .then(distanceCommand)
                 .then(priorityCommand)
         );
@@ -110,13 +110,13 @@ public final class ProximityModule extends Module<ProximityModule.Config> {
 
     @Override
     public Serializer<Config> getSerializer() {
-        return ObjectSerializer.of(Config::new)
+        return ClassSerializer.of(Config::new)
                 .field("playerWhitelist", ListSerializer.of(StringSerializer.of()), c -> c.playerWhitelist, (c, v) -> c.playerWhitelist = v)
                 .field("entities", MapSerializer.of(
                         ResourceSerializer.of(BuiltInRegistries.ENTITY_TYPE),
-                        ObjectSerializer.of(ProximityModule.EntityParameters::new)
+                        ClassSerializer.of(ProximityModule.EntityParameters::new)
                                 .field("distance", DoubleSerializer.of(), p -> p.distance, (p, v) -> p.distance = v)
-                                .field("priority", IntegerSerializer.of(), p -> p.priority, (p, v) -> p.priority = v)
+                                .field("priority", IntSerializer.of(), p -> p.priority, (p, v) -> p.priority = v)
                 ), c -> c.entities, (c, v) -> c.entities = v);
     }
 
