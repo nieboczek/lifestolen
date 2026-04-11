@@ -1,18 +1,13 @@
 package nieboczek.lifestolen.gui
 
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.render.TextureSetup
 import net.minecraft.client.input.KeyEvent
-import net.minecraft.client.input.MouseButtonEvent
-import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.locale.Language
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.FormattedText
-import net.minecraft.util.FormattedCharSequence
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.ConfigManager
+import nieboczek.lifestolen.gui.widget.Anchor
+import nieboczek.lifestolen.gui.widget.Slider
 import nieboczek.lifestolen.module.Module
-import org.joml.Matrix3x2f
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
@@ -21,35 +16,35 @@ class ModuleGui : OneToOneScreen(Component.literal(Lifestolen.CLIENT_NAME), Life
         private set
 
     private val modules: List<Module> = Lifestolen.modules
-    private val categories: MutableMap<Module.Category, MutableList<Module>> =
-        LinkedHashMap<Module.Category, MutableList<Module>>()
+    private val categories = LinkedHashMap<Module.Category, MutableList<Module>>()
 
     private var ignoreNextOpenGuiToggle = false
     private var selectedModuleForBind: Module? = null
-    private var draggingSlider = false
-    private var textScale: Float
-
-    companion object {
-        private const val SLIDER_WIDTH = 160
-        private const val SLIDER_HEIGHT = 32
-        private const val SLIDER_MIN = 1f
-        private const val SLIDER_MAX = 4f
-    }
 
     init {
-        textScale = Lifestolen.cfg!!.textScale
+        modules.forEach { categories.computeIfAbsent(it.category) { mutableListOf() }.add(it) }
     }
 
-    public override fun renderOneToOne(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    fun consumeOpenGuiToggleGuard(): Boolean {
+        val guarded = ignoreNextOpenGuiToggle
+        ignoreNextOpenGuiToggle = false
+        return guarded
+    }
+
+    override fun renderOneToOne(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         graphics.fill(0, 0, width, height, -0x3ff6f5f1)
 
-        // render here
-
-        renderTextScaleSlider(graphics, mouseX, mouseY)
+        val label = "Scale: ${(textScale * 100f).toInt()}%"
+        val labelWidth = (font.width(label) * textScale).toInt()
+        val labelY = height - (6.5f * textScale).toInt() - 4
+        drawScaledString(graphics, label, width - labelWidth - 160 - 8, labelY, -0x555556)
     }
 
     override fun rebuildWidgets() {
         clearWidgets()
+
+        val anchor = Anchor(-4, 0, 160, 32, Anchor.Alignment.BOTTOM_RIGHT, width, height)
+        addRenderableWidget(Slider(anchor, 1f, 4f, textScale, 0.01f, { sliderValueChanged(it) }, { sliderEndAdjusting(it) }))
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
@@ -77,79 +72,14 @@ class ModuleGui : OneToOneScreen(Component.literal(Lifestolen.CLIENT_NAME), Life
         return super.keyPressed(keyEvent)
     }
 
-    public override fun mouseClickedOneToOne(mouse: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
-        val sliderX = width - SLIDER_WIDTH - 8
-        val sliderY = height - SLIDER_HEIGHT - 8
-
-        if (mouse.button() == 0 && mouse.x() >= sliderX && mouse.x() < sliderX + SLIDER_WIDTH && mouse.y() >= sliderY && mouse.y() < sliderY + SLIDER_HEIGHT) {
-            var ratio = (mouse.x() - sliderX).toFloat() / SLIDER_WIDTH
-            ratio = Math.clamp(ratio, 0f, 1f)
-
-            textScale = SLIDER_MIN + ratio * (SLIDER_MAX - SLIDER_MIN)
-            textScale = (textScale / 25) * 25
-            draggingSlider = true
-
-            Lifestolen.cfg!!.textScale = textScale
-            ConfigManager.saveConfig()
-            return true
-        }
-
-        return super.mouseClickedOneToOne(mouse, isDoubleClick)
+    private fun sliderValueChanged(value: Float) {
+        textScale = value
     }
 
-    public override fun mouseDraggedOneToOne(
-        mouse: MouseButtonEvent,
-        draggedDistanceX: Double,
-        draggedDistanceY: Double
-    ): Boolean {
-        if (draggingSlider) {
-            val sliderX = width - SLIDER_WIDTH - 8
-            var ratio = (mouse.x() - sliderX).toFloat() / SLIDER_WIDTH
-            ratio = Math.clamp(ratio, 0f, 1f)
-            textScale = SLIDER_MIN + ratio * (SLIDER_MAX - SLIDER_MIN)
-            textScale = (textScale / 25) * 25
-
-            Lifestolen.cfg!!.textScale = textScale
-            return true
-        }
-
-        return super.mouseDraggedOneToOne(mouse, draggedDistanceX, draggedDistanceY)
-    }
-
-    public override fun mouseReleasedOneToOne(mouse: MouseButtonEvent): Boolean {
-        if (draggingSlider && mouse.button() == 0) {
-            draggingSlider = false
-            ConfigManager.saveConfig()
-            return true
-        }
-        return super.mouseReleasedOneToOne(mouse)
-    }
-
-    private fun renderTextScaleSlider(graphics: GuiGraphics, mouseX: Int, mouseY: Int) {
-        val sliderX = width - SLIDER_WIDTH - 8
-        val sliderY = height - SLIDER_HEIGHT - 8
-
-        val label = "Scale: " + (textScale * 100f).toInt() + "%"
-        val labelWidth = (font.width(label) * textScale).toInt()
-        val labelY = sliderY - (6.5f * textScale).toInt() + SLIDER_HEIGHT
-        drawScaledString(graphics, label, sliderX - labelWidth - 4, labelY, -0x555556)
-
-        renderRoundedBox(graphics, sliderX, sliderY, SLIDER_WIDTH, SLIDER_HEIGHT, 4f, -0xd5d5d6, -0xb5b5b6)
-
-        val ratio = (textScale - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)
-        val knobWidth = 8
-        val knobX = sliderX + ((SLIDER_WIDTH - knobWidth) * ratio).toInt()
-        graphics.fill(knobX, sliderY + 2, knobX + knobWidth, sliderY + SLIDER_HEIGHT - 2, -0xaa5501)
-
-        if (mouseX >= sliderX && mouseX < sliderX + SLIDER_WIDTH && mouseY >= sliderY && mouseY < sliderY + SLIDER_HEIGHT) {
-            graphics.fill(sliderX, sliderY, sliderX + SLIDER_WIDTH, sliderY + SLIDER_HEIGHT, 0x20FFFFFF)
-        }
-    }
-
-    fun consumeOpenGuiToggleGuard(): Boolean {
-        val guarded = ignoreNextOpenGuiToggle
-        ignoreNextOpenGuiToggle = false
-        return guarded
+    private fun sliderEndAdjusting(value: Float) {
+        textScale = value
+        Lifestolen.cfg!!.textScale = value
+        ConfigManager.saveConfig()
     }
 
     private fun drawWrappedString(graphics: GuiGraphics, text: String, x: Int, y: Int, maxWidth: Int, color: Int) {
@@ -162,19 +92,6 @@ class ModuleGui : OneToOneScreen(Component.literal(Lifestolen.CLIENT_NAME), Life
         }
     }
 
-    fun drawScaledString(graphics: GuiGraphics, text: String, x: Int, y: Int, color: Int) {
-        drawScaledString(graphics, Language.getInstance().getVisualOrder(FormattedText.of(text)), x, y, color)
-    }
-
-    fun drawScaledString(graphics: GuiGraphics, text: FormattedCharSequence, x: Int, y: Int, color: Int) {
-        graphics.pose().pushMatrix()
-        graphics.pose().scale(textScale, textScale)
-        val scaledX = (x / textScale).toInt()
-        val scaledY = (y / textScale).toInt()
-        graphics.drawString(font, text, scaledX, scaledY, color, false)
-        graphics.pose().popMatrix()
-    }
-
     private fun brighten(color: Int): Int {
         val alpha = color and -0x1000000
         val red = min(((color shr 16) and 0xFF) + 24, 255)
@@ -183,31 +100,8 @@ class ModuleGui : OneToOneScreen(Component.literal(Lifestolen.CLIENT_NAME), Life
         return alpha or (red shl 16) or (green shl 8) or blue
     }
 
-    private fun renderRoundedBox(
-        graphics: GuiGraphics,
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        radius: Float,
-        backgroundColor: Int,
-        borderColor: Int
-    ) {
-        graphics.guiRenderState.submitGuiElement(
-            RoundedBoxRenderState(
-                RenderPipelines.GUI,
-                TextureSetup.noTexture(),
-                Matrix3x2f(graphics.pose()),
-                x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(),
-                radius,
-                backgroundColor, borderColor,
-                graphics.scissorStack.peek()
-            )
-        )
-    }
-
     override fun onClose() {
-        this.isAwaitingBind = false
+        isAwaitingBind = false
         ignoreNextOpenGuiToggle = false
         super.onClose()
     }

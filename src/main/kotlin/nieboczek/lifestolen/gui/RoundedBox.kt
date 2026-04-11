@@ -2,9 +2,11 @@ package nieboczek.lifestolen.gui
 
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.VertexConsumer
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.TextureSetup
 import net.minecraft.client.gui.render.state.GuiElementRenderState
+import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.util.Mth
 import org.joml.Matrix3x2f
 import kotlin.math.max
@@ -130,4 +132,26 @@ data class RoundedBoxRenderState(
     override fun bounds(): ScreenRectangle {
         return ScreenRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
     }
+}
+
+fun GuiGraphics.drawRoundedBox(
+    x: Int,
+    y: Int,
+    width: Int,
+    height: Int,
+    radius: Float,
+    backgroundColor: Int,
+    borderColor: Int
+) {
+    guiRenderState.submitGuiElement(
+        RoundedBoxRenderState(
+            RenderPipelines.GUI,
+            TextureSetup.noTexture(),
+            Matrix3x2f(pose()),
+            x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(),
+            radius,
+            backgroundColor, borderColor,
+            scissorStack.peek()
+        )
+    )
 }
