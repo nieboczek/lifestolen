@@ -21,13 +21,12 @@ abstract class OneToOneScreen protected constructor(component: Component, font: 
     private var projectionBuffer: CachedOrthoProjectionMatrixBuffer? = null
 
     override fun init() {
-        val window = minecraft.window
-        width = window.width
-        height = window.height
+        recalculateWindowDimensions()
         rebuildWidgets()
     }
 
     override fun resize(x: Int, y: Int) {
+        recalculateWindowDimensions()
         rebuildWidgets()
     }
 
@@ -36,10 +35,7 @@ abstract class OneToOneScreen protected constructor(component: Component, font: 
             projectionBuffer = CachedOrthoProjectionMatrixBuffer("lifestolen_gui", 1000.0f, 11000.0f, true)
         }
 
-        val window = minecraft.window
-        val guiScale = window.guiScale
-        width = window.width
-        height = window.height
+        val guiScale = minecraft.window.guiScale
 
         graphics.pose().pushMatrix()
         graphics.pose().scale(1.0f / guiScale, 1.0f / guiScale)
@@ -131,6 +127,12 @@ abstract class OneToOneScreen protected constructor(component: Component, font: 
     private fun scaleMouseEvent(event: MouseButtonEvent): MouseButtonEvent {
         val guiScale = minecraft.window.guiScale
         return MouseButtonEvent(event.x() * guiScale, event.y() * guiScale, event.buttonInfo())
+    }
+
+    private fun recalculateWindowDimensions() {
+        val window = minecraft.window
+        width = window.width
+        height = window.height
     }
 
     override fun onClose() {
