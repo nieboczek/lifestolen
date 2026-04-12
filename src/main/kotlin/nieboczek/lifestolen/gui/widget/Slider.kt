@@ -40,7 +40,6 @@ class Slider(
     }
 
     override fun mouseClicked(mouse: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
-        Lifestolen.log.info("mouse click @ ${mouse.x} ${mouse.y}")
         if (mouse.button() == 0) {
             setValueFromMouse(mouse.x)
             dragging = true
@@ -71,7 +70,7 @@ class Slider(
     }
 
     private fun setValueFromMouse(mouseX: Double) {
-        val ratio = (mouseX - x).toFloat() / width
+        val ratio = (mouseX - x - KNOB_WIDTH / 2).toFloat() / (width - KNOB_WIDTH)
         val clampedRatio = ratio.coerceIn(0f, 1f)
         var newValue = min + clampedRatio * (max - min)
 
