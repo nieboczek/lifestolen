@@ -26,13 +26,18 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+
+	// Dependencies
+	modImplementation "io.github.trethore:graphene-ui:${project.graphene_ui_version}"
 }
 
 processResources {
 	inputs.property "version", project.version
+	inputs.property "loader_version", project.loader_version
+	inputs.property "graphene_ui_version", project.graphene_ui_version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
+		expand inputs.properties
 	}
 }
 

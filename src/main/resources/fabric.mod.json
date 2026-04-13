@@ -13,15 +13,19 @@
   "entrypoints": {
     "main": [
       "nieboczek.lifestolen.Lifestolen"
+    ],
+    "client": [
+      "nieboczek.lifestolen.Lifestolen"
     ]
   },
   "mixins": [
     "lifestolen.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.18.4",
+    "fabricloader": ">=${loader_version}",
     "minecraft": "~1.21.11",
     "java": ">=21",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "graphene-ui": ">=${graphene_ui_version}"
   }
 }

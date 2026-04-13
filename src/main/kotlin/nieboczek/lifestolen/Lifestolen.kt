@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
@@ -16,18 +17,16 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.PlayerChatMessage
 import net.minecraft.resources.Identifier
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
-import nieboczek.lifestolen.gui.FontLoader
-import nieboczek.lifestolen.gui.ModuleGui
+import nieboczek.lifestolen.gui.ConfigScreen
+import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.module.FakeLagModule
 import nieboczek.lifestolen.module.KillAuraModule
 import nieboczek.lifestolen.module.Module
@@ -36,10 +35,13 @@ import nieboczek.lifestolen.util.BindUtils
 import nieboczek.lifestolen.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import tytoo.grapheneui.api.GrapheneCore
+import tytoo.grapheneui.api.config.GrapheneConfig
+import tytoo.grapheneui.api.config.GrapheneGlobalConfig
+import tytoo.grapheneui.api.config.GrapheneRemoteDebugConfig
 import java.awt.Color
-import java.time.Instant
 
-class Lifestolen : ModInitializer {
+class Lifestolen : ModInitializer, ClientModInitializer {
     companion object {
         const val MOD_ID: String = "lifestolen"
         const val CLIENT_NAME: String = "Lifestolen"
@@ -50,7 +52,6 @@ class Lifestolen : ModInitializer {
         val modules: ArrayList<Module> = ArrayList()
 
         var cfg: ClientConfig? = null
-        var uiFont: Font? = null
 
         private var lastSender: String? = null
         private var rainbowColorOffset: Int = 0
@@ -80,6 +81,20 @@ class Lifestolen : ModInitializer {
         }
     }
 
+    override fun onInitializeClient() {
+        val config = GrapheneConfig.builder().global(
+            GrapheneGlobalConfig.builder()
+                .remoteDebugging(
+                    GrapheneRemoteDebugConfig.builder()
+                        .port(21371)
+                        .allowedOrigins("https://chrome-devtools-frontend.appspot.com")
+                        .build()
+                ).build()
+        ).build()
+
+        GrapheneCore.register(MOD_ID, config)
+    }
+
     override fun onInitialize() {
         ClientLifecycleEvents.CLIENT_STARTED.register(ClientStarted { _ -> this.clientStarted() })
         ClientLifecycleEvents.CLIENT_STOPPING.register(ClientStopping { _ -> ConfigManager.saveConfig() })
@@ -100,27 +115,18 @@ class Lifestolen : ModInitializer {
         modules.add(KillAuraModule)
         modules.add(FakeLagModule)
 
+        WebViewManager.initialize()
         ConfigManager.loadConfig()
-        log.info("[Lifestolen::clientStarted] Loading UI font")
-        uiFont = FontLoader.loadUiFont()
-        log.info("[Lifestolen::clientStarted] UI font loaded")
     }
 
     private fun clientTick(mc: Minecraft) {
         var canHandleBinds = true
         while (mc.options.keySocialInteractions.consumeClick()) {
             canHandleBinds = false
-            if (mc.screen is ModuleGui) {
-                val gui = mc.screen as ModuleGui
-                if (gui.consumeOpenGuiToggleGuard()) {
-                    continue
-                }
-
-                if (!gui.isAwaitingBind) {
-                    mc.setScreen(null)
-                }
+            if (mc.screen is ConfigScreen) {
+                mc.setScreen(null)
             } else {
-                mc.setScreen(ModuleGui())
+                mc.setScreen(ConfigScreen())
             }
         }
 
