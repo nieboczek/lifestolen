@@ -46,7 +46,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         const val MOD_ID: String = "lifestolen"
         const val CLIENT_NAME: String = "Lifestolen"
 
-        @JvmField
         val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
         val msgPrefix: Component = Formatting.red("LS ").append(Formatting.darkGray("» "))
         val modules: ArrayList<Module> = ArrayList()
@@ -73,11 +72,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         @JvmStatic
         fun render3d() {
             modules.forEach { if (it.enabled) it.render3d() }
-        }
-
-        @JvmStatic
-        fun id(id: String): Identifier {
-            return Identifier.fromNamespaceAndPath(MOD_ID, id)
         }
     }
 

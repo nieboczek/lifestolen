@@ -3,7 +3,6 @@
   "package": "nieboczek.lifestolen.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "FontTextureMixin",
     "GameRendererMixin",
     "GrapheneWebViewWidgetMixin",
     "GuiMixin",
