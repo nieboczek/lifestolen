@@ -91,7 +91,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
     override fun onInitialize() {
         ClientLifecycleEvents.CLIENT_STARTED.register(ClientStarted { _ -> this.clientStarted() })
-        ClientLifecycleEvents.CLIENT_STOPPING.register(ClientStopping { _ -> ConfigManager.saveConfig() })
+        ClientLifecycleEvents.CLIENT_STOPPING.register(ClientStopping { _ -> this.clientStopping() })
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { mc -> this.clientTick(mc) })
         ClientPlayConnectionEvents.INIT.register(ClientPlayConnectionEvents.Init { listener, _ ->
             this.initializeConnection(listener)
@@ -111,6 +111,11 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
         WebViewManager.initialize()
         ConfigManager.loadConfig()
+    }
+
+    private fun clientStopping() {
+        WebViewManager.shutdown()
+        ConfigManager.saveConfig()
     }
 
     private fun clientTick(mc: Minecraft) {
