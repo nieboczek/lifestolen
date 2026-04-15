@@ -30,6 +30,7 @@ const fillPercent = computed(() => {
     width: 100%;
     background: transparent;
     accent-color: var(--brand);
+    padding: 4px 0;
 }
 
 .setting-slider::-webkit-slider-runnable-track {

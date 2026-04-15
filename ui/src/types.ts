@@ -1,9 +1,9 @@
-export type SettingValue = number | boolean;
+export type SettingValue = number | boolean | number[];
 
 export type Setting = {
     name: string;
     value: SettingValue;
-    type: 'float' | 'boolean';
+    type: 'float' | 'boolean' | 'int' | 'intRange';
     min?: number;
     max?: number;
     step?: number;

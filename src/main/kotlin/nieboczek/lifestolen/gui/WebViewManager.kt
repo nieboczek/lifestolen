@@ -10,7 +10,7 @@ import tytoo.grapheneui.api.widget.GrapheneWebViewWidget
 import java.util.concurrent.CompletableFuture
 
 object WebViewManager {
-    // We don't initialize it every time ModuleGui is constructed to make WebView feel more responsive
+    // We don't initialize it every time ConfigScreen is constructed to make WebView feel more responsive
     var webView: GrapheneWebViewWidget? = null
     private var readySub: GrapheneBridgeSubscription? = null
     private var toggleSub: GrapheneBridgeSubscription? = null

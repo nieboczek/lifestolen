@@ -74,7 +74,7 @@ function updateSetting(module: ModuleType, settingName: string, value: SettingVa
 <style>
 .category-header {
     margin: 0;
-    padding: 4px;
+    padding: 4px 8px;
     cursor: grab;
 }
 

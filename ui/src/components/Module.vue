@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Module, SettingValue } from '@/types';
 import SettingSlider from './SettingSlider.vue';
+import SettingRangeSlider from './SettingRangeSlider.vue';
 import SettingToggle from './SettingToggle.vue';
 
 const props = defineProps<{
@@ -38,7 +39,8 @@ function showOptions(event: MouseEvent) {
         <Transition name="slide-fade">
             <div v-if="props.showSettings" class="settings-popup">
                 <div v-for="setting in module.settings" :key="setting.name" class="setting-item">
-                    <SettingSlider v-if="setting.type === 'float'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+                    <SettingSlider v-if="setting.type === 'float' || setting.type === 'int'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+                    <SettingRangeSlider v-else-if="setting.type === 'intRange'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                     <SettingToggle v-else-if="setting.type === 'boolean'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                 </div>
             </div>
@@ -100,6 +102,7 @@ function showOptions(event: MouseEvent) {
     left: 100%;
     top: 0;
     background: black;
+    padding: 8px 16px;
     border-radius: 0 4px 4px 0;
     overflow: hidden;
     display: flex;
@@ -114,10 +117,10 @@ function showOptions(event: MouseEvent) {
     background: none;
     border: none;
     color: white;
-    padding: 8px 16px;
     text-align: left;
     cursor: pointer;
     font-size: 14px;
+    padding: 8px 0;
 }
 
 .slide-fade-enter-active {

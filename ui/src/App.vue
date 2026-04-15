@@ -30,6 +30,31 @@ const modules = ref<Module[]>([
         category: "Combat",
         enabled: false,
         settings: []
+    },
+    {
+        id: "FakeLag",
+        category: "Movement",
+        enabled: false,
+        settings: [
+            {
+                name: "Delay",
+                value: [300, 600],
+                type: "intRange",
+                min: 0,
+                max: 1000,
+                step: 1,
+                unit: "ms"
+            },
+            {
+                name: "Recoil Time",
+                value: 200,
+                type: "int",
+                min: 0,
+                max: 1000,
+                step: 1,
+                unit: "ms"
+            }
+        ]
     }
 ]);
 
@@ -47,5 +72,6 @@ function updateSetting(moduleId: string, settingName: string, value: SettingValu
 </script>
 
 <template>
-    <Category name="Combat" :modules="modules" @toggle-module="toggleModule" @update-setting="updateSetting" />
+    <Category name="Combat" :modules="modules.filter(m => m.category === 'Combat')" @toggle-module="toggleModule" @update-setting="updateSetting" />
+    <Category name="Movement" :modules="modules.filter(m => m.category === 'Movement')" @toggle-module="toggleModule" @update-setting="updateSetting" />
 </template>
