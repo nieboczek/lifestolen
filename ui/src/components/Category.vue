@@ -13,7 +13,36 @@ const emit = defineEmits<{
     updateSetting: [moduleId: string, settingName: string, value: SettingValue];
 }>();
 
+const isDragging = ref(false);
+const pos = ref<{ x: number; y: number } | null>(null);
+const dragOffset = ref({ x: 0, y: 0 });
 const optionsShown = ref<string>();
+
+function onMouseDown(e: MouseEvent) {
+    const el = (e.currentTarget as HTMLElement).parentElement!;
+    const rect = el.getBoundingClientRect();
+    dragOffset.value = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    if (pos.value === null) {
+        pos.value = { x: rect.left, y: rect.top };
+    }
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    isDragging.value = true;
+}
+
+function onMouseMove(e: MouseEvent) {
+    if (!isDragging.value) return;
+    pos.value = {
+        x: e.clientX - dragOffset.value.x,
+        y: e.clientY - dragOffset.value.y
+    };
+}
+
+function onMouseUp() {
+    isDragging.value = false;
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+}
 
 function toggleModule(module: ModuleType) {
     emit("toggleModule", module.id);
@@ -33,8 +62,8 @@ function updateSetting(module: ModuleType, settingName: string, value: SettingVa
 </script>
 
 <template>
-    <div class="category">
-        <h1 class="category-header">{{ name }}</h1>
+    <div class="category" :class="{ dragging: isDragging }" :style="pos !== null ? { position: 'fixed', left: pos!.x + 'px', top: pos!.y + 'px' } : {}">
+        <h1 class="category-header" @mousedown="onMouseDown">{{ name }}</h1>
         <p class="separator"></p>
         <Module v-for="module in modules" :module="module" :showSettings="optionsShown === module.id"
             @toggle-module="toggleModule(module)" @toggle-show-settings="toggleShowSettings(module)"
@@ -46,6 +75,11 @@ function updateSetting(module: ModuleType, settingName: string, value: SettingVa
 .category-header {
     margin: 0;
     padding: 4px;
+    cursor: grab;
+}
+
+.category.dragging > .category-header {
+    cursor: grabbing;
 }
 
 .separator {
@@ -53,6 +87,11 @@ function updateSetting(module: ModuleType, settingName: string, value: SettingVa
     height: 1px;
     margin: 0;
     background: #333;
+}
+
+.category.dragging {
+    z-index: 1000;
+    position: fixed;
 }
 
 .category {
