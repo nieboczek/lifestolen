@@ -1,0 +1,32 @@
+@font-face {
+    /* https://www.1001fonts.com/pt-root-ui-font.html */
+    font-family: "PTRootUI";
+    src: url("./font.ttf");
+}
+
+body {
+    /* Remove ability to select any text */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    --brand: rgb(0, 223, 130);
+
+    font-family: "PTRootUI";
+
+    /* Remove slash at end of this line to go to production */
+    background: skyblue;
+    /* Please don't commit with a slash at the end */
+}
+
+/* Common for settings */
+.setting-oneline {
+    display: flex;
+    justify-content: space-between;
+}
+
+.setting-name {
+    font-size: 16px;
+    color: white;
+}
