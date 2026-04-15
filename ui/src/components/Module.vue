@@ -29,18 +29,20 @@ function showOptions(event: MouseEvent) {
         <div class="module">
             <button :class="props.module.enabled ? 'module-id module-id-enabled' : 'module-id'"
                 @mousedown="showOptions">{{ module.id }}</button>
-            <svg class="expand-settings-svg" :style="props.showSettings ? 'rotate: -90deg;' : ''" width="10" height="6"
+            <svg class="expand-settings-svg" :class="{ rotated: props.showSettings }" width="10" height="6"
                 viewBox="0 0 10 6" @mousedown="showOptions">
                 <path d="M1,0.5,5,5,1,9.5" transform="translate(10 0) rotate(90)" fill="none" stroke="currentColor"
                     stroke-width="1.5" />
             </svg>
         </div>
-        <div v-if="props.showSettings" class="settings-popup">
-            <div v-for="setting in module.settings" :key="setting.name" class="setting-item">
-                <SettingSlider v-if="setting.type === 'float'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
-                <SettingToggle v-else-if="setting.type === 'boolean'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+        <Transition name="slide-fade">
+            <div v-if="props.showSettings" class="settings-popup">
+                <div v-for="setting in module.settings" :key="setting.name" class="setting-item">
+                    <SettingSlider v-if="setting.type === 'float'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+                    <SettingToggle v-else-if="setting.type === 'boolean'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+                </div>
             </div>
-        </div>
+        </Transition>
     </div>
 </template>
 
@@ -86,6 +88,11 @@ function showOptions(event: MouseEvent) {
     width: 20px;
     height: 12px;
     margin-right: 8px;
+    transition: transform 0.2s ease-out;
+}
+
+.expand-settings-svg.rotated {
+    transform: rotate(-90deg);
 }
 
 .settings-popup {
@@ -100,7 +107,6 @@ function showOptions(event: MouseEvent) {
     z-index: 10;
     border-left: #333 1px solid;
     translate: -1px;
-
     width: 256px;
 }
 
@@ -112,5 +118,21 @@ function showOptions(event: MouseEvent) {
     text-align: left;
     cursor: pointer;
     font-size: 14px;
+}
+
+.slide-fade-enter-active {
+    transition: all 0.2s ease-out;
+    z-index: -10;
+}
+
+.slide-fade-leave-active {
+    transition: all 0.15s ease-in;
+    z-index: -10;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+    transform: translateX(-20px);
+    opacity: 0;
 }
 </style>
