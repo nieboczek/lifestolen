@@ -3,6 +3,7 @@ import type { Module, SettingValue } from '@/types';
 import SettingSlider from './SettingSlider.vue';
 import SettingRangeSlider from './SettingRangeSlider.vue';
 import SettingToggle from './SettingToggle.vue';
+import SettingKeybind from './SettingKeybind.vue';
 
 const props = defineProps<{
     module: Module;
@@ -42,6 +43,7 @@ function showOptions(event: MouseEvent) {
                     <SettingSlider v-if="setting.type === 'float' || setting.type === 'int'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                     <SettingRangeSlider v-else-if="setting.type === 'intRange'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                     <SettingToggle v-else-if="setting.type === 'boolean'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+                    <SettingKeybind v-else-if="setting.type === 'keybind'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                 </div>
             </div>
         </Transition>

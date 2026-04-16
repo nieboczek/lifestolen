@@ -22,7 +22,6 @@ import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.commands.CommandBuildContext
 import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.Identifier
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
@@ -119,13 +118,12 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     private fun clientTick(mc: Minecraft) {
-        var canHandleBinds = true
+        val isGuiClosed = mc.screen !is ConfigScreen
         while (mc.options.keySocialInteractions.consumeClick()) {
-            canHandleBinds = false
-            if (mc.screen is ConfigScreen) {
-                mc.setScreen(null)
-            } else {
+            if (isGuiClosed) {
                 mc.setScreen(ConfigScreen())
+            } else {
+                mc.setScreen(null)
             }
         }
 
@@ -134,7 +132,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         val window = mc.window
         for (module in modules) {
             if (module.enabled) module.tick()
-            if (canHandleBinds) module.handleBindPress(window)
+            if (isGuiClosed) module.handleBindPress(window)
         }
     }
 

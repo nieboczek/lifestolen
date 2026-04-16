@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import nieboczek.lifestolen.util.Formatting
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.KeybindSetting
 import nieboczek.lifestolen.config.setting.ListSetting
 import nieboczek.lifestolen.config.setting.MapSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
@@ -50,7 +51,7 @@ abstract class Module(val id: String, val category: Category) {
     val settings = ArrayList<Setting<*>>()
 
     var enabled by boolean("Enabled", false)
-    var keybind by int("Keybind", 0, 0..Int.MAX_VALUE)
+    var keybind by addSetting(KeybindSetting())
 
     private var bindHeld = false
 

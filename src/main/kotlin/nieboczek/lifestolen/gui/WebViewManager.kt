@@ -1,11 +1,14 @@
 package nieboczek.lifestolen.gui
 
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.KeybindSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
 import nieboczek.lifestolen.config.setting.Setting
+import org.lwjgl.glfw.GLFW
 import tytoo.grapheneui.api.GrapheneCore
 import tytoo.grapheneui.api.bridge.GrapheneBridge
 import tytoo.grapheneui.api.bridge.GrapheneBridgeSubscription
@@ -15,13 +18,12 @@ import java.util.concurrent.CompletableFuture
 object WebViewManager {
     // We don't initialize it every time ConfigScreen is constructed to make WebView feel more responsive
     var webView: GrapheneWebViewWidget? = null
-    private var readySub: GrapheneBridgeSubscription? = null
-    private var toggleSub: GrapheneBridgeSubscription? = null
-    private var updateSettingSub: GrapheneBridgeSubscription? = null
+    val bridge: GrapheneBridge
+        get() = webView!!.bridge()
+    private val subs: ArrayList<GrapheneBridgeSubscription> = ArrayList()
 
     fun addSubscriptions(bridge: GrapheneBridge) {
-        readySub = bridge.onRequestJson("ready", Integer.TYPE) { _, _ ->
-            readySub?.unsubscribe()
+        subs.add(bridge.onRequestJson("ready", Integer.TYPE) { _, _ ->
             Lifestolen.log.info("[WebViewManager::addSubscriptions] Received ready payload from WebView")
 
             CompletableFuture.completedFuture(object {
@@ -30,7 +32,9 @@ object WebViewManager {
                         module.id,
                         module.category.toString(),
                         module.enabled,
-                        module.settings.map { setting ->
+                        module.settings.filter {
+                            it.name != "Enabled"
+                        }.map { setting ->
                             when (setting) {
                                 is NumberSetting<*> -> SettingInfo(
                                     setting.name,
@@ -41,6 +45,7 @@ object WebViewManager {
                                     null,
                                     setting.suffix
                                 )
+
                                 is RangeSetting<*, *> -> SettingInfo(
                                     setting.name,
                                     setting.value,
@@ -50,44 +55,57 @@ object WebViewManager {
                                     null,
                                     setting.suffix
                                 )
+
+                                is KeybindSetting -> SettingInfo(
+                                    setting.name,
+                                    setting.value,
+                                    "keybind"
+                                )
+
                                 else -> SettingInfo(
                                     setting.name,
                                     setting.value,
-                                    "boolean",
-                                    null,
-                                    null,
-                                    null,
-                                    null
+                                    "boolean"
                                 )
                             }
                         }
                     )
                 }
             })
-        }
+        })
 
-        toggleSub = bridge.onEventJson("toggleModule", TogglePayload::class.java) { _, payload ->
+        subs.add(bridge.onEventJson("toggleModule", TogglePayload::class.java) { _, payload ->
             Lifestolen.modules.find { it.id == payload.id }?.let { module ->
                 if (module.enabled != payload.enabled) {
                     module.toggle()
                 }
             }
-        }
+        })
 
-        updateSettingSub = bridge.onEventJson("updateSetting", UpdateSettingPayload::class.java) { _, payload ->
+        subs.add(bridge.onEventJson("updateSetting", UpdateSettingPayload::class.java) { _, payload ->
             Lifestolen.modules.find { it.id == payload.moduleId }?.let { module ->
                 module.settings.find { it.name == payload.name }?.let { setting ->
                     @Suppress("UNCHECKED_CAST")
                     (setting as Setting<Any>).value = payload.value
                 }
             }
-        }
+        })
+
+        subs.add(bridge.onRequestJson("keyname", KeynamePayload::class.java) { _, payload ->
+            return@onRequestJson CompletableFuture.completedFuture(
+                KeynameResponse(
+                    InputConstants.Type.KEYSYM.getOrCreate(payload.code).displayName.string
+                )
+            )
+        })
     }
 
     fun shutdown() {
-        readySub?.unsubscribe()
-        toggleSub?.unsubscribe()
-        updateSettingSub?.unsubscribe()
+        subs.forEach { it.unsubscribe() }
+    }
+
+    fun keyPressed(code: Int, displayed: String, isReserved: Boolean) {
+        bridge.emitJson("keydown", KeydownPayload(code, displayed, isReserved))
     }
 
     fun initialize() {
@@ -107,6 +125,9 @@ object WebViewManager {
         webView = widget
     }
 
+    private data class KeynamePayload(val code: Int)
+    private data class KeynameResponse(val displayed: String)
+    private data class KeydownPayload(val code: Int, val displayed: String, val isReserved: Boolean)
     private data class TogglePayload(val id: String, val enabled: Boolean)
     private data class UpdateSettingPayload(val moduleId: String, val name: String, val value: Any)
     private data class ModuleInfo(
@@ -115,13 +136,14 @@ object WebViewManager {
         val enabled: Boolean,
         val settings: List<SettingInfo>
     )
+
     private data class SettingInfo(
         val name: String,
         val value: Any?,
         val type: String,
-        val min: Any?,
-        val max: Any?,
-        val step: Any?,
-        val unit: String?
+        val min: Any? = null,
+        val max: Any? = null,
+        val step: Any? = null,
+        val unit: String? = null
     )
 }

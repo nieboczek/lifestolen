@@ -57,6 +57,7 @@ const dummyModules: Module[] = [
         category: 'Movement',
         enabled: false,
         settings: [
+            { name: "Keybind", value: 0, type: 'keybind' },
             { name: 'Delay', value: [300, 600], type: 'intRange', min: 0, max: 1000, unit: 'ms' },
             { name: 'Recoil Time', value: 200, type: 'int', min: 0, max: 1000, unit: 'ms' }
         ]
@@ -80,9 +81,9 @@ const dummyModules: Module[] = [
     }
 ];
 
-export function useGrapheneBridge() {
-    const bridge = ref<Bridge | null>(null);
+const bridge = ref<Bridge | null>(null);
 
+export function useGrapheneBridge() {
     onMounted(() => {
         console.log("Connecting to Graphene Bridge...");
         const poll = setInterval(() => {
