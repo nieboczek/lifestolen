@@ -71,18 +71,20 @@ function showOptions(event: MouseEvent) {
     flex: 1;
     text-align: center;
     margin-left: 28px;
+    transition: color 0.2s ease-out, text-shadow 0.2s ease-out;
+}
+
+.module-id-enabled {
+    color: var(--brand);
+    text-shadow: 0 0 8px var(--brand);
 }
 
 .module-id:hover {
     color: white;
 }
 
-.module-id-enabled {
-    color: red;
-}
-
 .module-id-enabled:hover {
-    color: red;
+    color: var(--brand-light);
 }
 
 .expand-settings-svg {
@@ -102,7 +104,7 @@ function showOptions(event: MouseEvent) {
     left: 100%;
     top: 0;
     background: black;
-    padding: 8px 16px;
+    padding: 8px 20px 8px 16px;
     border-radius: 0 4px 4px 0;
     overflow: hidden;
     display: flex;

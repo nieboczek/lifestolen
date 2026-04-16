@@ -3,6 +3,9 @@ package nieboczek.lifestolen.gui
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.NumberSetting
+import nieboczek.lifestolen.config.setting.RangeSetting
+import nieboczek.lifestolen.config.setting.Setting
 import tytoo.grapheneui.api.GrapheneCore
 import tytoo.grapheneui.api.bridge.GrapheneBridge
 import tytoo.grapheneui.api.bridge.GrapheneBridgeSubscription
@@ -14,6 +17,7 @@ object WebViewManager {
     var webView: GrapheneWebViewWidget? = null
     private var readySub: GrapheneBridgeSubscription? = null
     private var toggleSub: GrapheneBridgeSubscription? = null
+    private var updateSettingSub: GrapheneBridgeSubscription? = null
 
     fun addSubscriptions(bridge: GrapheneBridge) {
         readySub = bridge.onRequestJson("ready", Integer.TYPE) { _, _ ->
@@ -21,8 +25,43 @@ object WebViewManager {
             Lifestolen.log.info("[WebViewManager::addSubscriptions] Received ready payload from WebView")
 
             CompletableFuture.completedFuture(object {
-                val modules = Lifestolen.modules.map {
-                    ModuleInfo(it.id, it.category.toString(), it.enabled)
+                val modules = Lifestolen.modules.map { module ->
+                    ModuleInfo(
+                        module.id,
+                        module.category.toString(),
+                        module.enabled,
+                        module.settings.map { setting ->
+                            when (setting) {
+                                is NumberSetting<*> -> SettingInfo(
+                                    setting.name,
+                                    setting.value,
+                                    if (setting.allowed.start is Int) "int" else "float",
+                                    setting.allowed.start as Any,
+                                    setting.allowed.endInclusive as Any,
+                                    null,
+                                    setting.suffix
+                                )
+                                is RangeSetting<*, *> -> SettingInfo(
+                                    setting.name,
+                                    setting.value,
+                                    "intRange",
+                                    setting.allowed.start as Any,
+                                    setting.allowed.endInclusive as Any,
+                                    null,
+                                    setting.suffix
+                                )
+                                else -> SettingInfo(
+                                    setting.name,
+                                    setting.value,
+                                    "boolean",
+                                    null,
+                                    null,
+                                    null,
+                                    null
+                                )
+                            }
+                        }
+                    )
                 }
             })
         }
@@ -34,11 +73,21 @@ object WebViewManager {
                 }
             }
         }
+
+        updateSettingSub = bridge.onEventJson("updateSetting", UpdateSettingPayload::class.java) { _, payload ->
+            Lifestolen.modules.find { it.id == payload.moduleId }?.let { module ->
+                module.settings.find { it.name == payload.name }?.let { setting ->
+                    @Suppress("UNCHECKED_CAST")
+                    (setting as Setting<Any>).value = payload.value
+                }
+            }
+        }
     }
 
     fun shutdown() {
         readySub?.unsubscribe()
         toggleSub?.unsubscribe()
+        updateSettingSub?.unsubscribe()
     }
 
     fun initialize() {
@@ -59,5 +108,20 @@ object WebViewManager {
     }
 
     private data class TogglePayload(val id: String, val enabled: Boolean)
-    private data class ModuleInfo(val id: String, val category: String, val enabled: Boolean)
+    private data class UpdateSettingPayload(val moduleId: String, val name: String, val value: Any)
+    private data class ModuleInfo(
+        val id: String,
+        val category: String,
+        val enabled: Boolean,
+        val settings: List<SettingInfo>
+    )
+    private data class SettingInfo(
+        val name: String,
+        val value: Any?,
+        val type: String,
+        val min: Any?,
+        val max: Any?,
+        val step: Any?,
+        val unit: String?
+    )
 }

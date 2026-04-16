@@ -14,6 +14,7 @@ body {
     overflow: hidden;
 
     --brand: rgb(0, 223, 130);
+    --brand-light: rgb(44, 255, 167);
 
     font-family: "PTRootUI";
 
@@ -26,6 +27,7 @@ body {
 .setting-oneline {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .setting-name {

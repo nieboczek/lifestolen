@@ -14,7 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const isDragging = ref(false);
-const pos = ref<{ x: number; y: number } | null>(null);
+const pos = ref({ x: 0, y: 0});
 const dragOffset = ref({ x: 0, y: 0 });
 const optionsShown = ref<string>();
 

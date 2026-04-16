@@ -11,6 +11,23 @@ interface ModuleInfo {
     id: string;
     category: string;
     enabled: boolean;
+    settings: SettingInfo[];
+}
+
+interface SettingInfo {
+    name: string;
+    value: SettingValue;
+    type: 'float' | 'boolean' | 'int' | 'intRange';
+    min?: number;
+    max?: number;
+    step?: number;
+    unit?: string;
+}
+
+interface UpdateSettingPayload {
+    moduleId: string;
+    name: string;
+    value: SettingValue;
 }
 
 interface TogglePayload {
@@ -31,7 +48,7 @@ watch(bridge, (newBridge) => {
                 id: m.id,
                 category: m.category,
                 enabled: m.enabled,
-                settings: []
+                settings: m.settings
             }));
         });
     });
@@ -57,6 +74,7 @@ function updateSetting(moduleId: string, settingName: string, value: SettingValu
     const s = m?.settings.find(s => s.name === settingName);
     if (s) {
         s.value = value;
+        bridge.value?.emit<UpdateSettingPayload>('updateSetting', { moduleId, name: settingName, value });
     }
 }
 
