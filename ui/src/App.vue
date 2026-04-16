@@ -24,15 +24,16 @@ watch(bridge, (newBridge) => {
     }
 
     newBridge.onReady(() => {
-        const data = bridge.value?.request<null, { modules: ModuleInfo[] }>('ready', null);
-        if (data?.modules) {
+        console.log("Requesting ready response from bridge");
+        bridge.value!.request<null, { modules: ModuleInfo[] }>('ready', null).then((data) => {
+            console.log("Bridge responded with data payload");
             modules.value = data.modules.map(m => ({
                 id: m.id,
                 category: m.category,
                 enabled: m.enabled,
                 settings: []
             }));
-        }
+        });
     });
 
     newBridge.on<TogglePayload>('toggleModule', (payload) => {

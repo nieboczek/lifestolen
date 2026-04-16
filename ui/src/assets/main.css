@@ -11,11 +11,13 @@ body {
     -ms-user-select: none;
     user-select: none;
 
+    overflow: hidden;
+
     --brand: rgb(0, 223, 130);
 
     font-family: "PTRootUI";
 
-    /* Remove slash at end of this line to go to production */
+    /* Remove slash at end of this line to go to production *
     background: skyblue;
     /* Please don't commit with a slash at the end */
 }

@@ -6,6 +6,11 @@ plugins {
 	id "org.jetbrains.kotlin.jvm" version "2.3.20"
 }
 
+def uiDir = layout.projectDirectory.dir("ui")
+def uiNodeModulesDir = uiDir.dir("node_modules")
+def uiBuildDir = layout.buildDirectory.dir("vite-ui")
+def npmCommand = System.getProperty("os.name").toLowerCase().contains("windows") ? "npm.cmd" : "npm"
+
 version = project.mod_version
 group = project.maven_group
 
@@ -31,10 +36,46 @@ dependencies {
 	modImplementation "io.github.trethore:graphene-ui:${project.graphene_ui_version}"
 }
 
+tasks.register("npmInstallUi", Exec) {
+	workingDir = uiDir.asFile
+	commandLine npmCommand, "ci"
+
+	inputs.files(
+		uiDir.file("package.json"),
+		uiDir.file("package-lock.json")
+	)
+	outputs.dir(uiNodeModulesDir)
+}
+
+def buildUi = tasks.register("buildUi", Exec) {
+	dependsOn tasks.named("npmInstallUi")
+	workingDir = uiDir.asFile
+	commandLine npmCommand, "run", "build"
+	environment "LIFESTOLEN_VITE_OUT_DIR", uiBuildDir.get().asFile.absolutePath
+
+	inputs.dir(uiDir.dir("src"))
+	inputs.files(
+		uiDir.file("env.d.ts"),
+		uiDir.file("index.html"),
+		uiDir.file("package.json"),
+		uiDir.file("package-lock.json"),
+		uiDir.file("tsconfig.app.json"),
+		uiDir.file("tsconfig.json"),
+		uiDir.file("tsconfig.node.json"),
+		uiDir.file("vite.config.ts")
+	)
+	outputs.dir(uiBuildDir)
+}
+
 processResources {
+	dependsOn buildUi
 	inputs.property "version", project.version
 	inputs.property "loader_version", project.loader_version
 	inputs.property "graphene_ui_version", project.graphene_ui_version
+
+	from(uiBuildDir) {
+		into "assets/lifestolen/ui"
+	}
 
 	filesMatching("fabric.mod.json") {
 		expand inputs.properties

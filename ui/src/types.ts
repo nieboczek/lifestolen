@@ -40,5 +40,5 @@ export interface Bridge {
     /** Emits an event to Java */
     emit<P>(channel: string, payload: P): void;
     /** Requests a result from Java */
-    request<P, R>(channel: string, payload: P): R;
+    request<P, R>(channel: string, payload: P): Promise<R>;
 }
