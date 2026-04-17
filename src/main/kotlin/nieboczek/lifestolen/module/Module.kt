@@ -18,6 +18,7 @@ import nieboczek.lifestolen.config.setting.MapSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
 import nieboczek.lifestolen.config.setting.Setting
+import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.serializer.base.BooleanSerializer
 import nieboczek.lifestolen.serializer.base.DoubleSerializer
 import nieboczek.lifestolen.serializer.base.FloatSerializer
@@ -51,6 +52,7 @@ abstract class Module(val id: String, val category: Category) {
     val settings = ArrayList<Setting<*>>()
 
     var enabled by boolean("Enabled", false)
+        private set
     var keybind by addSetting(KeybindSetting())
 
     private var bindHeld = false
@@ -79,6 +81,7 @@ abstract class Module(val id: String, val category: Category) {
 
     fun toggle() {
         enabled = !enabled
+        WebViewManager.moduleToggled(id, enabled)
     }
 
     fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = ""): Setting<IntRange> {

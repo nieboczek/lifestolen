@@ -104,6 +104,10 @@ object WebViewManager {
         subs.forEach { it.unsubscribe() }
     }
 
+    fun moduleToggled(moduleId: String, enabled: Boolean) {
+        bridge.emitJson("toggleModule", TogglePayload(moduleId, enabled))
+    }
+
     fun keyPressed(code: Int, displayed: String, isReserved: Boolean) {
         bridge.emitJson("keydown", KeydownPayload(code, displayed, isReserved))
     }

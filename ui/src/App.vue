@@ -65,7 +65,7 @@ function toggleModule(id: string) {
     const m = modules.value.find(m => m.id === id);
     if (m) {
         m.enabled = !m.enabled;
-        bridge.value?.emit<TogglePayload>('toggleModule', { id, enabled: m.enabled });
+        bridge.value!.emit<TogglePayload>('toggleModule', { id, enabled: m.enabled });
     }
 }
 
