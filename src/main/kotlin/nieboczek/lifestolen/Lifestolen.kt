@@ -1,14 +1,9 @@
 package nieboczek.lifestolen
 
 import com.mojang.authlib.GameProfile
-import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.CommandDispatcher
-import com.mojang.brigadier.arguments.StringArgumentType
-import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.api.ModInitializer
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
@@ -31,14 +26,11 @@ import nieboczek.lifestolen.module.FakeLagModule
 import nieboczek.lifestolen.module.KillAuraModule
 import nieboczek.lifestolen.module.Module
 import nieboczek.lifestolen.module.ProximityModule
-import nieboczek.lifestolen.util.BindUtils
+import nieboczek.lifestolen.util.Commands
 import nieboczek.lifestolen.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tytoo.grapheneui.api.GrapheneCore
-import tytoo.grapheneui.api.config.GrapheneConfig
-import tytoo.grapheneui.api.config.GrapheneGlobalConfig
-import tytoo.grapheneui.api.config.GrapheneRemoteDebugConfig
 import java.awt.Color
 
 class Lifestolen : ModInitializer, ClientModInitializer {
@@ -52,7 +44,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
         var cfg: ClientConfig? = null
 
-        private var lastSender: String? = null
         private var rainbowColorOffset: Int = 0
 
         @JvmStatic
@@ -76,32 +67,24 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        val config = GrapheneConfig.builder().global(
-            GrapheneGlobalConfig.builder()
-                .remoteDebugging(
-                    GrapheneRemoteDebugConfig.builder()
-                        .port(21371)
-                        .allowedOrigins("https://chrome-devtools-frontend.appspot.com")
-                        .build()
-                ).build()
-        ).build()
+        // UI DevTools config; http://127.0.0.1:21371/json
+        GrapheneCore.register(MOD_ID, tytoo.grapheneui.api.config.GrapheneConfig.builder().global(
+            tytoo.grapheneui.api.config.GrapheneGlobalConfig.builder().remoteDebugging(
+                tytoo.grapheneui.api.config.GrapheneRemoteDebugConfig.builder().port(21371)
+                    .allowedOrigins("https://chrome-devtools-frontend.appspot.com").build()
+            ).build()
+        ).build())
 
-        GrapheneCore.register(MOD_ID, config)
+//        GrapheneCore.register(MOD_ID)
     }
 
     override fun onInitialize() {
-        ClientLifecycleEvents.CLIENT_STARTED.register(ClientStarted { _ -> this.clientStarted() })
-        ClientLifecycleEvents.CLIENT_STOPPING.register(ClientStopping { _ -> this.clientStopping() })
-        ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { mc -> this.clientTick(mc) })
-        ClientPlayConnectionEvents.INIT.register(ClientPlayConnectionEvents.Init { listener, _ ->
-            this.initializeConnection(listener)
-        })
-        ClientReceiveMessageEvents.CHAT.register(ClientReceiveMessageEvents.Chat { _, _, sender: GameProfile?, bound: ChatType.Bound?, _ ->
-            this.receiveChatMessage(sender, bound)
-        })
-        ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher: CommandDispatcher<FabricClientCommandSource>, buildCtx: CommandBuildContext ->
-            this.registerCommands(dispatcher, buildCtx)
-        })
+        ClientLifecycleEvents.CLIENT_STARTED.register { _ -> this.clientStarted() }
+        ClientLifecycleEvents.CLIENT_STOPPING.register { _ -> this.clientStopping() }
+        ClientTickEvents.END_CLIENT_TICK.register { mc -> this.clientTick(mc) }
+        ClientPlayConnectionEvents.INIT.register { listener, _ -> this.initializeConnection(listener) }
+        ClientReceiveMessageEvents.CHAT.register { _, _, sender, bound, _ -> this.receiveChatMessage(sender, bound) }
+        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> Commands.register(dispatcher) }
     }
 
     private fun clientStarted() {
@@ -140,9 +123,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     private fun initializeConnection(listener: ClientPacketListener) {
         if (listener.getConnection().channel.pipeline().get("lifestolen_packet_intercept") == null) {
             listener.getConnection().channel.pipeline().addBefore(
-                "packet_handler",
-                "lifestolen_packet_intercept",
-                FakeLagChannelHandler()
+                "packet_handler", "lifestolen_packet_intercept", FakeLagChannelHandler()
             )
         }
     }
@@ -150,109 +131,12 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     private fun receiveChatMessage(sender: GameProfile?, bound: ChatType.Bound?) {
         if (bound!!.chatType().`is`(ChatType.MSG_COMMAND_INCOMING)) {
             if (sender == null) {
-                Module.sendChat(
-                    Component.literal("Sender was not set correctly due to being null"),
-                    Minecraft.getInstance()
+                Minecraft.getInstance().player?.displayClientMessage(
+                    Component.literal("Sender was not set correctly due to being null"), false
                 )
                 return
             }
-            lastSender = sender.name()
+            Commands.lastSender = sender.name()
         }
-    }
-
-    private fun registerCommands(
-        dispatcher: CommandDispatcher<FabricClientCommandSource>,
-        buildCtx: CommandBuildContext
-    ) {
-        dispatcher.register(createReplyCommand())
-        dispatcher.register(createToggleCommand())
-        dispatcher.register(createBindCommand())
-
-        dispatcher.register(
-            ClientCommandManager.literal("lifestolen:reload_configs")
-                .executes { _: CommandContext<FabricClientCommandSource> ->
-                    ConfigManager.loadConfig()
-                    1
-                }
-        )
-        dispatcher.register(
-            ClientCommandManager.literal("lifestolen:save_configs")
-                .executes { _: CommandContext<FabricClientCommandSource> ->
-                    ConfigManager.saveConfig()
-                    1
-                }
-        )
-
-        for (module in modules) {
-            module.registerCommands(dispatcher, buildCtx)
-        }
-    }
-
-    private fun createBindCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        val bindCommand = ClientCommandManager.literal("bind")
-
-        for (module in modules) {
-            bindCommand.then(
-                ClientCommandManager.literal(module.id)
-                    .then(
-                        ClientCommandManager.argument<String>("key", StringArgumentType.string())
-                            .executes { ctx: CommandContext<FabricClientCommandSource> ->
-                                val keyStr = ctx.getArgument("key", String::class.java)
-                                val keycode = BindUtils.getKeycode(keyStr)
-
-                                module.keybind = keycode
-                                WebViewManager.settingUpdated(module.id, "Keybind", keycode)
-
-                                val label = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
-                                val coloredLabel = Formatting.niceBlue(label)
-                                Module.sendChat(
-                                    ctx,
-                                    Component.literal("Bound module ${module.id} to ")
-                                        .append(coloredLabel)
-                                )
-                                1
-                            }
-                    )
-            )
-        }
-
-        return bindCommand
-    }
-
-    private fun createReplyCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        return ClientCommandManager.literal("r")
-            .then(
-                ClientCommandManager.argument<String>("message", StringArgumentType.greedyString())
-                    .executes { ctx: CommandContext<FabricClientCommandSource> ->
-                        if (lastSender != null) {
-                            val message = StringArgumentType.getString(ctx, "message")
-                            ctx.getSource()!!.player.connection.sendCommand("msg $lastSender $message")
-                        } else {
-                            Module.sendChat(ctx, "No one to reply to")
-                        }
-                        1
-                    }
-            )
-    }
-
-    private fun createToggleCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        val toggleCommand = ClientCommandManager.literal("t")
-
-        for (module in modules) {
-            toggleCommand.then(
-                ClientCommandManager.literal(module.id)
-                    .executes { ctx: CommandContext<FabricClientCommandSource> ->
-                        module.toggle()
-                        val status = if (module.enabled) Formatting.green("enabled") else Formatting.red("disabled")
-                        Module.sendChat(
-                            ctx,
-                            Component.literal("Module ${module.id} has been ").append(status)
-                        )
-                        1
-                    }
-            )
-        }
-
-        return toggleCommand
     }
 }

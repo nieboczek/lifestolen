@@ -28,20 +28,16 @@ import nieboczek.lifestolen.serializer.base.Serializer
 
 abstract class Module(val id: String, val category: Category) {
     companion object {
-        fun sendChat(ctx: CommandContext<FabricClientCommandSource>, msg: MutableComponent) {
-            ctx.source.sendFeedback(Lifestolen.msgPrefix.copy().append(msg.withColor(0xFFFFFF)))
+        fun sendChat(it: CommandContext<FabricClientCommandSource>, msg: MutableComponent) {
+            it.source.sendFeedback(Lifestolen.msgPrefix.copy().append(msg.withColor(0xFFFFFF)))
         }
 
-        fun sendChat(ctx: CommandContext<FabricClientCommandSource>, msg: String) {
-            ctx.source.sendFeedback(Lifestolen.msgPrefix.copy().append(Component.literal(msg).withColor(0xFFFFFF)))
+        fun sendChat(it: CommandContext<FabricClientCommandSource>, msg: String) {
+            it.source.sendFeedback(Lifestolen.msgPrefix.copy().append(Component.literal(msg).withColor(0xFFFFFF)))
         }
 
         fun sendStatus(msg: Component, mc: Minecraft) {
             mc.player?.displayClientMessage(msg, true)
-        }
-
-        fun sendChat(msg: Component, mc: Minecraft) {
-            mc.player?.displayClientMessage(msg, false)
         }
     }
 
@@ -57,7 +53,6 @@ abstract class Module(val id: String, val category: Category) {
 
     private var bindHeld = false
 
-    open fun registerCommands(dispatcher: CommandDispatcher<FabricClientCommandSource>, context: CommandBuildContext) {}
     open fun tick() {}
     open fun render2d(context: GuiGraphics) {}
     open fun render3d() {}
@@ -75,7 +70,7 @@ abstract class Module(val id: String, val category: Category) {
         if (shouldToggle) {
             toggle()
             val status = if (enabled) Formatting.green("enabled") else Formatting.red("disabled")
-            sendStatus(Component.literal(id).append(" ").append(status), mc)
+            sendStatus(Component.literal("$id ").append(status), mc)
         }
     }
 
