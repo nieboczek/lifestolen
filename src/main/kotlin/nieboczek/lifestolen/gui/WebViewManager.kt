@@ -8,7 +8,6 @@ import nieboczek.lifestolen.config.setting.KeybindSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
 import nieboczek.lifestolen.config.setting.Setting
-import org.lwjgl.glfw.GLFW
 import tytoo.grapheneui.api.GrapheneCore
 import tytoo.grapheneui.api.bridge.GrapheneBridge
 import tytoo.grapheneui.api.bridge.GrapheneBridgeSubscription
@@ -74,14 +73,6 @@ object WebViewManager {
             })
         })
 
-        subs.add(bridge.onEventJson("toggleModule", TogglePayload::class.java) { _, payload ->
-            Lifestolen.modules.find { it.id == payload.id }?.let { module ->
-                if (module.enabled != payload.enabled) {
-                    module.toggle()
-                }
-            }
-        })
-
         subs.add(bridge.onEventJson("updateSetting", UpdateSettingPayload::class.java) { _, payload ->
             Lifestolen.modules.find { it.id == payload.moduleId }?.let { module ->
                 module.settings.find { it.name == payload.name }?.let { setting ->
@@ -104,8 +95,8 @@ object WebViewManager {
         subs.forEach { it.unsubscribe() }
     }
 
-    fun moduleToggled(moduleId: String, enabled: Boolean) {
-        bridge.emitJson("toggleModule", TogglePayload(moduleId, enabled))
+    fun settingUpdated(moduleId: String, name: String, value: Any) {
+        bridge.emitJson("updateSetting", UpdateSettingPayload(moduleId, name, value))
     }
 
     fun keyPressed(code: Int, displayed: String, isReserved: Boolean) {
@@ -132,7 +123,6 @@ object WebViewManager {
     private data class KeynamePayload(val code: Int)
     private data class KeynameResponse(val displayed: String)
     private data class KeydownPayload(val code: Int, val displayed: String, val isReserved: Boolean)
-    private data class TogglePayload(val id: String, val enabled: Boolean)
     private data class UpdateSettingPayload(val moduleId: String, val name: String, val value: Any)
     private data class ModuleInfo(
         val id: String,

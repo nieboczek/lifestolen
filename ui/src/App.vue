@@ -30,11 +30,6 @@ interface UpdateSettingPayload {
     value: SettingValue;
 }
 
-interface TogglePayload {
-    id: string;
-    enabled: boolean;
-}
-
 watch(bridge, (newBridge) => {
     if (!newBridge) {
         return;
@@ -53,19 +48,24 @@ watch(bridge, (newBridge) => {
         });
     });
 
-    newBridge.on<TogglePayload>('toggleModule', (payload) => {
-        const m = modules.value.find(m => m.id === payload.id);
-        if (m) {
-            m.enabled = payload.enabled;
+    newBridge.on<UpdateSettingPayload>('updateSetting', (payload) => {
+        const m = modules.value.find(m => m.id === payload.moduleId);
+        if (!m) return;
+
+        if (payload.name === "Enabled") {
+            m.enabled = payload.value as boolean;
+        } else {
+            const s = m.settings.find(s => s.name === payload.name);
+            s!.value = payload.value;
         }
     });
 });
 
-function toggleModule(id: string) {
-    const m = modules.value.find(m => m.id === id);
+function toggleModule(moduleId: string) {
+    const m = modules.value.find(m => m.id === moduleId);
     if (m) {
         m.enabled = !m.enabled;
-        bridge.value!.emit<TogglePayload>('toggleModule', { id, enabled: m.enabled });
+        bridge.value!.emit<UpdateSettingPayload>('updateSetting', { moduleId, name: "Enabled", value: m.enabled });
     }
 }
 

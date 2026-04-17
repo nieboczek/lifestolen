@@ -81,7 +81,7 @@ abstract class Module(val id: String, val category: Category) {
 
     fun toggle() {
         enabled = !enabled
-        WebViewManager.moduleToggled(id, enabled)
+        WebViewManager.settingUpdated(id, "Enabled", enabled)
     }
 
     fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = ""): Setting<IntRange> {

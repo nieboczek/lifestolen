@@ -1,6 +1,7 @@
 package nieboczek.lifestolen
 
 import com.mojang.authlib.GameProfile
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
@@ -196,15 +197,18 @@ class Lifestolen : ModInitializer, ClientModInitializer {
                     .then(
                         ClientCommandManager.argument<String>("key", StringArgumentType.string())
                             .executes { ctx: CommandContext<FabricClientCommandSource> ->
-                                val keycode =
-                                    BindUtils.getKeycode(ctx.getArgument("key", String::class.java))
-                                module.keybind = keycode
+                                val keyStr = ctx.getArgument("key", String::class.java)
+                                val keycode = BindUtils.getKeycode(keyStr)
 
-                                val keyLabel = Formatting.niceBlue(BindUtils.getKeyLabel(keycode))
+                                module.keybind = keycode
+                                WebViewManager.settingUpdated(module.id, "Keybind", keycode)
+
+                                val label = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
+                                val coloredLabel = Formatting.niceBlue(label)
                                 Module.sendChat(
                                     ctx,
                                     Component.literal("Bound module ${module.id} to ")
-                                        .append(keyLabel)
+                                        .append(coloredLabel)
                                 )
                                 1
                             }

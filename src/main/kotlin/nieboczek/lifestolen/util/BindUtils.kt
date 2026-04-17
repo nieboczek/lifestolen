@@ -1,47 +1,8 @@
 package nieboczek.lifestolen.util
 
-import com.mojang.blaze3d.platform.InputConstants
 import org.lwjgl.glfw.GLFW
-import java.util.Locale
 
 object BindUtils {
-    fun getKeyLabel(keycode: Int): String {
-        if (keycode <= 0) {
-            return "None"
-        }
-
-        return when (keycode) {
-            GLFW.GLFW_KEY_SPACE -> "Space"
-            GLFW.GLFW_KEY_LEFT_SHIFT -> "Shift"
-            GLFW.GLFW_KEY_RIGHT_SHIFT -> "RShift"
-            GLFW.GLFW_KEY_LEFT_CONTROL -> "Ctrl"
-            GLFW.GLFW_KEY_RIGHT_CONTROL -> "RCtrl"
-            GLFW.GLFW_KEY_LEFT_ALT -> "Alt"
-            GLFW.GLFW_KEY_RIGHT_ALT -> "RAlt"
-            GLFW.GLFW_KEY_ENTER -> "Enter"
-            GLFW.GLFW_KEY_TAB -> "Tab"
-            GLFW.GLFW_KEY_BACKSPACE -> "Backspace"
-            GLFW.GLFW_KEY_DELETE -> "Delete"
-            GLFW.GLFW_KEY_INSERT -> "Insert"
-            GLFW.GLFW_KEY_HOME -> "Home"
-            GLFW.GLFW_KEY_END -> "End"
-            GLFW.GLFW_KEY_PAGE_UP -> "PageUp"
-            GLFW.GLFW_KEY_PAGE_DOWN -> "PageDown"
-            GLFW.GLFW_KEY_UP -> "Up"
-            GLFW.GLFW_KEY_DOWN -> "Down"
-            GLFW.GLFW_KEY_LEFT -> "Left"
-            GLFW.GLFW_KEY_RIGHT -> "Right"
-            GLFW.GLFW_KEY_ESCAPE -> "Esc"
-            GLFW.GLFW_KEY_CAPS_LOCK -> "CapsLock"
-            GLFW.GLFW_KEY_PAUSE -> "Pause"
-            GLFW.GLFW_KEY_SCROLL_LOCK -> "ScrollLock"
-            else -> {
-                val display = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
-                if (display.isBlank()) "KEY $keycode" else display.uppercase(Locale.getDefault())
-            }
-        }
-    }
-
     fun getKeycode(label: String): Int {
         return when (val lowerCaseLabel = label.lowercase()) {
             "space" -> GLFW.GLFW_KEY_SPACE
