@@ -1,6 +1,7 @@
 package nieboczek.lifestolen.gui
 
 import com.mojang.blaze3d.platform.InputConstants
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
@@ -8,6 +9,7 @@ import nieboczek.lifestolen.config.setting.KeybindSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
 import nieboczek.lifestolen.config.setting.Setting
+import nieboczek.lifestolen.module.Module
 import tytoo.grapheneui.api.GrapheneCore
 import tytoo.grapheneui.api.bridge.GrapheneBridge
 import tytoo.grapheneui.api.bridge.GrapheneBridgeSubscription
@@ -76,8 +78,19 @@ object WebViewManager {
         subs.add(bridge.onEventJson("updateSetting", UpdateSettingPayload::class.java) { _, payload ->
             Lifestolen.modules.find { it.id == payload.moduleId }?.let { module ->
                 module.settings.find { it.name == payload.name }?.let { setting ->
+                    val convertedValue: Any = when (setting) {
+                        is RangeSetting<*, *> if payload.value is List<*> -> {
+                            val list = payload.value
+                            val start = (list[0] as Number).toInt()
+                            val end = (list[1] as Number).toInt()
+                            start..end
+                        }
+
+                        else -> payload.value
+                    }
+
                     @Suppress("UNCHECKED_CAST")
-                    (setting as Setting<Any>).value = payload.value
+                    (setting as Setting<Any>).value = convertedValue
                 }
             }
         })
@@ -93,6 +106,7 @@ object WebViewManager {
 
     fun shutdown() {
         subs.forEach { it.unsubscribe() }
+        webView?.close()
     }
 
     fun settingUpdated(moduleId: String, name: String, value: Any) {

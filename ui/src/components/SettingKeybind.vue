@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, type MapHTMLAttributes } from 'vue';
+import { onMounted, onUnmounted, ref, type MapHTMLAttributes } from 'vue';
 import type { Setting } from '@/types';
 import { useGrapheneBridge } from '@/composables/useGrapheneBridge';
 
@@ -29,6 +29,7 @@ const emit = defineEmits<{
 
 const isRecording = ref(false);
 const displayed = ref("None");
+let keydownHandle: () => void | undefined;
 
 onMounted(() => {
     if (props.setting.value !== 0) {
@@ -37,7 +38,7 @@ onMounted(() => {
         })
     }
 
-    bridge.value!.on("keydown", (payload: KeydownPayload) => {
+    keydownHandle = bridge.value!.on("keydown", (payload: KeydownPayload) => {
         if (isRecording.value) {
             displayed.value = payload.isReserved ? "None" : payload.displayed;
             isRecording.value = false;
@@ -46,9 +47,9 @@ onMounted(() => {
     });
 });
 
-async function getKeyDisplayName(key: number): Promise<string> {
-    return "";
-}
+onUnmounted(() => {
+    keydownHandle ? keydownHandle() : {};
+});
 </script>
 
 <template>
