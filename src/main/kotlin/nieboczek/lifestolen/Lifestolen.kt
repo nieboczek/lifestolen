@@ -1,31 +1,28 @@
 package nieboczek.lifestolen
 
 import com.mojang.authlib.GameProfile
-import com.mojang.brigadier.CommandDispatcher
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.ClientStarted
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.ClientStopping
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientPacketListener
-import net.minecraft.commands.CommandBuildContext
 import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.gui.WebViewManager
+import nieboczek.lifestolen.module.ScaffoldModule
 import nieboczek.lifestolen.module.FakeLagModule
 import nieboczek.lifestolen.module.KillAuraModule
 import nieboczek.lifestolen.module.Module
 import nieboczek.lifestolen.module.ProximityModule
+import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
 import nieboczek.lifestolen.util.Formatting
 import org.slf4j.Logger
@@ -91,6 +88,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(ProximityModule)
         modules.add(KillAuraModule)
         modules.add(FakeLagModule)
+        modules.add(ScaffoldModule)
 
         WebViewManager.initialize()
         ConfigManager.loadConfig()
@@ -102,21 +100,23 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     private fun clientTick(mc: Minecraft) {
-        val isGuiClosed = mc.screen !is ConfigScreen
+        val noScreen = mc.screen == null
         while (mc.options.keySocialInteractions.consumeClick()) {
-            if (isGuiClosed) {
+            if (noScreen) {
                 mc.setScreen(ConfigScreen())
             } else {
                 mc.setScreen(null)
             }
         }
 
+        RotationUtil.tick()
+
         mc.player ?: return
 
         val window = mc.window
         for (module in modules) {
             if (module.enabled) module.tick()
-            if (isGuiClosed) module.handleBindPress(window)
+            if (noScreen) module.handleBindPress(window)
         }
     }
 

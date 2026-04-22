@@ -38,7 +38,7 @@ watch(bridge, (newBridge) => {
     newBridge.onReady(() => {
         console.log("Requesting ready response from bridge");
         bridge.value!.request<null, { modules: ModuleInfo[] }>('ready', null).then((data) => {
-            console.log("Bridge responded with data payload");
+            console.log("Bridge responded with data payload:", data);
             modules.value = data.modules.map(m => ({
                 id: m.id,
                 category: m.category,

@@ -28,13 +28,13 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
     }
 
     override fun render3d() {
-        val partialTickPos = Renderer3d.computePartialTickPos(
-            mc.player!!.oldPosition(),
-            mc.player!!.position(),
+        val cameraRelativePos = Renderer3d.computeSmoothRelativeToCameraPos(
+            player.oldPosition(),
+            player.position(),
             mc.entityRenderDispatcher.camera!!.position()
         ).add(0.0, 1.0, 0.0)
 
-        Renderer3d.renderCircleOutline(64, -0x1, range, partialTickPos)
+        Renderer3d.renderCircleOutline(64, -1, range, cameraRelativePos)
     }
 
     private val nearestEnemy: Entity?

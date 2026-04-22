@@ -6,6 +6,8 @@
     "GameRendererMixin",
     "GrapheneWebViewWidgetMixin",
     "GuiMixin",
+    "LivingEntityRendererMixin",
+    "LocalPlayerMixin",
     "MinecraftMixin"
   ],
   "injectors": {

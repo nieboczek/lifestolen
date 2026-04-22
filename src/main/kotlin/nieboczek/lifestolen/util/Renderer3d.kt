@@ -3,6 +3,7 @@ package nieboczek.lifestolen.util
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.rendertype.RenderTypes
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import kotlin.math.cos
 import kotlin.math.sin
@@ -17,7 +18,7 @@ object Renderer3d {
     @JvmField
     var tickDelta: Float = 0f
 
-    fun computePartialTickPos(oldPos: Vec3, pos: Vec3, cameraPos: Vec3): Vec3 {
+    fun computeSmoothRelativeToCameraPos(oldPos: Vec3, pos: Vec3, cameraPos: Vec3): Vec3 {
         val newX = oldPos.x + (pos.x - oldPos.x) * tickDelta - cameraPos.x
         val newY = oldPos.y + (pos.y - oldPos.y) * tickDelta - cameraPos.y
         val newZ = oldPos.z + (pos.z - oldPos.z) * tickDelta - cameraPos.z
@@ -59,4 +60,61 @@ object Renderer3d {
 
         bufferSource!!.endBatch(RenderTypes.lines())
     }
+
+    fun renderBoxOutline(boxDimensions: AABB, color: Int, pos: Vec3) {
+        val consumer = bufferSource!!.getBuffer(RenderTypes.lines())
+        val stack = poseStack!!
+
+        stack.pushPose()
+        stack.translate(pos)
+
+        val positionMatrix = stack.last().pose()
+        val normalMatrix = stack.last()
+
+        val x0 = boxDimensions.minX.toFloat()
+        val y0 = boxDimensions.minY.toFloat()
+        val z0 = boxDimensions.minZ.toFloat()
+        val x1 = boxDimensions.maxX.toFloat()
+        val y1 = boxDimensions.maxY.toFloat()
+        val z1 = boxDimensions.maxZ.toFloat()
+
+        val edges = arrayOf(
+            // Bottom face
+            x0 to y0 to z0, x1 to y0 to z0,
+            x1 to y0 to z0, x1 to y0 to z1,
+            x1 to y0 to z1, x0 to y0 to z1,
+            x0 to y0 to z1, x0 to y0 to z0,
+            // Top face
+            x0 to y1 to z0, x1 to y1 to z0,
+            x1 to y1 to z0, x1 to y1 to z1,
+            x1 to y1 to z1, x0 to y1 to z1,
+            x0 to y1 to z1, x0 to y1 to z0,
+            // Vertical edges
+            x0 to y0 to z0, x0 to y1 to z0,
+            x1 to y0 to z0, x1 to y1 to z0,
+            x1 to y0 to z1, x1 to y1 to z1,
+            x0 to y0 to z1, x0 to y1 to z1
+        )
+
+        for (i in edges.indices step 2) {
+            val (xStart, yStart, zStart) = edges[i]
+            val (xEnd, yEnd, zEnd) = edges[i + 1]
+
+            consumer.addVertex(positionMatrix, xStart, yStart, zStart)
+                .setColor(color)
+                .setLineWidth(2.5f)
+                .setNormal(normalMatrix, 0f, 1f, 0f)
+
+            consumer.addVertex(positionMatrix, xEnd, yEnd, zEnd)
+                .setColor(color)
+                .setLineWidth(2.5f)
+                .setNormal(normalMatrix, 0f, 1f, 0f)
+        }
+
+        stack.popPose()
+        bufferSource!!.endBatch(RenderTypes.lines())
+    }
+
+    // Helper infix function to create Triple from nested Pairs for cleaner edge definition
+    private infix fun <T> Pair<T, T>.to(value: T): Triple<T, T, T> = Triple(this.first, this.second, value)
 }

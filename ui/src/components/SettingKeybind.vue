@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, type MapHTMLAttributes } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import type { Setting } from '@/types';
 import { useGrapheneBridge } from '@/composables/useGrapheneBridge';
 
