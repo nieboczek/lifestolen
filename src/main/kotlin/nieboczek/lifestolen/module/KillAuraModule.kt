@@ -14,7 +14,6 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
     val attackOnlyPlayers by boolean("Attack Only Players", true)
 
     private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
-    private val random = Random()
 
     override fun tick() {
         val target: Entity? = this.nearestEnemy
