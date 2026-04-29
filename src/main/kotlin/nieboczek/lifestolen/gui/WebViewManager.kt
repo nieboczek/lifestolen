@@ -123,7 +123,7 @@ object WebViewManager {
                 "intRange",
                 setting.allowed.start as Any,
                 setting.allowed.endInclusive as Any,
-                null,
+                setting.step,
                 setting.suffix
             )
 

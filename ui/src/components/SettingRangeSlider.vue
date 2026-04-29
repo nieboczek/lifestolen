@@ -13,6 +13,14 @@ const emit = defineEmits<{
 const sliderMin = computed(() => Math.min(props.setting.min ?? 0, props.setting.max ?? 100));
 const sliderMax = computed(() => Math.max(props.setting.min ?? 0, props.setting.max ?? 100));
 const step = computed(() => props.setting.step ?? 1);
+const precision = computed(() => {
+    const stepStr = step.value.toString();
+    if (stepStr.includes('.')) {
+        return stepStr.split('.')[1]!.length;
+    }
+    return 0;
+});
+
 const sliderTrack = ref<HTMLElement | null>(null);
 
 function clamp(value: number, min: number, max: number): number {
@@ -104,7 +112,7 @@ function onMouseDown(index: 0 | 1, event: MouseEvent) {
 <template>
     <div class="setting-oneline">
         <span class="setting-name">{{ setting.name }}</span>
-        <span class="setting-slider-value">{{ lowerValue }} - {{ upperValue }} {{ setting.unit ?? '' }}</span>
+        <span class="setting-slider-value">{{ lowerValue.toFixed(precision) }} - {{ upperValue.toFixed(precision) }} {{ setting.unit ?? '' }}</span>
     </div>
     <div class="range-slider-container">
         <div class="range-slider-track" ref="sliderTrack">

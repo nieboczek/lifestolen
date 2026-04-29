@@ -79,8 +79,8 @@ abstract class Module(val id: String, val category: Category) {
         WebViewManager.settingUpdated(id, settings.find { it.name == "Enabled" }!!)
     }
 
-    fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = ""): Setting<IntRange> {
-        return addSetting(RangeSetting(name, default, allowed, suffix, IntRangeSerializer()))
+    fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = "", step: Int = 1): Setting<IntRange> {
+        return addSetting(RangeSetting(name, default, allowed, suffix, step, IntRangeSerializer()))
     }
 
     fun int(name: String, default: Int, allowed: IntRange, suffix: String = "", step: Int = 1): Setting<Int> {

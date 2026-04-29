@@ -7,5 +7,6 @@ class RangeSetting<T : ClosedRange<N>, N : Comparable<N>>(
     default: T,
     val allowed: ClosedRange<N>,
     val suffix: String = "",
+    val step: N,
     serializer: Serializer<T>,
 ) : Setting<T>(name, default, serializer)
