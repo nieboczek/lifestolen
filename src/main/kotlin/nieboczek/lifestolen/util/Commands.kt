@@ -72,7 +72,7 @@ object Commands {
                     val keycode = parseKeycode(it.getArgument("key", String::class.java))
 
                     module.keybind = keycode
-                    WebViewManager.settingUpdated(module.id, "Keybind", keycode)
+                    WebViewManager.settingUpdated(module.id, module.settings.find { setting -> setting.name == "Enabled" }!!)
 
                     val label = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
                     val coloredLabel = Formatting.niceBlue(label)

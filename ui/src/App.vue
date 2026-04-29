@@ -27,6 +27,7 @@ interface SettingInfo {
 interface UpdateSettingPayload {
     moduleId: string;
     name: string;
+    type: string;
     value: SettingValue;
 }
 
@@ -65,7 +66,7 @@ function toggleModule(moduleId: string) {
     const m = modules.value.find(m => m.id === moduleId);
     if (m) {
         m.enabled = !m.enabled;
-        bridge.value!.emit<UpdateSettingPayload>('updateSetting', { moduleId, name: "Enabled", value: m.enabled });
+        bridge.value!.emit<UpdateSettingPayload>('updateSetting', { moduleId, name: "Enabled", type: "boolean", value: m.enabled });
     }
 }
 
@@ -74,7 +75,7 @@ function updateSetting(moduleId: string, settingName: string, value: SettingValu
     const s = m?.settings.find(s => s.name === settingName);
     if (s) {
         s.value = value;
-        bridge.value?.emit<UpdateSettingPayload>('updateSetting', { moduleId, name: settingName, value });
+        bridge.value?.emit<UpdateSettingPayload>('updateSetting', { moduleId, name: settingName, type: s.type, value });
     }
 }
 

@@ -76,27 +76,27 @@ abstract class Module(val id: String, val category: Category) {
 
     fun toggle() {
         enabled = !enabled
-        WebViewManager.settingUpdated(id, "Enabled", enabled)
+        WebViewManager.settingUpdated(id, settings.find { it.name == "Enabled" }!!)
     }
 
     fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = ""): Setting<IntRange> {
         return addSetting(RangeSetting(name, default, allowed, suffix, IntRangeSerializer()))
     }
 
-    fun int(name: String, default: Int, allowed: IntRange, suffix: String = ""): Setting<Int> {
-        return addSetting(NumberSetting(name, default, allowed, suffix, IntSerializer()))
+    fun int(name: String, default: Int, allowed: IntRange, suffix: String = "", step: Int = 1): Setting<Int> {
+        return addSetting(NumberSetting(name, default, allowed, suffix, step, IntSerializer()))
     }
 
-    fun double(name: String, default: Double, allowed: ClosedFloatingPointRange<Double>, suffix: String = ""): Setting<Double> {
-        return addSetting(NumberSetting(name, default, allowed, suffix, DoubleSerializer()))
+    fun double(name: String, default: Double, allowed: ClosedFloatingPointRange<Double>, suffix: String = "", step: Double = 1.0): Setting<Double> {
+        return addSetting(NumberSetting(name, default, allowed, suffix, step, DoubleSerializer()))
     }
 
     fun boolean(name: String, default: Boolean): Setting<Boolean> {
         return addSetting(Setting(name, default, BooleanSerializer()))
     }
 
-    fun float(name: String, default: Float, allowed: ClosedFloatingPointRange<Float>, suffix: String = ""): Setting<Float> {
-        return addSetting(NumberSetting(name, default, allowed, suffix, FloatSerializer()))
+    fun float(name: String, default: Float, allowed: ClosedFloatingPointRange<Float>, suffix: String = "", step: Float = 1f): Setting<Float> {
+        return addSetting(NumberSetting(name, default, allowed, suffix, step, FloatSerializer()))
     }
 
     fun <T> list(name: String, default: MutableList<T>, elementSerializer: Serializer<T>): Setting<MutableList<T>> {

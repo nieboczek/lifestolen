@@ -14,6 +14,13 @@ const min = computed(() => props.setting.min ?? 0);
 const max = computed(() => props.setting.max ?? 100);
 const step = computed(() => props.setting.step ?? 1);
 const value = computed(() => props.setting.value as number);
+const precision = computed(() => {
+    const stepStr = step.value.toString();
+    if (stepStr.includes('.')) {
+        return stepStr.split('.')[1]!.length;
+    }
+    return 0;
+});
 
 const sliderTrack = ref<HTMLElement | null>(null);
 
@@ -64,7 +71,7 @@ const fillPercent = computed(() => toPercent(value.value ?? min.value));
 <template>
     <div class="setting-oneline">
         <span class="setting-name">{{ setting.name }}</span>
-        <span class="setting-slider-value">{{ value }} {{ setting.unit ?? '' }}</span>
+        <span class="setting-slider-value">{{ value.toFixed(precision) }} {{ setting.unit ?? '' }}</span>
     </div>
     <div class="slider-container">
         <div class="slider-track" ref="sliderTrack">

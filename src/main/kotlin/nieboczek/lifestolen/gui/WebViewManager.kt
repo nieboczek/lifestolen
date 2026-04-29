@@ -28,49 +28,13 @@ object WebViewManager {
             Lifestolen.log.info("[WebViewManager::addSubscriptions] Received ready payload from WebView")
 
             CompletableFuture.completedFuture(object {
+                @Suppress("unused")
                 val modules = Lifestolen.modules.map { module ->
                     ModuleInfo(
                         module.id,
                         module.category.toString(),
                         module.enabled,
-                        module.settings.filter {
-                            it.name != "Enabled"
-                        }.map { setting ->
-                            when (setting) {
-                                is NumberSetting<*> -> SettingInfo(
-                                    setting.name,
-                                    setting.value,
-                                    if (setting.allowed.start is Int) "int" else "float",
-                                    setting.allowed.start as Any,
-                                    setting.allowed.endInclusive as Any,
-                                    null,
-                                    setting.suffix
-                                )
-
-                                is RangeSetting<*, *> -> SettingInfo(
-                                    setting.name,
-                                    setting.value,
-                                    "intRange",
-                                    setting.allowed.start as Any,
-                                    setting.allowed.endInclusive as Any,
-                                    null,
-                                    setting.suffix
-                                )
-
-                                is KeybindSetting -> SettingInfo(
-                                    setting.name,
-                                    setting.value,
-                                    "keybind"
-                                )
-
-                                else -> SettingInfo(
-                                    setting.name,
-                                    setting.value,
-                                    "boolean"
-                                )
-                            }
-                        }
-                    )
+                        module.settings.filter { it.name != "Enabled" }.map { toBridgeValue(it) })
                 }
             })
         })
@@ -79,6 +43,14 @@ object WebViewManager {
             Lifestolen.modules.find { it.id == payload.moduleId }?.let { module ->
                 module.settings.find { it.name == payload.name }?.let { setting ->
                     val convertedValue: Any = when (setting) {
+                        is NumberSetting<*> -> {
+                            if (payload.type == "int") {
+                                (payload.value as Number).toInt()
+                            } else {
+                                (payload.value as Number).toFloat()
+                            }
+                        }
+
                         is RangeSetting<*, *> if payload.value is List<*> -> {
                             val list = payload.value
                             val start = (list[0] as Number).toInt()
@@ -86,11 +58,16 @@ object WebViewManager {
                             start..end
                         }
 
-                        else -> payload.value
+                        is KeybindSetting -> {
+                            (payload.value as Number).toInt()
+                        }
+
+                        else -> payload.value as Boolean
                     }
 
-                    @Suppress("UNCHECKED_CAST")
-                    (setting as Setting<Any>).value = convertedValue
+                    @Suppress("UNCHECKED_CAST") run {
+                        (setting as Setting<Any>).value = convertedValue
+                    }
                 }
             }
         })
@@ -109,8 +86,8 @@ object WebViewManager {
         webView?.close()
     }
 
-    fun settingUpdated(moduleId: String, name: String, value: Any) {
-        bridge.emitJson("updateSetting", UpdateSettingPayload(moduleId, name, value))
+    fun settingUpdated(moduleId: String, setting: Setting<*>) {
+        bridge.emitJson("updateSetting", toBridgeValue(setting).let { UpdateSettingPayload(moduleId, it.name, it.type, it.value) })
     }
 
     fun keyPressed(code: Int, displayed: String, isReserved: Boolean) {
@@ -121,33 +98,56 @@ object WebViewManager {
         val handle = GrapheneCore.handle(Lifestolen.MOD_ID)
         val url = handle.appAssets().asset("ui/index.html")
         val widget = GrapheneWebViewWidget(
-            object : Screen(Component.empty()) {},
-            0,
-            0,
-            640,
-            360,
-            Component.empty(),
-            url
+            object : Screen(Component.empty()) {}, 0, 0, 640, 360, Component.empty(), url
         )
 
         addSubscriptions(widget.bridge())
         webView = widget
     }
 
+    private fun toBridgeValue(setting: Setting<*>): SettingInfo {
+        return when (setting) {
+            is NumberSetting<*> -> SettingInfo(
+                setting.name,
+                setting.value,
+                if (setting.allowed.start is Int) "int" else "float",
+                setting.allowed.start as Any,
+                setting.allowed.endInclusive as Any,
+                setting.step,
+                setting.suffix
+            )
+
+            is RangeSetting<*, *> -> SettingInfo(
+                setting.name,
+                setting.value,
+                "intRange",
+                setting.allowed.start as Any,
+                setting.allowed.endInclusive as Any,
+                null,
+                setting.suffix
+            )
+
+            is KeybindSetting -> SettingInfo(
+                setting.name, setting.value, "keybind"
+            )
+
+            else -> SettingInfo(
+                setting.name, setting.value!!, "boolean"
+            )
+        }
+    }
+
     private data class KeynamePayload(val code: Int)
     private data class KeynameResponse(val displayed: String)
     private data class KeydownPayload(val code: Int, val displayed: String, val isReserved: Boolean)
-    private data class UpdateSettingPayload(val moduleId: String, val name: String, val value: Any)
+    private data class UpdateSettingPayload(val moduleId: String, val name: String, val type: String, val value: Any)
     private data class ModuleInfo(
-        val id: String,
-        val category: String,
-        val enabled: Boolean,
-        val settings: List<SettingInfo>
+        val id: String, val category: String, val enabled: Boolean, val settings: List<SettingInfo>
     )
 
     private data class SettingInfo(
         val name: String,
-        val value: Any?,
+        val value: Any,
         val type: String,
         val min: Any? = null,
         val max: Any? = null,

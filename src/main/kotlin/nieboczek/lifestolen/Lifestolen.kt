@@ -65,14 +65,14 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
     override fun onInitializeClient() {
         // UI DevTools config; http://127.0.0.1:21371/json
-        GrapheneCore.register(MOD_ID, tytoo.grapheneui.api.config.GrapheneConfig.builder().global(
-            tytoo.grapheneui.api.config.GrapheneGlobalConfig.builder().remoteDebugging(
-                tytoo.grapheneui.api.config.GrapheneRemoteDebugConfig.builder().port(21371)
-                    .allowedOrigins("https://chrome-devtools-frontend.appspot.com").build()
-            ).build()
-        ).build())
+//        GrapheneCore.register(MOD_ID, tytoo.grapheneui.api.config.GrapheneConfig.builder().global(
+//            tytoo.grapheneui.api.config.GrapheneGlobalConfig.builder().remoteDebugging(
+//                tytoo.grapheneui.api.config.GrapheneRemoteDebugConfig.builder().port(21371)
+//                    .allowedOrigins("https://chrome-devtools-frontend.appspot.com").build()
+//            ).build()
+//        ).build())
 
-//        GrapheneCore.register(MOD_ID)
+        GrapheneCore.register(MOD_ID)
     }
 
     override fun onInitialize() {

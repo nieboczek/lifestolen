@@ -7,5 +7,6 @@ class NumberSetting<T : Comparable<T>>(
     default: T,
     val allowed: ClosedRange<T>,
     val suffix: String = "",
+    val step: T,
     serializer: Serializer<T>,
 ) : Setting<T>(name, default, serializer)

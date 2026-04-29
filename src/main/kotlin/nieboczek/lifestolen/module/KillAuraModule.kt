@@ -10,7 +10,7 @@ import java.util.*
 import java.util.function.Predicate
 
 object KillAuraModule : Module("KillAura", Category.COMBAT) {
-    val range by float("Range", 3f, 1f..4f, "blocks")
+    val range by float("Range", 3f, 1f..4f, "blocks", 0.01f)
     val attackOnlyPlayers by boolean("Attack Only Players", true)
 
     private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
