@@ -5,20 +5,28 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Renderer3d
 import java.util.*
-import java.util.function.Predicate
+import kotlin.math.atan2
+import kotlin.math.sqrt
 
 object KillAuraModule : Module("KillAura", Category.COMBAT) {
-    val range by float("Range", 3f, 1f..4f, "blocks", 0.01f)
+    val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
     val attackOnlyPlayers by boolean("Attack Only Players", true)
+    val lookAtTarget by boolean("Look at Target", true)
 
     private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
 
     override fun tick() {
-        val target: Entity? = this.nearestEnemy
-        if (target == null || !player.gameMode()!!.isSurvival) return
-        if (player.isBlocking) return  // don't attack if shield blocking
+        val target = findNearestEntity() ?: return
+        if (lookAtTarget) {
+            val targetVec = target.eyePosition
+            RotationUtil.targetRotation = RotationUtil.Rotation(getXRot(targetVec), getYRot(targetVec))
+        }
+
+        if (!player.gameMode()!!.isSurvival || player.isBlocking) return
 
         if (player.getAttackStrengthScale(0.5f) >= 0.95) {
             mc.gameMode!!.attack(player, target)
@@ -33,28 +41,39 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
             mc.entityRenderDispatcher.camera!!.position()
         ).add(0.0, 1.0, 0.0)
 
-        Renderer3d.renderCircleOutline(64, -1, range, cameraRelativePos)
+        Renderer3d.renderCircleOutline(64, -1, range.toFloat(), cameraRelativePos)
     }
 
-    private val nearestEnemy: Entity?
-        get() {
-            var best: Entity? = null
-            var bestDistSq = range * range
-            val entities = player.level().getEntities(mc.player, BIG_AABB, Predicate { _: Entity -> true })
+    private fun getXRot(target: Vec3): Float {
+        val eyePos = player.eyePosition
+        val diff = target.subtract(eyePos)
+        return Math.toDegrees(atan2(-diff.y, sqrt(diff.x * diff.x + diff.z * diff.z))).toFloat()
+    }
 
-            for (entity in entities) {
-                val attackPlayer = entity is Player
-                val attackLivingEntity = !attackOnlyPlayers && entity is LivingEntity
+    private fun getYRot(target: Vec3): Float {
+        val eyePos = player.eyePosition
+        val diff = target.subtract(eyePos)
+        return (-Math.toDegrees(atan2(diff.x, diff.z))).toFloat()
+    }
 
-                if ((attackPlayer || attackLivingEntity) && entity !== mc.player && entity.isAlive) {
-                    val distSq: Double = player.distanceToSqr(entity)
-                    if (distSq < bestDistSq) {
-                        bestDistSq = distSq.toFloat()
-                        best = entity
-                    }
+    private fun findNearestEntity(): Entity? {
+        var best: Entity? = null
+        var bestDistSq = range * range
+        val entities = player.level().getEntities(mc.player, BIG_AABB) { true }
+
+        for (entity in entities) {
+            val attackPlayer = entity is Player
+            val attackLivingEntity = !attackOnlyPlayers && entity is LivingEntity
+
+            if ((attackPlayer || attackLivingEntity) && entity != mc.player && entity.isAlive) {
+                val distSq = player.distanceToSqr(entity)
+                if (distSq < bestDistSq) {
+                    bestDistSq = distSq
+                    best = entity
                 }
             }
-
-            return best
         }
+
+        return best
+    }
 }

@@ -38,10 +38,10 @@ object Renderer3d {
             val angle1 = (2.0 * Math.PI * i / segments).toFloat()
             val angle2 = (2.0 * Math.PI * (i + 1) / segments).toFloat()
 
-            val x1 = cos(angle1.toDouble()).toFloat() * radius
-            val z1 = sin(angle1.toDouble()).toFloat() * radius
-            val x2 = cos(angle2.toDouble()).toFloat() * radius
-            val z2 = sin(angle2.toDouble()).toFloat() * radius
+            val x1 = cos(angle1) * radius
+            val z1 = sin(angle1) * radius
+            val x2 = cos(angle2) * radius
+            val z2 = sin(angle2) * radius
 
             // Line segment: vertex 1
             consumer.addVertex(positionMatrix, x1, 0f, z1)

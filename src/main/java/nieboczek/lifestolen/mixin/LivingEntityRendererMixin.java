@@ -23,9 +23,8 @@ public class LivingEntityRendererMixin {
             RotationUtil.Rotation rot = RotationUtil.INSTANCE.getLerpedRotation();
             if (rot == null) return;
 
-            float yRot = Mth.wrapDegrees(rot.getY());
-            state.bodyRot = yRot;
-            state.yRot = yRot;
+            state.bodyRot = Mth.wrapDegrees(rot.getY());
+            state.yRot = 0f;
             state.xRot = rot.getX();
         }
     }

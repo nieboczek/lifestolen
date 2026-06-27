@@ -24,7 +24,7 @@ object RotationUtil {
         val newPitch = current.x + (target.x - current.x) * factor
 
         var deltaYaw = target.y - current.y
-        deltaYaw = ((deltaYaw + 180f) % 360f) - 180f
+        deltaYaw = (deltaYaw + 180f).mod(360f) - 180f
         val newYaw = current.y + deltaYaw * factor
 
         val normalizedYaw = ((newYaw % 360f) + 360f) % 360f
