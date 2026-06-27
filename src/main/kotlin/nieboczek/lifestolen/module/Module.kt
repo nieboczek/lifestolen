@@ -101,11 +101,13 @@ abstract class Module(val id: String, val category: Category) {
 
     enum class Category {
         COMBAT,
-        MOVEMENT;
+        MOVEMENT,
+        VISUALS;
 
         override fun toString(): String = when (this) {
             COMBAT -> "Combat"
             MOVEMENT -> "Movement"
+            VISUALS -> "Visuals"
         }
     }
 }

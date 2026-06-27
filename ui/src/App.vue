@@ -84,4 +84,5 @@ function updateSetting(moduleId: string, settingName: string, value: SettingValu
 <template>
     <Category name="Combat" :modules="modules.filter(m => m.category === 'Combat')" @toggle-module="toggleModule" @update-setting="updateSetting" />
     <Category name="Movement" :modules="modules.filter(m => m.category === 'Movement')" @toggle-module="toggleModule" @update-setting="updateSetting" />
+    <Category name="Visuals" :modules="modules.filter(m => m.category === 'Visuals')" @toggle-module="toggleModule" @update-setting="updateSetting" />
 </template>
