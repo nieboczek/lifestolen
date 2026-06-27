@@ -6,6 +6,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import nieboczek.lifestolen.Lifestolen;
+import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.util.Renderer3d;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
@@ -38,4 +39,10 @@ public class GameRendererMixin {
         }
     }
 
+    @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
+    private void bobView(PoseStack poseStack, float partialTicks, CallbackInfo ci) {
+        if (TracersModule.INSTANCE.getEnabled()) {
+            ci.cancel();
+        }
+    }
 }
