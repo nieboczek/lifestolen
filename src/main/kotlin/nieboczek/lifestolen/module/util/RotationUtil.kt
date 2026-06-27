@@ -7,33 +7,38 @@ import kotlin.math.abs
 object RotationUtil {
     private val mc = Minecraft.getInstance()
 
-    var targetRotation: Rotation? = null
     var lerpedRotation: Rotation? = null
+    private var targetRotation: Rotation? = null
+    private var moduleTargeted = false
+
+    fun target(x: Float, y: Float) {
+        targetRotation = Rotation(x, y)
+        moduleTargeted = true
+    }
 
     fun tick() {
         val player = mc.player ?: return
         val target = targetRotation ?: Rotation(player.xRot, player.yRot)
         val current = lerpedRotation ?: Rotation(player.xRot, player.yRot)
 
-        if (target == current) {
-            return
-        }
+        if (target == current) return
 
         val factor = 0.6f
-
         val newPitch = current.x + (target.x - current.x) * factor
 
         var deltaYaw = target.y - current.y
         deltaYaw = (deltaYaw + 180f).mod(360f) - 180f
         val newYaw = current.y + deltaYaw * factor
 
-        val normalizedYaw = ((newYaw % 360f) + 360f) % 360f
+        val normalizedYaw = (newYaw.mod(360f) + 360f).mod(360f)
         val finalYaw = if (normalizedYaw > 180f) normalizedYaw - 360f else normalizedYaw
 
         lerpedRotation = Rotation(newPitch, finalYaw)
         if (roughlyEqual(target, lerpedRotation!!)) {
             targetRotation = null
-            lerpedRotation = null
+            // only lerp if exiting from module-targeted state
+            if (!moduleTargeted) lerpedRotation = null
+            moduleTargeted = false
         }
     }
 

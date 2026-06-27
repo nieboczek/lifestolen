@@ -44,7 +44,7 @@ object PlacementUtil {
             if (!context.canPlace()) continue
 
             val targetVec = Vec3.atCenterOf(neighbourPos)
-            RotationUtil.targetRotation = RotationUtil.Rotation(getXRot(targetVec), getYRot(targetVec))
+            RotationUtil.target(getXRot(targetVec), getYRot(targetVec))
 
             return mc.gameMode!!.useItemOn(mc.player!!, InteractionHand.MAIN_HAND, hitResult) != InteractionResult.FAIL
         }

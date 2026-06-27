@@ -23,7 +23,7 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
         val target = findNearestEntity() ?: return
         if (lookAtTarget) {
             val targetVec = target.eyePosition
-            RotationUtil.targetRotation = RotationUtil.Rotation(getXRot(targetVec), getYRot(targetVec))
+            RotationUtil.target(getXRot(targetVec), getYRot(targetVec))
         }
 
         if (!player.gameMode()!!.isSurvival || player.isBlocking) return
