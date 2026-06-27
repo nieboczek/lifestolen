@@ -127,8 +127,7 @@ object ConfigManager {
                 val id = stream.nextTokenText(TokenType.IDENTIFIER)
                 val setting = settings.find { it.id == id } ?: throw SerializerError("Setting \"$id\" not found")
                 stream.expect(TokenType.EQUAL)
-                @Suppress("UNCHECKED_CAST")
-                setting.value = setting.serializer.deserialize(stream) as Any
+                setting.value = setting.serializer.deserialize(stream)
                 stream.expect(TokenType.SEMICOLON)
             }
         }
