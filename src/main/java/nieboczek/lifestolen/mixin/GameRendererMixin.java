@@ -1,13 +1,13 @@
 package nieboczek.lifestolen.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.util.Renderer3d;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,14 +26,16 @@ public class GameRendererMixin {
             method = "renderLevel"
     )
     void renderLevel(DeltaTracker deltaTracker, CallbackInfo ci) {
-        PoseStack poseStack = new PoseStack();
-        poseStack.mulPose(Axis.XP.rotationDegrees(mainCamera.xRot()));
-        poseStack.mulPose(Axis.YP.rotationDegrees(mainCamera.yRot() + 180f));
-
-        Renderer3d.poseStack = poseStack;
-        Renderer3d.bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         Renderer3d.tickDelta = deltaTracker.getGameTimeDeltaPartialTick(false);
+        Renderer3d.camera = mainCamera;
+        Renderer3d.setViewMatrix(new Matrix4f().rotation(mainCamera.rotation().conjugate(new org.joml.Quaternionf())));
+        Renderer3d.beginFrame(Minecraft.getInstance().getMainRenderTarget(), mainCamera);
 
-        Lifestolen.render3d();
+        try {
+            Lifestolen.render3d();
+        } finally {
+            Renderer3d.endFrame();
+        }
     }
+
 }

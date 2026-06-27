@@ -1,22 +1,122 @@
 package nieboczek.lifestolen.util
 
-import com.mojang.blaze3d.vertex.PoseStack
-import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.rendertype.RenderTypes
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.pipeline.RenderTarget
+import com.mojang.blaze3d.platform.DepthTestFunction
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.BufferBuilder
+import com.mojang.blaze3d.vertex.ByteBufferBuilder
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.VertexFormat
+import net.minecraft.client.Camera
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.resources.Identifier
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import org.joml.Matrix4f
+import org.joml.Vector3f
+import org.joml.Vector4f
+import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
 object Renderer3d {
     @JvmField
-    var bufferSource: MultiBufferSource.BufferSource? = null
-
-    @JvmField
-    var poseStack: PoseStack? = null
-
-    @JvmField
     var tickDelta: Float = 0f
+
+    @JvmField
+    var camera: Camera? = null
+
+    private var renderTarget: RenderTarget? = null
+
+    private val byteBufferBuilder = ByteBufferBuilder(0x400000)
+    private var activeBuilder: BufferBuilder? = null
+    private var hasVertices = false
+
+    private val linePipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
+        .withLocation(Identifier.fromNamespaceAndPath("lifestolen", "lines"))
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .build()
+
+    private val viewMatrix = Matrix4f()
+
+    @JvmStatic
+    fun setViewMatrix(matrix: Matrix4f) {
+        viewMatrix.set(matrix)
+    }
+
+    @JvmStatic
+    fun beginFrame(target: RenderTarget, cam: Camera) {
+        renderTarget = target
+        camera = cam
+        byteBufferBuilder.clear()
+        activeBuilder = BufferBuilder(
+            byteBufferBuilder,
+            VertexFormat.Mode.LINES,
+            DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH
+        )
+        hasVertices = false
+    }
+
+    @JvmStatic
+    fun endFrame() {
+        val target = renderTarget ?: return
+        val builder = activeBuilder ?: return
+        activeBuilder = null
+
+        if (!hasVertices) return
+
+        val meshData = builder.buildOrThrow()
+        val drawState = meshData.drawState()
+        val vertexCount = drawState.vertexCount
+        if (vertexCount == 0) {
+            meshData.close()
+            return
+        }
+
+        val device = RenderSystem.getDevice()
+        val vertexBuffer = device.createBuffer(
+            { "Lifestolen Renderer3d VB" },
+            32,
+            meshData.vertexBuffer()
+        )
+
+        try {
+            val indexCount = drawState.indexCount
+            val sequentialBuffer = RenderSystem.getSequentialBuffer(drawState.mode)
+            val indexSlice = sequentialBuffer.getBuffer(indexCount)
+
+            val stack = RenderSystem.getModelViewStack()
+            stack.pushMatrix()
+            stack.mul(viewMatrix)
+
+            val dynamicTransforms = RenderSystem.getDynamicUniforms()
+                .writeTransform(stack, Vector4f(1.0f), Vector3f(), Matrix4f())
+
+            stack.popMatrix()
+
+            val colorView = target.colorTextureView!!
+            val depthView = target.depthTextureView
+
+            device.createCommandEncoder().createRenderPass(
+                { "Lifestolen Renderer3d" },
+                colorView,
+                OptionalInt.empty(),
+                depthView,
+                OptionalDouble.empty()
+            ).use { pass ->
+                pass.setPipeline(linePipeline)
+                RenderSystem.bindDefaultUniforms(pass)
+                pass.setUniform("DynamicTransforms", dynamicTransforms)
+                pass.setVertexBuffer(0, vertexBuffer)
+                pass.setIndexBuffer(indexSlice, sequentialBuffer.type())
+                pass.drawIndexed(0, 0, indexCount, 1)
+            }
+        } finally {
+            vertexBuffer.close()
+            meshData.close()
+        }
+    }
 
     fun computeSmoothRelativeToCameraPos(oldPos: Vec3, pos: Vec3, cameraPos: Vec3): Vec3 {
         val newX = oldPos.x + (pos.x - oldPos.x) * tickDelta - cameraPos.x
@@ -25,71 +125,74 @@ object Renderer3d {
         return Vec3(newX, newY, newZ)
     }
 
+    fun drawLine(argb: Int, from: Vector3f, to: Vector3f) {
+        val builder = activeBuilder ?: return
+        hasVertices = true
+        val normal = computeNormal(from, to)
+        builder.addVertex(from.x, from.y, from.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+        builder.addVertex(to.x, to.y, to.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+    }
+
+    fun drawLineWithWidth(argb: Int, width: Float, from: Vector3f, to: Vector3f) {
+        val builder = activeBuilder ?: return
+        hasVertices = true
+        val normal = computeNormal(from, to)
+        builder.addVertex(from.x, from.y, from.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(width)
+        builder.addVertex(to.x, to.y, to.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(width)
+    }
+
+    private fun computeNormal(from: Vector3f, to: Vector3f): Vector3f {
+        val dx = to.x - from.x
+        val dy = to.y - from.y
+        val dz = to.z - from.z
+        val len = kotlin.math.sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat()
+        if (len < 1e-6f) return Vector3f(0f, 1f, 0f)
+        return Vector3f(dx / len, 0f, dz / len)
+    }
+
     fun renderCircleOutline(segments: Int, color: Int, radius: Float, pos: Vec3) {
-        val consumer = bufferSource!!.getBuffer(RenderTypes.lines())
-        val stack = poseStack!!
+        val builder = activeBuilder ?: return
+        hasVertices = true
 
-        stack.translate(pos)
-
-        val positionMatrix = stack.last().pose()
-        val normalMatrix = stack.last()
+        val cx = pos.x.toFloat()
+        val cy = pos.y.toFloat()
+        val cz = pos.z.toFloat()
 
         for (i in 0..<segments) {
             val angle1 = (2.0 * Math.PI * i / segments).toFloat()
             val angle2 = (2.0 * Math.PI * (i + 1) / segments).toFloat()
 
-            val x1 = cos(angle1) * radius
-            val z1 = sin(angle1) * radius
-            val x2 = cos(angle2) * radius
-            val z2 = sin(angle2) * radius
+            val x1 = cos(angle1) * radius + cx
+            val z1 = sin(angle1) * radius + cz
+            val x2 = cos(angle2) * radius + cx
+            val z2 = sin(angle2) * radius + cz
 
-            // Line segment: vertex 1
-            consumer.addVertex(positionMatrix, x1, 0f, z1)
-                .setColor(color)
-                .setLineWidth(10.0f)
-                .setNormal(normalMatrix, 0f, 1f, 0f)
-
-            // Line segment: vertex 2
-            consumer.addVertex(positionMatrix, x2, 0f, z2)
-                .setColor(color)
-                .setLineWidth(10.0f)
-                .setNormal(normalMatrix, 0f, 1f, 0f)
+            val normal = Vector3f(0f, 1f, 0f)
+            builder.addVertex(x1, cy, z1).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+            builder.addVertex(x2, cy, z2).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
         }
-
-        stack.translate(-pos.x, -pos.y, -pos.z)
-
-        bufferSource!!.endBatch(RenderTypes.lines())
     }
 
     fun renderBoxOutline(boxDimensions: AABB, color: Int, pos: Vec3) {
-        val consumer = bufferSource!!.getBuffer(RenderTypes.lines())
-        val stack = poseStack!!
+        val builder = activeBuilder ?: return
+        hasVertices = true
 
-        stack.pushPose()
-        stack.translate(pos)
-
-        val positionMatrix = stack.last().pose()
-        val normalMatrix = stack.last()
-
-        val x0 = boxDimensions.minX.toFloat()
-        val y0 = boxDimensions.minY.toFloat()
-        val z0 = boxDimensions.minZ.toFloat()
-        val x1 = boxDimensions.maxX.toFloat()
-        val y1 = boxDimensions.maxY.toFloat()
-        val z1 = boxDimensions.maxZ.toFloat()
+        val x0 = boxDimensions.minX.toFloat() + pos.x.toFloat()
+        val y0 = boxDimensions.minY.toFloat() + pos.y.toFloat()
+        val z0 = boxDimensions.minZ.toFloat() + pos.z.toFloat()
+        val x1 = boxDimensions.maxX.toFloat() + pos.x.toFloat()
+        val y1 = boxDimensions.maxY.toFloat() + pos.y.toFloat()
+        val z1 = boxDimensions.maxZ.toFloat() + pos.z.toFloat()
 
         val edges = arrayOf(
-            // Bottom face
             x0 to y0 to z0, x1 to y0 to z0,
             x1 to y0 to z0, x1 to y0 to z1,
             x1 to y0 to z1, x0 to y0 to z1,
             x0 to y0 to z1, x0 to y0 to z0,
-            // Top face
             x0 to y1 to z0, x1 to y1 to z0,
             x1 to y1 to z0, x1 to y1 to z1,
             x1 to y1 to z1, x0 to y1 to z1,
             x0 to y1 to z1, x0 to y1 to z0,
-            // Vertical edges
             x0 to y0 to z0, x0 to y1 to z0,
             x1 to y0 to z0, x1 to y1 to z0,
             x1 to y0 to z1, x1 to y1 to z1,
@@ -100,21 +203,11 @@ object Renderer3d {
             val (xStart, yStart, zStart) = edges[i]
             val (xEnd, yEnd, zEnd) = edges[i + 1]
 
-            consumer.addVertex(positionMatrix, xStart, yStart, zStart)
-                .setColor(color)
-                .setLineWidth(2.5f)
-                .setNormal(normalMatrix, 0f, 1f, 0f)
-
-            consumer.addVertex(positionMatrix, xEnd, yEnd, zEnd)
-                .setColor(color)
-                .setLineWidth(2.5f)
-                .setNormal(normalMatrix, 0f, 1f, 0f)
+            val normal = Vector3f(0f, 1f, 0f)
+            builder.addVertex(xStart, yStart, zStart).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+            builder.addVertex(xEnd, yEnd, zEnd).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
         }
-
-        stack.popPose()
-        bufferSource!!.endBatch(RenderTypes.lines())
     }
 
-    // Helper infix function to create Triple from nested Pairs for cleaner edge definition
     private infix fun <T> Pair<T, T>.to(value: T): Triple<T, T, T> = Triple(this.first, this.second, value)
 }
