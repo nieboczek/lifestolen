@@ -6,7 +6,6 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Renderer3d
 import kotlin.math.atan2
@@ -15,9 +14,7 @@ import kotlin.math.sqrt
 object KillAuraModule : Module("KillAura", Category.COMBAT) {
     val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
     val attackOnlyPlayers by boolean("Attack Only Players", true)
-    val lookAtTarget by boolean("Look at Target", true)
-
-    private val entire_world_aabb = Lifestolen.entire_world_aabb
+    val lookAtTarget by boolean("Look At Target", true)
 
     override fun tick() {
         val target = findNearestEntity() ?: return
@@ -59,13 +56,15 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
     private fun findNearestEntity(): Entity? {
         var best: Entity? = null
         var bestDistSq = range * range
-        val entities = player.level().getEntities(mc.player, entire_world_aabb) { true }
+        val pos = player.position()
+        val aabb = AABB(pos.subtract(5.0), pos.add(5.0))
+        val entities = player.level().getEntities(mc.player, aabb) { it.isAlive }
 
         for (entity in entities) {
             val attackPlayer = entity is Player
             val attackLivingEntity = !attackOnlyPlayers && entity is LivingEntity
 
-            if ((attackPlayer || attackLivingEntity) && entity != mc.player && entity.isAlive) {
+            if (attackPlayer || attackLivingEntity) {
                 val distSq = player.distanceToSqr(entity)
                 if (distSq < bestDistSq) {
                     bestDistSq = distSq
