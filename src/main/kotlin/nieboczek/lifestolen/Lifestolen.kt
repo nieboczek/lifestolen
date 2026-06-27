@@ -13,16 +13,11 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
-import net.minecraft.world.phys.AABB
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.gui.WebViewManager
-import nieboczek.lifestolen.module.ScaffoldModule
-import nieboczek.lifestolen.module.FakeLagModule
-import nieboczek.lifestolen.module.KillAuraModule
-import nieboczek.lifestolen.module.Module
-import nieboczek.lifestolen.module.ProximityModule
+import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
 import nieboczek.lifestolen.util.Formatting
@@ -36,7 +31,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         const val MOD_ID: String = "lifestolen"
         const val CLIENT_NAME: String = "Lifestolen"
 
-        val entire_world_aabb = AABB(-30_000_000.0, -30_000_000.0, -30_000_000.0, 30_000_000.0, 30_000_000.0, 30_000_000.0)
         val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
         val msgPrefix: Component = Formatting.red("LS ").append(Formatting.darkGray("» "))
         val modules: ArrayList<Module> = ArrayList()
@@ -87,7 +81,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     private fun clientStarted() {
-        modules.add(ProximityModule)
         modules.add(KillAuraModule)
         modules.add(FakeLagModule)
         modules.add(ScaffoldModule)

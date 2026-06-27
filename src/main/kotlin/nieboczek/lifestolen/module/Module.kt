@@ -2,29 +2,17 @@ package nieboczek.lifestolen.module
 
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.blaze3d.platform.Window
-import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.commands.CommandBuildContext
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
-import nieboczek.lifestolen.util.Formatting
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.config.setting.KeybindSetting
-import nieboczek.lifestolen.config.setting.ListSetting
-import nieboczek.lifestolen.config.setting.MapSetting
-import nieboczek.lifestolen.config.setting.NumberSetting
-import nieboczek.lifestolen.config.setting.RangeSetting
-import nieboczek.lifestolen.config.setting.Setting
+import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.WebViewManager
-import nieboczek.lifestolen.serializer.base.BooleanSerializer
-import nieboczek.lifestolen.serializer.base.DoubleSerializer
-import nieboczek.lifestolen.serializer.base.FloatSerializer
-import nieboczek.lifestolen.serializer.base.IntRangeSerializer
-import nieboczek.lifestolen.serializer.base.IntSerializer
-import nieboczek.lifestolen.serializer.base.Serializer
+import nieboczek.lifestolen.serializer.base.*
+import nieboczek.lifestolen.util.Formatting
 
 abstract class Module(val id: String, val category: Category) {
     companion object {
