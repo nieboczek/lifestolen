@@ -6,6 +6,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.serializer.base.ClassSerializer
 import nieboczek.lifestolen.serializer.base.DoubleSerializer
 import nieboczek.lifestolen.serializer.base.IntSerializer
@@ -25,14 +26,14 @@ object ProximityModule : Module("Proximity", Category.COMBAT) {
             .field("distance", DoubleSerializer(), { p -> p.distance }, { p, v -> p.distance = v })
     )
 
-    private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
+    private val entire_world_aabb = Lifestolen.entire_world_aabb
 
     override fun tick() {
         // TODO: multiple mobs at once
         var entityCandidate: Entity? = null
         var paramsCandidate: EntityParameters? = null
         var distanceCandidate = 0.0
-        val entities = player.level().getEntities(mc.player, BIG_AABB, Predicate { _ -> true })
+        val entities = player.level().getEntities(mc.player, entire_world_aabb) { true }
 
         for (entity in entities) {
             val params = this.entities[entity.type] ?: continue

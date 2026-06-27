@@ -6,9 +6,9 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Renderer3d
-import java.util.*
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -17,7 +17,7 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
     val attackOnlyPlayers by boolean("Attack Only Players", true)
     val lookAtTarget by boolean("Look at Target", true)
 
-    private val BIG_AABB = AABB(-65535.0, -65535.0, -65535.0, 65535.0, 65535.0, 65535.0)
+    private val entire_world_aabb = Lifestolen.entire_world_aabb
 
     override fun tick() {
         val target = findNearestEntity() ?: return
@@ -59,7 +59,7 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
     private fun findNearestEntity(): Entity? {
         var best: Entity? = null
         var bestDistSq = range * range
-        val entities = player.level().getEntities(mc.player, BIG_AABB) { true }
+        val entities = player.level().getEntities(mc.player, entire_world_aabb) { true }
 
         for (entity in entities) {
             val attackPlayer = entity is Player
