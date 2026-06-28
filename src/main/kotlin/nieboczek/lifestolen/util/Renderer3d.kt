@@ -150,7 +150,7 @@ object Renderer3d {
         return Vector3f(dx / len, 0f, dz / len)
     }
 
-    fun renderCircleOutline(segments: Int, color: Int, radius: Float, pos: Vec3) {
+    fun renderCircleOutline(segments: Int, color: Int, lineWidth: Float, radius: Float, pos: Vec3) {
         val builder = activeBuilder ?: return
         hasVertices = true
 
@@ -168,8 +168,8 @@ object Renderer3d {
             val z2 = sin(angle2) * radius + cz
 
             val normal = Vector3f(0f, 1f, 0f)
-            builder.addVertex(x1, cy, z1).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
-            builder.addVertex(x2, cy, z2).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+            builder.addVertex(x1, cy, z1).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
+            builder.addVertex(x2, cy, z2).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
         }
     }
 

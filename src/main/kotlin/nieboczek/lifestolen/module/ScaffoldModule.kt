@@ -10,8 +10,8 @@ import nieboczek.lifestolen.module.util.PlacementUtil
 import nieboczek.lifestolen.util.Renderer3d
 
 object ScaffoldModule : Module("Scaffold", Category.MOVEMENT) {
-    val onlyInAir by boolean("Only In Air", true)
-    val showTarget by boolean("Show Target", true)
+    val onlyInAir by boolean("Only In Air")
+    val showTarget by boolean("Show Target")
 
     private var targetPos: BlockPos? = null
 

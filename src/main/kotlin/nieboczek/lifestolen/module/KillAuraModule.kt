@@ -13,8 +13,9 @@ import kotlin.math.sqrt
 
 object KillAuraModule : Module("KillAura", Category.COMBAT) {
     val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
-    val attackOnlyPlayers by boolean("Attack Only Players", true)
-    val lookAtTarget by boolean("Look At Target", true)
+    val attackOnlyPlayers by boolean("Attack Only Players")
+    val lookAtTarget by boolean("Look At Target")
+    val renderRangeOutline by boolean("Render Range Outline")
 
     override fun tick() {
         val target = findNearestEntity() ?: return
@@ -32,13 +33,15 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
     }
 
     override fun render3d() {
+        if (!renderRangeOutline) return
+
         val cameraRelativePos = Renderer3d.computeSmoothRelativeToCameraPos(
             player.oldPosition(),
             player.position(),
             mc.entityRenderDispatcher.camera!!.position()
         ).add(0.0, 1.0, 0.0)
 
-        Renderer3d.renderCircleOutline(64, -1, range.toFloat(), cameraRelativePos)
+        Renderer3d.renderCircleOutline(64, -1, 9f, range.toFloat(), cameraRelativePos)
     }
 
     private fun getXRot(target: Vec3): Float {
@@ -58,18 +61,14 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
         var bestDistSq = range * range
         val pos = player.position()
         val aabb = AABB(pos.subtract(5.0), pos.add(5.0))
-        val entities = player.level().getEntities(mc.player, aabb) { it.isAlive }
+        val entities = player.level()
+            .getEntities(mc.player, aabb) { (!attackOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive }
 
         for (entity in entities) {
-            val attackPlayer = entity is Player
-            val attackLivingEntity = !attackOnlyPlayers && entity is LivingEntity
-
-            if (attackPlayer || attackLivingEntity) {
-                val distSq = player.distanceToSqr(entity)
-                if (distSq < bestDistSq) {
-                    bestDistSq = distSq
-                    best = entity
-                }
+            val distSq = player.distanceToSqr(entity)
+            if (distSq < bestDistSq) {
+                bestDistSq = distSq
+                best = entity
             }
         }
 

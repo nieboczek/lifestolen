@@ -79,7 +79,7 @@ abstract class Module(val id: String, val category: Category) {
         return addSetting(NumberSetting(name, default, allowed, suffix, step, DoubleSerializer()))
     }
 
-    fun boolean(name: String, default: Boolean): Setting<Boolean> {
+    fun boolean(name: String, default: Boolean = true): Setting<Boolean> {
         return addSetting(Setting(name, default, BooleanSerializer()))
     }
 
