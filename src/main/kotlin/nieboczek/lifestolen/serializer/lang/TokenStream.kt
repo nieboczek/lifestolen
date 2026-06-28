@@ -164,7 +164,7 @@ class TokenStream(private val src: String) {
     }
 
     private fun isNumberStart(c: Char): Boolean {
-        return Character.isDigit(c)
+        return Character.isDigit(c) || c == '-'
     }
 
     private fun isNumberPart(c: Char): Boolean {
