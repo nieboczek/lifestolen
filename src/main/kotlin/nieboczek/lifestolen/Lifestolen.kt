@@ -96,6 +96,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(FakeLagModule)
         modules.add(ScaffoldModule)
         modules.add(TracersModule)
+        modules.add(ESPModule)
 
         WebViewManager.initialize()
         ConfigManager.loadConfig()

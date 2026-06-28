@@ -33,9 +33,18 @@ object Renderer3d {
     private var activeBuilder: BufferBuilder? = null
     private var hasVertices = false
 
+    private val quadByteBufferBuilder = ByteBufferBuilder(0x200000)
+    private var quadBuilder: BufferBuilder? = null
+    private var quadHasVertices = false
+
     private val linePipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
         .withLocation(Identifier.fromNamespaceAndPath("lifestolen", "lines"))
         .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .build()
+
+    private val quadPipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+        .withLocation(Identifier.fromNamespaceAndPath("lifestolen", "quads"))
+        .withCull(false)
         .build()
 
     private val viewMatrix = Matrix4f()
@@ -50,72 +59,84 @@ object Renderer3d {
         renderTarget = target
         camera = cam
         byteBufferBuilder.clear()
+        quadByteBufferBuilder.clear()
         activeBuilder = BufferBuilder(
             byteBufferBuilder,
             VertexFormat.Mode.LINES,
             DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH
         )
+        quadBuilder = BufferBuilder(
+            quadByteBufferBuilder,
+            VertexFormat.Mode.QUADS,
+            DefaultVertexFormat.POSITION_COLOR
+        )
         hasVertices = false
+        quadHasVertices = false
     }
 
     @JvmStatic
     fun endFrame() {
         val target = renderTarget ?: return
-        val builder = activeBuilder ?: return
-        activeBuilder = null
-
-        if (!hasVertices) return
-
-        val meshData = builder.buildOrThrow()
-        val drawState = meshData.drawState()
-        val vertexCount = drawState.vertexCount
-        if (vertexCount == 0) {
-            meshData.close()
-            return
-        }
+        renderTarget = null
 
         val device = RenderSystem.getDevice()
-        val vertexBuffer = device.createBuffer(
-            { "Lifestolen Renderer3d VB" },
-            32,
-            meshData.vertexBuffer()
-        )
+        val stack = RenderSystem.getModelViewStack()
 
-        try {
-            val indexCount = drawState.indexCount
-            val sequentialBuffer = RenderSystem.getSequentialBuffer(drawState.mode)
-            val indexSlice = sequentialBuffer.getBuffer(indexCount)
+        fun flush(builder: BufferBuilder?, pipeline: RenderPipeline, hasVertices: Boolean) {
+            if (builder == null || !hasVertices) return
 
-            val stack = RenderSystem.getModelViewStack()
-            stack.pushMatrix()
-            stack.mul(viewMatrix)
-
-            val dynamicTransforms = RenderSystem.getDynamicUniforms()
-                .writeTransform(stack, Vector4f(1.0f), Vector3f(), Matrix4f())
-
-            stack.popMatrix()
-
-            val colorView = target.colorTextureView!!
-            val depthView = target.depthTextureView
-
-            device.createCommandEncoder().createRenderPass(
-                { "Lifestolen Renderer3d" },
-                colorView,
-                OptionalInt.empty(),
-                depthView,
-                OptionalDouble.empty()
-            ).use { pass ->
-                pass.setPipeline(linePipeline)
-                RenderSystem.bindDefaultUniforms(pass)
-                pass.setUniform("DynamicTransforms", dynamicTransforms)
-                pass.setVertexBuffer(0, vertexBuffer)
-                pass.setIndexBuffer(indexSlice, sequentialBuffer.type())
-                pass.drawIndexed(0, 0, indexCount, 1)
+            val meshData = builder.buildOrThrow()
+            val drawState = meshData.drawState()
+            val vertexCount = drawState.vertexCount
+            if (vertexCount == 0) {
+                meshData.close()
+                return
             }
-        } finally {
-            vertexBuffer.close()
-            meshData.close()
+
+            val vertexBuffer = device.createBuffer(
+                { "Lifestolen Renderer3d VB" },
+                32,
+                meshData.vertexBuffer()
+            )
+
+            try {
+                val indexCount = drawState.indexCount
+                val sequentialBuffer = RenderSystem.getSequentialBuffer(drawState.mode)
+                val indexSlice = sequentialBuffer.getBuffer(indexCount)
+
+                stack.pushMatrix()
+                stack.mul(viewMatrix)
+
+                val dynamicTransforms = RenderSystem.getDynamicUniforms()
+                    .writeTransform(stack, Vector4f(1.0f), Vector3f(), Matrix4f())
+
+                stack.popMatrix()
+
+                val colorView = target.colorTextureView!!
+                val depthView = target.depthTextureView
+
+                device.createCommandEncoder().createRenderPass(
+                    { "Lifestolen Renderer3d" },
+                    colorView,
+                    OptionalInt.empty(),
+                    depthView,
+                    OptionalDouble.empty()
+                ).use { pass ->
+                    pass.setPipeline(pipeline)
+                    RenderSystem.bindDefaultUniforms(pass)
+                    pass.setUniform("DynamicTransforms", dynamicTransforms)
+                    pass.setVertexBuffer(0, vertexBuffer)
+                    pass.setIndexBuffer(indexSlice, sequentialBuffer.type())
+                    pass.drawIndexed(0, 0, indexCount, 1)
+                }
+            } finally {
+                vertexBuffer.close()
+                meshData.close()
+            }
         }
+
+        flush(activeBuilder.also { activeBuilder = null }, linePipeline, hasVertices)
+        flush(quadBuilder.also { quadBuilder = null }, quadPipeline, quadHasVertices)
     }
 
     fun computeSmoothRelativeToCameraPos(oldPos: Vec3, pos: Vec3, cameraPos: Vec3): Vec3 {
@@ -173,7 +194,7 @@ object Renderer3d {
         }
     }
 
-    fun renderBoxOutline(boxDimensions: AABB, color: Int, pos: Vec3) {
+    fun renderBoxOutline(boxDimensions: AABB, color: Int, pos: Vec3, lineWidth: Float = 1f) {
         val builder = activeBuilder ?: return
         hasVertices = true
 
@@ -204,8 +225,8 @@ object Renderer3d {
             val (xEnd, yEnd, zEnd) = edges[i + 1]
 
             val normal = Vector3f(0f, 1f, 0f)
-            builder.addVertex(xStart, yStart, zStart).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
-            builder.addVertex(xEnd, yEnd, zEnd).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+            builder.addVertex(xStart, yStart, zStart).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
+            builder.addVertex(xEnd, yEnd, zEnd).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
         }
     }
 
