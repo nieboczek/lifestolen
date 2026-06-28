@@ -1,6 +1,7 @@
 package nieboczek.lifestolen.module.util
 
 import net.minecraft.client.Minecraft
+import nieboczek.lifestolen.Lifestolen
 import java.util.*
 import kotlin.math.abs
 
@@ -8,6 +9,11 @@ object RotationUtil {
     private val mc = Minecraft.getInstance()
 
     var lerpedRotation: Rotation? = null
+        get() {
+            if (Lifestolen.killSwitch) return null
+            return field
+        }
+
     private var targetRotation: Rotation? = null
     private var moduleTargeted = false
 

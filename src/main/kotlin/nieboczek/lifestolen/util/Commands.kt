@@ -11,24 +11,29 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.Lifestolen.Companion.modules
+import nieboczek.lifestolen.Lifestolen.Companion.msgPrefix
 import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 import java.util.concurrent.CompletableFuture
+
 
 object Commands {
     // Used for /r /reply command
     var lastSender: String? = null
 
     fun register(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
+        dispatcher.register(createKillSwitchCommand())
         dispatcher.register(createBindCommand())
         dispatcher.register(createToggleCommand())
         dispatcher.register(createReplyCommand())
     }
 
-    fun getModule(it: CommandContext<FabricClientCommandSource>, argName: String): Module? {
+    private fun getModule(it: CommandContext<FabricClientCommandSource>, argName: String): Module? {
         val str = it.getArgument(argName, String::class.java).lowercase()
         for (module in modules) {
             if (str == module.id.lowercase()) {
@@ -36,6 +41,13 @@ object Commands {
             }
         }
         return null
+    }
+
+    private fun createKillSwitchCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
+        return literal("killswitch").executes {
+            Lifestolen.killSwitch = !Lifestolen.killSwitch
+            1
+        }
     }
 
     private fun createReplyCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
@@ -72,7 +84,10 @@ object Commands {
                     val keycode = parseKeycode(it.getArgument("key", String::class.java))
 
                     module.keybind = keycode
-                    WebViewManager.settingUpdated(module.id, module.settings.find { setting -> setting.name == "Enabled" }!!)
+                    WebViewManager.settingUpdated(
+                        module.id,
+                        module.settings.find { setting -> setting.name == "Enabled" }!!
+                    )
 
                     val label = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
                     val coloredLabel = Formatting.niceBlue(label)

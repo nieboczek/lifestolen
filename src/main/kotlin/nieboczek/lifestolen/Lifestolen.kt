@@ -36,14 +36,17 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         val modules: ArrayList<Module> = ArrayList()
 
         var cfg: ClientConfig? = null
+        var killSwitch = false
 
-        private var rainbowColorOffset: Int = 0
+        private var rainbowColorOffset = 0
 
         @JvmStatic
         fun render2d(context: GuiGraphics) {
+            if (killSwitch) return
+
             if (cfg!!.renderClientBrandText) {
                 rainbowColorOffset += 2
-                val hue = (rainbowColorOffset % 360) / 360f
+                val hue = (rainbowColorOffset.mod(360)) / 360f
                 val color = Color.HSBtoRGB(hue, 1f, 1f)
 
                 val font = Minecraft.getInstance().font
@@ -55,6 +58,8 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
         @JvmStatic
         fun render3d() {
+            if (killSwitch) return
+
             modules.forEach { if (it.enabled) it.render3d() }
         }
     }
@@ -72,8 +77,8 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     override fun onInitialize() {
-        ClientLifecycleEvents.CLIENT_STARTED.register { _ -> this.clientStarted() }
-        ClientLifecycleEvents.CLIENT_STOPPING.register { _ -> this.clientStopping() }
+        ClientLifecycleEvents.CLIENT_STARTED.register { this.clientStarted() }
+        ClientLifecycleEvents.CLIENT_STOPPING.register { this.clientStopping() }
         ClientTickEvents.END_CLIENT_TICK.register { mc -> this.clientTick(mc) }
         ClientPlayConnectionEvents.INIT.register { listener, _ -> this.initializeConnection(listener) }
         ClientReceiveMessageEvents.CHAT.register { _, _, sender, bound, _ -> this.receiveChatMessage(sender, bound) }
@@ -96,17 +101,24 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     private fun clientTick(mc: Minecraft) {
+        if (mc.player == null) {
+            if (mc.options.keySocialInteractions.isDown) log.info("KEY HELD!!!!!!!!")
+            killSwitch = !killSwitch
+            return
+        }
+
         val noScreen = mc.screen == null
         while (mc.options.keySocialInteractions.consumeClick()) {
-            if (noScreen) {
+            if (noScreen && !killSwitch) {
                 mc.setScreen(ConfigScreen())
             } else {
                 mc.setScreen(null)
             }
         }
 
-        RotationUtil.tick()
+        if (killSwitch) return
 
+        RotationUtil.tick()
         mc.player ?: return
 
         val window = mc.window
