@@ -9,7 +9,6 @@ import org.joml.Vector3f
 object TracersModule : Module("Tracers", Category.VISUALS) {
     val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)
     val showOnlyPlayers by boolean("Show Only Players")
-    val showInvisible by boolean("Show Invisible")
     val color by int("Color", 0xFF00A0FF.toInt(), Int.MIN_VALUE..Int.MAX_VALUE)
     val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
 
@@ -18,7 +17,7 @@ object TracersModule : Module("Tracers", Category.VISUALS) {
         val pos = player.position()
         val aabb = AABB(pos.subtract(range + 2.0), pos.add(range + 2.0))
         val entities = player.level().getEntities(mc.player, aabb) {
-            (!showOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive && (showInvisible || !it.isInvisible)
+            (!showOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive
         }
 
         val cam = Renderer3d.camera ?: return
