@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
@@ -13,6 +14,21 @@ import kotlin.math.sqrt
 
 object PlacementUtil {
     private val mc = Minecraft.getInstance()
+
+    fun switchHotbarToItem(targetItem: Item): Boolean {
+        val player = mc.player ?: return false
+        if (player.inventory.selectedItem.item == targetItem) return true
+
+        for (i in 0..8) {
+            val item = player.inventory.getSlot(i)!!.get().item
+            if (targetItem == item) {
+                player.inventory.selectedSlot = i
+                return true
+            }
+        }
+
+        return false
+    }
 
     fun placeOnNeighbour(target: BlockPos): Boolean {
         val player = mc.player ?: return false
@@ -63,6 +79,6 @@ object PlacementUtil {
         val player = mc.player ?: return 0f
         val eyePos = player.eyePosition
         val diff = target.subtract(eyePos)
-        return Math.toDegrees(atan2(diff.x, diff.z)).toFloat()
+        return (-Math.toDegrees(atan2(diff.x, diff.z))).toFloat()
     }
 }
