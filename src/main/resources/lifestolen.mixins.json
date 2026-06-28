@@ -9,7 +9,8 @@
     "KeyBindsList$KeyEntryMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "ScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

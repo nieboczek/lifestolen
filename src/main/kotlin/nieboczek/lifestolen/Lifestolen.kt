@@ -62,6 +62,12 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
             modules.forEach { if (it.enabled) it.render3d() }
         }
+
+        @JvmStatic
+        fun toggleKillSwitch() {
+            killSwitch = !killSwitch
+            log.info("Set kill switch in title screen: $killSwitch")
+        }
     }
 
     override fun onInitializeClient() {
@@ -101,12 +107,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     private fun clientTick(mc: Minecraft) {
-        if (mc.player == null) {
-            if (mc.options.keySocialInteractions.isDown) log.info("KEY HELD!!!!!!!!")
-            killSwitch = !killSwitch
-            return
-        }
-
         val noScreen = mc.screen == null
         while (mc.options.keySocialInteractions.consumeClick()) {
             if (noScreen && !killSwitch) {
@@ -117,9 +117,8 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         }
 
         if (killSwitch) return
-
-        RotationUtil.tick()
         mc.player ?: return
+        RotationUtil.tick()
 
         val window = mc.window
         for (module in modules) {

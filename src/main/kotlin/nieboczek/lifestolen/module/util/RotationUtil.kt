@@ -23,7 +23,7 @@ object RotationUtil {
     }
 
     fun tick() {
-        val player = mc.player ?: return
+        val player = mc.player!!
         val target = targetRotation ?: Rotation(player.xRot, player.yRot)
         val current = lerpedRotation ?: Rotation(player.xRot, player.yRot)
 
