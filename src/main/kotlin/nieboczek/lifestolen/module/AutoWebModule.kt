@@ -1,6 +1,7 @@
 package nieboczek.lifestolen.module
 
 import net.minecraft.core.BlockPos
+import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Pose

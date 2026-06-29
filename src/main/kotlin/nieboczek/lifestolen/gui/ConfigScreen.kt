@@ -29,7 +29,7 @@ class ConfigScreen : Screen(Component.literal(Lifestolen.CLIENT_NAME)) {
         WebViewManager.keyPressed(event.key, displayed, event.key == guiKey || event.key == GLFW.GLFW_KEY_ESCAPE)
 
         if (event.key == guiKey) {
-            minecraft.setScreen(null)
+            minecraft.gui.setScreen(null)
         }
         return true
     }

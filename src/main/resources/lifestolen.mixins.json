@@ -10,7 +10,6 @@
     "KeyBindsList$KeyEntryMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
-    "MinecraftMixin",
     "ScreenMixin"
   ],
   "injectors": {

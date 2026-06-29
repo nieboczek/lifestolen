@@ -1,9 +1,9 @@
 package nieboczek.lifestolen.mixin;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import nieboczek.lifestolen.Lifestolen;
@@ -24,6 +24,10 @@ public class GameRendererMixin {
     @Final
     private Camera mainCamera;
 
+    @Shadow
+    @Final
+    private RenderTarget mainRenderTarget;
+
     @Inject(
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD),
             method = "renderLevel"
@@ -32,7 +36,7 @@ public class GameRendererMixin {
         Renderer3d.tickDelta = deltaTracker.getGameTimeDeltaPartialTick(false);
         Renderer3d.camera = mainCamera;
         Renderer3d.setViewMatrix(new Matrix4f().rotation(mainCamera.rotation().conjugate(new org.joml.Quaternionf())));
-        Renderer3d.beginFrame(Minecraft.getInstance().getMainRenderTarget(), mainCamera);
+        Renderer3d.beginFrame(mainRenderTarget, mainCamera);
 
         try {
             Lifestolen.render3d();

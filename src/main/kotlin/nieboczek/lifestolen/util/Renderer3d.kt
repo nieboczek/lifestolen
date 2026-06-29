@@ -1,5 +1,6 @@
 package nieboczek.lifestolen.util
 
+import com.mojang.blaze3d.PrimitiveTopology
 import com.mojang.blaze3d.pipeline.DepthStencilState
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.pipeline.RenderTarget
@@ -63,12 +64,12 @@ object Renderer3d {
         quadByteBufferBuilder.clear()
         activeBuilder = BufferBuilder(
             byteBufferBuilder,
-            VertexFormat.Mode.LINES,
+            PrimitiveTopology.LINES,
             DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH
         )
         quadBuilder = BufferBuilder(
             quadByteBufferBuilder,
-            VertexFormat.Mode.QUADS,
+            PrimitiveTopology.QUADS,
             DefaultVertexFormat.POSITION_COLOR
         )
         hasVertices = false
@@ -102,7 +103,7 @@ object Renderer3d {
 
             try {
                 val indexCount = drawState.indexCount
-                val sequentialBuffer = RenderSystem.getSequentialBuffer(drawState.mode)
+                val sequentialBuffer = RenderSystem.getSequentialBuffer(drawState.primitiveTopology)
                 val indexSlice = sequentialBuffer.getBuffer(indexCount)
 
                 stack.pushMatrix()
@@ -119,16 +120,18 @@ object Renderer3d {
                 device.createCommandEncoder().createRenderPass(
                     { "Lifestolen Renderer3d" },
                     colorView,
-                    OptionalInt.empty(),
+                    Optional.empty(),
                     depthView,
                     OptionalDouble.empty()
                 ).use { pass ->
                     pass.setPipeline(pipeline)
                     RenderSystem.bindDefaultUniforms(pass)
                     pass.setUniform("DynamicTransforms", dynamicTransforms)
-                    pass.setVertexBuffer(0, vertexBuffer)
+                    pass.setVertexBuffer(0, vertexBuffer.slice())
                     pass.setIndexBuffer(indexSlice, sequentialBuffer.type())
-                    pass.drawIndexed(0, 0, indexCount, 1)
+                    // signature 26.1.2: void drawIndexed(final int baseVertex, final int firstIndex, final int indexCount, final int instanceCount)
+                    // signature 26.2: void drawIndexed(final int indexCount, final int instanceCount, final int firstIndex, final int vertexOffset, final int firstInstance)
+                    pass.drawIndexed(indexCount, 1, 0, 0, 0)
                 }
             } finally {
                 vertexBuffer.close()

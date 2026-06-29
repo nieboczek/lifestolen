@@ -109,12 +109,12 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     private fun clientTick(mc: Minecraft) {
-        val noScreen = mc.screen == null
+        val noScreen = mc.gui.screen() == null
         while (mc.options.keySocialInteractions.consumeClick()) {
             if (noScreen && !killSwitch) {
-                mc.setScreen(ConfigScreen())
+                mc.gui.setScreen(ConfigScreen())
             } else {
-                mc.setScreen(null)
+                mc.gui.setScreen(null)
             }
         }
 
