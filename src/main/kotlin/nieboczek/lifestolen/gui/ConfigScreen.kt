@@ -28,7 +28,7 @@ class ConfigScreen : Screen(Component.literal(Lifestolen.CLIENT_NAME)) {
         val displayed = InputConstants.Type.KEYSYM.getOrCreate(event.key).displayName.string
         WebViewManager.keyPressed(event.key, displayed, event.key == guiKey || event.key == GLFW.GLFW_KEY_ESCAPE)
 
-        if (event.key == guiKey) {
+        if (event.key == guiKey || event.isEscape) {
             minecraft.gui.setScreen(null)
         }
         return true
