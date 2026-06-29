@@ -13,7 +13,7 @@ public class MinecraftMixin {
     // nuke Social Interactions key
     @WrapOperation(
             method = "handleKeybinds",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 3)
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 5)
     )
     public boolean handleKeybinds(KeyMapping instance, Operation<Boolean> original) {
         return Lifestolen.Companion.getKillSwitch() ? original.call(instance) : false;

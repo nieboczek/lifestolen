@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
@@ -41,7 +41,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         private var rainbowColorOffset = 0
 
         @JvmStatic
-        fun render2d(context: GuiGraphics) {
+        fun render2d(context: GuiGraphicsExtractor) {
             if (killSwitch) return
 
             if (cfg!!.renderClientBrandText) {
@@ -50,7 +50,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
                 val color = Color.HSBtoRGB(hue, 1f, 1f)
 
                 val font = Minecraft.getInstance().font
-                context.drawString(font, "KupaDupa v2.1.3.7", 4, 4, color, true)
+                context.text(font, "KupaDupa v2.1.3.7", 4, 4, color, true)
             }
 
             modules.forEach { if (it.enabled) it.render2d(context) }
@@ -140,8 +140,8 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     private fun receiveChatMessage(sender: GameProfile?, bound: ChatType.Bound?) {
         if (bound!!.chatType().`is`(ChatType.MSG_COMMAND_INCOMING)) {
             if (sender == null) {
-                Minecraft.getInstance().player?.displayClientMessage(
-                    Component.literal("Sender was not set correctly due to being null"), false
+                Minecraft.getInstance().player?.sendSystemMessage(
+                    Component.literal("Sender was not set correctly due to being null")
                 )
                 return
             }

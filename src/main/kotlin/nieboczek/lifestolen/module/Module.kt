@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.Window
 import com.mojang.brigadier.context.CommandContext
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import nieboczek.lifestolen.Lifestolen
@@ -25,7 +25,7 @@ abstract class Module(val id: String, val category: Category) {
         }
 
         fun sendStatus(msg: Component, mc: Minecraft) {
-            mc.player?.displayClientMessage(msg, true)
+            mc.player?.sendOverlayMessage(msg)
         }
     }
 
@@ -42,7 +42,7 @@ abstract class Module(val id: String, val category: Category) {
     private var bindHeld = false
 
     open fun tick() {}
-    open fun render2d(context: GuiGraphics) {}
+    open fun render2d(context: GuiGraphicsExtractor) {}
     open fun render3d() {}
 
     fun handleBindPress(window: Window) {

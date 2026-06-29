@@ -5,10 +5,12 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.util.Renderer3d;
 import org.joml.Matrix4f;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,7 +25,7 @@ public class GameRendererMixin {
     private Camera mainCamera;
 
     @Inject(
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isSleeping()Z"),
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD),
             method = "renderLevel"
     )
     void renderLevel(DeltaTracker deltaTracker, CallbackInfo ci) {
@@ -40,7 +42,7 @@ public class GameRendererMixin {
     }
 
     @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
-    private void bobView(PoseStack poseStack, float partialTicks, CallbackInfo ci) {
+    private void bobView(CameraRenderState cameraState, PoseStack poseStack, CallbackInfo ci) {
         if (TracersModule.INSTANCE.getEnabled() && !Lifestolen.Companion.getKillSwitch()) {
             ci.cancel();
         }

@@ -8,14 +8,12 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
-import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.Lifestolen.Companion.modules
-import nieboczek.lifestolen.Lifestolen.Companion.msgPrefix
 import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW

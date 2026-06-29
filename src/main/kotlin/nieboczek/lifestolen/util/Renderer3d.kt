@@ -1,8 +1,9 @@
 package nieboczek.lifestolen.util
 
+import com.mojang.blaze3d.pipeline.DepthStencilState
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.pipeline.RenderTarget
-import com.mojang.blaze3d.platform.DepthTestFunction
+import com.mojang.blaze3d.platform.CompareOp
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.ByteBufferBuilder
@@ -39,7 +40,7 @@ object Renderer3d {
 
     private val linePipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
         .withLocation(Identifier.fromNamespaceAndPath("lifestolen", "lines"))
-        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
         .build()
 
     private val quadPipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
@@ -150,7 +151,8 @@ object Renderer3d {
         val builder = activeBuilder ?: return
         hasVertices = true
         val normal = computeNormal(from, to)
-        builder.addVertex(from.x, from.y, from.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
+        builder.addVertex(from.x, from.y, from.z).setColor(argb).setNormal(normal.x, normal.y, normal.z)
+            .setLineWidth(1f)
         builder.addVertex(to.x, to.y, to.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(1f)
     }
 
@@ -158,7 +160,8 @@ object Renderer3d {
         val builder = activeBuilder ?: return
         hasVertices = true
         val normal = computeNormal(from, to)
-        builder.addVertex(from.x, from.y, from.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(width)
+        builder.addVertex(from.x, from.y, from.z).setColor(argb).setNormal(normal.x, normal.y, normal.z)
+            .setLineWidth(width)
         builder.addVertex(to.x, to.y, to.z).setColor(argb).setNormal(normal.x, normal.y, normal.z).setLineWidth(width)
     }
 
@@ -189,8 +192,10 @@ object Renderer3d {
             val z2 = sin(angle2) * radius + cz
 
             val normal = Vector3f(0f, 1f, 0f)
-            builder.addVertex(x1, cy, z1).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
-            builder.addVertex(x2, cy, z2).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
+            builder.addVertex(x1, cy, z1).setColor(color).setNormal(normal.x, normal.y, normal.z)
+                .setLineWidth(lineWidth)
+            builder.addVertex(x2, cy, z2).setColor(color).setNormal(normal.x, normal.y, normal.z)
+                .setLineWidth(lineWidth)
         }
     }
 
@@ -225,8 +230,10 @@ object Renderer3d {
             val (xEnd, yEnd, zEnd) = edges[i + 1]
 
             val normal = Vector3f(0f, 1f, 0f)
-            builder.addVertex(xStart, yStart, zStart).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
-            builder.addVertex(xEnd, yEnd, zEnd).setColor(color).setNormal(normal.x, normal.y, normal.z).setLineWidth(lineWidth)
+            builder.addVertex(xStart, yStart, zStart).setColor(color).setNormal(normal.x, normal.y, normal.z)
+                .setLineWidth(lineWidth)
+            builder.addVertex(xEnd, yEnd, zEnd).setColor(color).setNormal(normal.x, normal.y, normal.z)
+                .setLineWidth(lineWidth)
         }
     }
 

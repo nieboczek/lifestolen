@@ -2,10 +2,10 @@ package tytoo.grapheneui.internal.browser;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.BlitRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import org.joml.Matrix3x2f;
 
 import java.awt.image.BufferedImage;
@@ -21,7 +21,7 @@ final class GrapheneBrowserGpuRenderer implements AutoCloseable {
     }
 
     void render(
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             GraphenePaintBuffer.Snapshot snapshot,
             int x,
             int y,
@@ -115,7 +115,7 @@ final class GrapheneBrowserGpuRenderer implements AutoCloseable {
     }
 
     private void submitBlit(
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             GrapheneBrowserGpuTexture texture,
             int x,
             int y,
@@ -133,7 +133,7 @@ final class GrapheneBrowserGpuRenderer implements AutoCloseable {
         float v0 = (float) sourceY / textureHeight;
         float v1 = (float) (sourceY + sourceHeight) / textureHeight;
 
-        guiGraphics.guiRenderState.submitGuiElement(
+        guiGraphics.guiRenderState.addGuiElement(
                 new BlitRenderState(
                         RenderPipelines.GUI_TEXTURED,
                         TextureSetup.singleTexture(texture.view(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST)),
