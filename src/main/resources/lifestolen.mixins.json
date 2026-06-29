@@ -6,6 +6,7 @@
     "GameRendererMixin",
     "GrapheneWebViewWidgetMixin",
     "GuiMixin",
+    "GrapheneScreenBridgeMixin",
     "KeyBindsList$KeyEntryMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
