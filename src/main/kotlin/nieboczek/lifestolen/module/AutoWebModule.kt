@@ -5,6 +5,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Pose
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
@@ -73,7 +74,7 @@ object AutoWebModule : Module("AutoWeb", Category.COMBAT) {
         var bestDistSq = range * range
         val pos = player.position()
         val aabb = AABB(pos.subtract(range), pos.add(range))
-        val entities = player.level().getEntities(mc.player, aabb) { it is LivingEntity && it.isAlive } // TODO: DONT FORGET TO SET IT BACK TO PLAYER
+        val entities = player.level().getEntities(mc.player, aabb) { it is Player && it.isAlive }
 
         for (entity in entities) {
             val distSq = player.distanceToSqr(entity)
