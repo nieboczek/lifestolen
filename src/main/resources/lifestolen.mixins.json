@@ -3,10 +3,12 @@
   "package": "nieboczek.lifestolen.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ClientLevelMixin",
+    "EntityFluidInteractionMixin",
     "GameRendererMixin",
+    "GrapheneScreenBridgeMixin",
     "GrapheneWebViewWidgetMixin",
     "GuiMixin",
-    "GrapheneScreenBridgeMixin",
     "KeyBindsList$KeyEntryMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",

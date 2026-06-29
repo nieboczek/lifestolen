@@ -5,9 +5,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import nieboczek.lifestolen.Lifestolen;
+import nieboczek.lifestolen.module.NoPushModule;
 import nieboczek.lifestolen.module.util.RotationUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.List;
 
 @Mixin(LocalPlayer.class)
 public class LocalPlayerMixin {
@@ -35,9 +41,16 @@ public class LocalPlayerMixin {
             method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getViewVector(F)Lnet/minecraft/world/phys/Vec3;")
     )
-    private static Vec3 pick(Vec3 original, Entity entity, double blockInteractionRange, double entityInteractionRange, float partialTick) {
-        if (entity != Minecraft.getInstance().player) return original;
+    private static Vec3 pick(Vec3 original, Entity cameraEntity, double blockInteractionRange, double entityInteractionRange, float partialTick) {
+        if (cameraEntity != Minecraft.getInstance().player) return original;
         var rotation = RotationUtil.INSTANCE.getLerpedRotation();
         return rotation != null ? Vec3.directionFromRotation(rotation.getX(), rotation.getY()) : original;
+    }
+
+    @Inject(method = "moveTowardsClosestSpace", at = @At("HEAD"), cancellable = true)
+    private void moveTowardsClosestSpace(double x, double z, CallbackInfo ci) {
+        if (NoPushModule.INSTANCE.getNoPushByBlocks().getValue() && !Lifestolen.Companion.getKillSwitch()) {
+            ci.cancel();
+        }
     }
 }
