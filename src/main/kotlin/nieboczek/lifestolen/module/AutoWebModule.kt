@@ -47,7 +47,7 @@ object AutoWebModule : Module("AutoWeb", Category.COMBAT) {
     }
 
     private fun toBlockPos(x: Double, y: Double, z: Double): BlockPos {
-        return BlockPos(x.toInt(), y.toInt(), z.toInt())
+        return BlockPos(Mth.floor(x), Mth.floor(y), Mth.floor(z))
     }
 
     private fun findSpotsAroundPlayer(player: Entity): List<BlockPos> {
