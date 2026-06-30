@@ -6,77 +6,24 @@ plugins {
 	id "org.jetbrains.kotlin.jvm" version "2.3.20"
 }
 
-def uiDir = layout.projectDirectory.dir("ui")
-def uiNodeModulesDir = uiDir.dir("node_modules")
-def uiBuildDir = layout.buildDirectory.dir("vite-ui")
-def npmCommand = System.getProperty("os.name").toLowerCase().contains("windows") ? "npm.cmd" : "npm"
-
 version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	implementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-
-	// Dependencies
-	implementation("io.github.trethore:jcefgithub:${project.jcef_version}:all-relocated") {
-		transitive = false
-	}
-	include("io.github.trethore:jcefgithub:${project.jcef_version}:all-relocated")
-}
-
-tasks.register("npmInstallUi", Exec) {
-	workingDir = uiDir.asFile
-	commandLine npmCommand, "ci"
-
-	inputs.files(
-		uiDir.file("package.json"),
-		uiDir.file("package-lock.json")
-	)
-	outputs.dir(uiNodeModulesDir)
-}
-
-def buildUi = tasks.register("buildUi", Exec) {
-	dependsOn tasks.named("npmInstallUi")
-	workingDir = uiDir.asFile
-	commandLine npmCommand, "run", "build"
-	environment "LIFESTOLEN_VITE_OUT_DIR", uiBuildDir.get().asFile.absolutePath
-
-	inputs.dir(uiDir.dir("src"))
-	inputs.files(
-		uiDir.file("env.d.ts"),
-		uiDir.file("index.html"),
-		uiDir.file("package.json"),
-		uiDir.file("package-lock.json"),
-		uiDir.file("tsconfig.app.json"),
-		uiDir.file("tsconfig.json"),
-		uiDir.file("tsconfig.node.json"),
-		uiDir.file("vite.config.ts")
-	)
-	outputs.dir(uiBuildDir)
 }
 
 processResources {
-	dependsOn buildUi
 	inputs.property "version", project.version
 	inputs.property "loader_version", project.loader_version
 	inputs.property "minecraft_version", project.minecraft_version
-
-	from(uiBuildDir) {
-		into "assets/lifestolen/ui"
-	}
 
 	filesMatching("fabric.mod.json") {
 		expand inputs.properties
@@ -98,9 +45,6 @@ java {
 		languageVersion = JavaLanguageVersion.of(25)
 	}
 
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
 	sourceCompatibility = JavaVersion.VERSION_25
@@ -115,7 +59,6 @@ jar {
 	}
 }
 
-// configure the maven publication
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
@@ -123,12 +66,7 @@ publishing {
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
 	}
 }
 

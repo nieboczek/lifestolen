@@ -17,13 +17,11 @@ import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
-import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tytoo.grapheneui.api.GrapheneCore
 import java.awt.Color
 
 class Lifestolen : ModInitializer, ClientModInitializer {
@@ -76,15 +74,6 @@ class Lifestolen : ModInitializer, ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        // UI DevTools config; http://127.0.0.1:21371/json
-//        GrapheneCore.register(MOD_ID, tytoo.grapheneui.api.config.GrapheneConfig.builder().global(
-//            tytoo.grapheneui.api.config.GrapheneGlobalConfig.builder().remoteDebugging(
-//                tytoo.grapheneui.api.config.GrapheneRemoteDebugConfig.builder().port(21371)
-//                    .allowedOrigins("https://chrome-devtools-frontend.appspot.com").build()
-//            ).build()
-//        ).build())
-
-        GrapheneCore.register(MOD_ID)
     }
 
     override fun onInitialize() {
@@ -109,12 +98,10 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(FlyModule)
         modules.add(NoFallModule)
 
-        WebViewManager.initialize()
         ConfigManager.loadConfig()
     }
 
     private fun clientStopping() {
-        WebViewManager.shutdown()
         ConfigManager.saveConfig()
     }
 

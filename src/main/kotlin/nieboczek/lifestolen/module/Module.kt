@@ -7,7 +7,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
-import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.serializer.base.*
 
 abstract class Module(val id: String, val category: Category) {
@@ -46,7 +45,6 @@ abstract class Module(val id: String, val category: Category) {
 
     fun toggle() {
         enabled = !enabled
-        WebViewManager.settingUpdated(id, settings.find { it.name == "Enabled" }!!)
     }
 
     fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = "", step: Int = 1): Setting<IntRange> {

@@ -7,8 +7,6 @@
     "ConnectionMixin",
     "EntityFluidInteractionMixin",
     "GameRendererMixin",
-    "GrapheneScreenBridgeMixin",
-    "GrapheneWebViewWidgetMixin",
     "GuiMixin",
     "KeyBindsList$KeyEntryMixin",
     "LivingEntityRendererMixin",

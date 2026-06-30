@@ -14,7 +14,6 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.Lifestolen.Companion.modules
-import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 import java.util.concurrent.CompletableFuture
@@ -82,10 +81,6 @@ object Commands {
                     val keycode = parseKeycode(it.getArgument("key", String::class.java))
 
                     module.keybind = keycode
-                    WebViewManager.settingUpdated(
-                        module.id,
-                        module.settings.find { setting -> setting.name == "Enabled" }!!
-                    )
 
                     val label = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
                     val coloredLabel = Component.literal(label).withColor(0xBBAAE0)
