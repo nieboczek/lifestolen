@@ -31,7 +31,6 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
         val passOnTypes: Set<PacketType<*>> = setOf(
             HandshakePacketTypes.CLIENT_INTENTION,
             StatusPacketTypes.SERVERBOUND_STATUS_REQUEST,
-            PingPacketTypes.SERVERBOUND_PING_REQUEST,
             GamePacketTypes.SERVERBOUND_CHAT,
             GamePacketTypes.CLIENTBOUND_SYSTEM_CHAT,
             GamePacketTypes.CLIENTBOUND_DISGUISED_CHAT,
