@@ -97,6 +97,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(AutoTotemModule)
         modules.add(FlyModule)
         modules.add(NoFallModule)
+        modules.add(AutoTrapModule)
 
         ConfigManager.loadConfig()
     }
