@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.multiplayer.ClientPacketListener
@@ -30,6 +31,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         const val MOD_ID: String = "lifestolen"
         const val CLIENT_NAME: String = "Lifestolen"
 
+        val clientVersion = FabricLoader.getInstance().getModContainer(MOD_ID).get().metadata.version.friendlyString
         val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
         val modules: ArrayList<Module> = ArrayList()
 
@@ -53,7 +55,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
                 val color = Color.HSBtoRGB(hue, 1f, 1f)
 
                 val font = Minecraft.getInstance().font
-                context.text(font, "KupaDupa v2.1.3.7", 4, 4, color, true)
+                context.text(font, "$CLIENT_NAME v$clientVersion", 4, 4, color, true)
             }
 
             modules.forEach { if (it.enabled) it.render2d(context) }
