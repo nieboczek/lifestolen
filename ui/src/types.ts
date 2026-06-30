@@ -3,7 +3,7 @@ export type SettingValue = number | boolean | number[];
 export type Setting = {
     name: string;
     value: SettingValue;
-    type: 'float' | 'boolean' | 'int' | 'intRange' | 'keybind';
+    type: 'float' | 'boolean' | 'int' | 'intRange' | 'keybind' | 'color';
     min?: number;
     max?: number;
     step?: number;

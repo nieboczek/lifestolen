@@ -9,7 +9,7 @@ import nieboczek.lifestolen.util.Renderer3d
 object ESPModule : Module("ESP", Category.VISUALS) {
     val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)
     val showOnlyPlayers by boolean("Show Only Players")
-    val color by int("Color", 0x55FFFFFF, Int.MIN_VALUE..Int.MAX_VALUE)
+    val color by color("Color", 0x55FFFFFF)
     val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
     val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
 

@@ -87,6 +87,10 @@ abstract class Module(val id: String, val category: Category) {
         return addSetting(NumberSetting(name, default, allowed, suffix, step, FloatSerializer()))
     }
 
+    fun color(name: String, default: Int = -1): Setting<Int> {
+        return addSetting(ColorSetting(name, default))
+    }
+
     fun <T> list(name: String, default: MutableList<T>, elementSerializer: Serializer<T>): Setting<MutableList<T>> {
         return addSetting(ListSetting(name, default, elementSerializer))
     }

@@ -24,7 +24,7 @@ import nieboczek.lifestolen.util.Renderer3d
 
 object ChestESPModule : Module("ChestESP", Category.VISUALS) {
     val range by int("Range", 128, 8..512, "blocks")
-    val color by int("Color", 0x55FFFFFF, Int.MIN_VALUE..Int.MAX_VALUE)
+    val color by color("Color", 0x55FFFFFF)
     val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
     val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
 

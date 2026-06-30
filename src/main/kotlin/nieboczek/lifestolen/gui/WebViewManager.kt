@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.ColorSetting
 import nieboczek.lifestolen.config.setting.KeybindSetting
 import nieboczek.lifestolen.config.setting.NumberSetting
 import nieboczek.lifestolen.config.setting.RangeSetting
@@ -62,6 +63,10 @@ object WebViewManager {
                             (payload.value as Number).toInt()
                         }
 
+                        is ColorSetting -> {
+                            (payload.value as Number).toLong().toInt()
+                        }
+
                         else -> payload.value as Boolean
                     }
 
@@ -115,6 +120,12 @@ object WebViewManager {
                 setting.allowed.endInclusive as Any,
                 setting.step,
                 setting.suffix
+            )
+
+            is ColorSetting -> SettingInfo(
+                setting.name,
+                setting.value,
+                "color"
             )
 
             is RangeSetting<*, *> -> SettingInfo(

@@ -4,6 +4,7 @@ import SettingSlider from './SettingSlider.vue';
 import SettingRangeSlider from './SettingRangeSlider.vue';
 import SettingToggle from './SettingToggle.vue';
 import SettingKeybind from './SettingKeybind.vue';
+import SettingColor from './SettingColor.vue';
 
 const props = defineProps<{
     module: Module;
@@ -44,6 +45,7 @@ function showOptions(event: MouseEvent) {
                     <SettingRangeSlider v-else-if="setting.type === 'intRange'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                     <SettingToggle v-else-if="setting.type === 'boolean'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                     <SettingKeybind v-else-if="setting.type === 'keybind'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
+                    <SettingColor v-else-if="setting.type === 'color'" :setting="setting" @change="(n, v) => emit('updateSetting', n, v)" />
                 </div>
             </div>
         </Transition>
