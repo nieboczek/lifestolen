@@ -32,17 +32,11 @@ object PlacementUtil {
 
     fun placeOnNeighbour(target: BlockPos): Boolean {
         val player = mc.player ?: return false
-        val level = player.level()
         val itemStack = player.mainHandItem
-
         if (itemStack.isEmpty) return false
 
         for (direction in Direction.entries) {
             val neighbourPos = target.relative(direction)
-            val neighbourState = level.getBlockState(neighbourPos)
-
-            if (!neighbourState.isSolidRender) continue
-
             val hitVec = Vec3.atCenterOf(neighbourPos)
             val hitResult = BlockHitResult(
                 hitVec,
