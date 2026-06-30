@@ -1,5 +1,8 @@
 # Lifestolen
 
-Minecraft 1.21.11 utility mod for Fabric.
+Minecraft utility mod for Fabric.
 
-This project embeds [Graphene](https://github.com/trethore/graphene) (MIT), a Chromium-based UI library for Minecraft. See `LICENSE-graphene`.
+### Licensing
+
+This project embeds [Graphene](https://github.com/trethore/graphene) (modified), a Chromium-based UI library for Minecraft, under the MIT license.  
+The project itself is licensed under GPL 3.0.
