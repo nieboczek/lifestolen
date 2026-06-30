@@ -154,16 +154,6 @@ const svThumbX = computed(() => hsv.value.s * 100);
 const svThumbY = computed(() => (1 - hsv.value.v) * 100);
 const hueThumbY = computed(() => hsv.value.h * 100);
 const alphaThumbY = computed(() => (1 - argb.value.a / 255) * 100);
-
-const hexValue = computed(() => {
-    const { a, r, g, b } = argb.value;
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-});
-
-const fullHexValue = computed(() => {
-    const { a, r, g, b } = argb.value;
-    return `#${a.toString(16).padStart(2, '0')}${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-});
 </script>
 
 <template>
