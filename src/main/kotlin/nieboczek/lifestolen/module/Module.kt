@@ -25,6 +25,8 @@ abstract class Module(val id: String, val category: Category) {
     open fun tick() {}
     open fun render2d(context: GuiGraphicsExtractor) {}
     open fun render3d() {}
+    open fun enable() {}
+    open fun disable() {}
 
     fun handleBindPress(window: Window) {
         if (keybind <= 0) {
@@ -45,6 +47,7 @@ abstract class Module(val id: String, val category: Category) {
 
     fun toggle() {
         enabled = !enabled
+        if (enabled) enable() else disable()
     }
 
     fun intRange(name: String, default: IntRange, allowed: IntRange, suffix: String = "", step: Int = 1): Setting<IntRange> {

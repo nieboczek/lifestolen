@@ -100,8 +100,12 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(TracersModule)
         modules.add(ESPModule)
         modules.add(ChestESPModule)
+        modules.add(FullBrightModule)
+        modules.add(XRayModule)
 
         ConfigManager.loadConfig()
+
+        modules.forEach { if (it.enabled) it.enable() }
     }
 
     private fun clientStopping() {

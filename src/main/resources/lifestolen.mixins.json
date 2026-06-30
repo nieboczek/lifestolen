@@ -3,15 +3,21 @@
   "package": "nieboczek.lifestolen.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "BlockMixin",
     "ClientLevelMixin",
     "ConnectionMixin",
     "EntityFluidInteractionMixin",
     "GameRendererMixin",
     "GuiMixin",
     "KeyBindsList$KeyEntryMixin",
+    "LightmapRenderStateExtractorMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
-    "ScreenMixin"
+    "ModelBlockRendererMixin",
+    "ScreenMixin",
+    "sodium.AbstractBlockRenderContextMixin",
+    "sodium.LightDataAccessMixin",
+    "VisGraphMixin"
   ],
   "injectors": {
     "defaultRequire": 1

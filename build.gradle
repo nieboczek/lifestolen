@@ -10,6 +10,7 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
+    maven { url = "https://api.modrinth.com/maven" }
 }
 
 dependencies {
@@ -17,7 +18,9 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	implementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+    implementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+
+    compileOnly "maven.modrinth:sodium:mc26.2-0.9.0-fabric"
 }
 
 processResources {
