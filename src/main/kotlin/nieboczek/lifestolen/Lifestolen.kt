@@ -87,17 +87,19 @@ class Lifestolen : ModInitializer, ClientModInitializer {
 
     private fun clientStarted() {
         modules.add(KillAuraModule)
-        modules.add(FakeLagModule)
-        modules.add(ScaffoldModule)
-        modules.add(TracersModule)
-        modules.add(ESPModule)
-        modules.add(AutoWebModule)
-        modules.add(NoPushModule)
-        modules.add(ChestESPModule)
         modules.add(AutoTotemModule)
+        modules.add(AutoWebModule)
+        modules.add(AutoTrapModule)
+
+        modules.add(FakeLagModule)
+        modules.add(NoPushModule)
         modules.add(FlyModule)
         modules.add(NoFallModule)
-        modules.add(AutoTrapModule)
+        modules.add(ScaffoldModule)
+
+        modules.add(TracersModule)
+        modules.add(ESPModule)
+        modules.add(ChestESPModule)
 
         ConfigManager.loadConfig()
     }
