@@ -20,7 +20,6 @@ import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
-import nieboczek.lifestolen.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tytoo.grapheneui.api.GrapheneCore
@@ -32,13 +31,17 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         const val CLIENT_NAME: String = "Lifestolen"
 
         val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
-        val msgPrefix: Component = Formatting.red("LS ").append(Formatting.darkGray("» "))
         val modules: ArrayList<Module> = ArrayList()
 
         var cfg: ClientConfig? = null
         var killSwitch = false
 
         private var rainbowColorOffset = 0
+
+        // TODO: remove this function and switch to GUI widgets completely
+        fun displayStatus(msg: Component) {
+            Minecraft.getInstance().player?.sendOverlayMessage(msg)
+        }
 
         @JvmStatic
         fun render2d(context: GuiGraphicsExtractor) {

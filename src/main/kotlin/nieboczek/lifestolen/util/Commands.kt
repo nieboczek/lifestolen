@@ -55,7 +55,7 @@ object Commands {
                     val message = StringArgumentType.getString(it, "message")
                     it.getSource()!!.player.connection.sendCommand("msg $lastSender $message")
                 } else {
-                    Module.sendChat(it, "No one to reply to")
+                    Lifestolen.displayStatus(Component.literal("No one to reply to"))
                 }
                 1
             })
@@ -67,8 +67,8 @@ object Commands {
                 val module = getModule(it, "module")!!
                 module.toggle()
 
-                val status = if (module.enabled) Formatting.green("enabled") else Formatting.red("disabled")
-                Module.sendChat(it, Component.literal("Module ${module.id} has been ").append(status))
+                val status = if (module.enabled) Component.literal("enabled").withColor(0x00FF00) else Component.literal("disabled").withColor(0xFF3636)
+                Lifestolen.displayStatus(Component.literal("Module ${module.id} has been ").append(status))
 
                 1
             })
@@ -88,8 +88,8 @@ object Commands {
                     )
 
                     val label = InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
-                    val coloredLabel = Formatting.niceBlue(label)
-                    Module.sendChat(it, Component.literal("Bound module ${module.id} to ").append(coloredLabel))
+                    val coloredLabel = Component.literal(label).withColor(0xBBAAE0)
+                    Lifestolen.displayStatus(Component.literal("Bound module ${module.id} to ").append(coloredLabel))
                     1
                 })
         )

@@ -2,33 +2,15 @@ package nieboczek.lifestolen.module
 
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.blaze3d.platform.Window
-import com.mojang.brigadier.context.CommandContext
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.WebViewManager
 import nieboczek.lifestolen.serializer.base.*
-import nieboczek.lifestolen.util.Formatting
 
 abstract class Module(val id: String, val category: Category) {
-    companion object {
-        fun sendChat(it: CommandContext<FabricClientCommandSource>, msg: MutableComponent) {
-            it.source.sendFeedback(Lifestolen.msgPrefix.copy().append(msg.withColor(0xFFFFFF)))
-        }
-
-        fun sendChat(it: CommandContext<FabricClientCommandSource>, msg: String) {
-            it.source.sendFeedback(Lifestolen.msgPrefix.copy().append(Component.literal(msg).withColor(0xFFFFFF)))
-        }
-
-        fun sendStatus(msg: Component, mc: Minecraft) {
-            mc.player?.sendOverlayMessage(msg)
-        }
-    }
-
     val mc = Minecraft.getInstance()
     val player
         get() = mc.player!!
@@ -57,8 +39,8 @@ abstract class Module(val id: String, val category: Category) {
 
         if (shouldToggle) {
             toggle()
-            val status = if (enabled) Formatting.green("enabled") else Formatting.red("disabled")
-            sendStatus(Component.literal("$id ").append(status), mc)
+            val status = if (enabled) Component.literal("enabled").withColor(0x00FF00) else Component.literal("disabled").withColor(0xFF3636)
+            Lifestolen.displayStatus(Component.literal("$id ").append(status))
         }
     }
 
