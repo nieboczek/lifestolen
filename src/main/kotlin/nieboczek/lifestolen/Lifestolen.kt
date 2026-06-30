@@ -102,6 +102,7 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(ChestESPModule)
         modules.add(AutoTotemModule)
         modules.add(FlyModule)
+        modules.add(NoFallModule)
 
         WebViewManager.initialize()
         ConfigManager.loadConfig()
