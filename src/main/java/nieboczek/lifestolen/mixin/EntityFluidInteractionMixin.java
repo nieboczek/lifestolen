@@ -20,6 +20,6 @@ public class EntityFluidInteractionMixin {
     private Vec3 update(Vec3 original, @Local(argsOnly = true, name = "entity") Entity entity) {
         if (entity != Minecraft.getInstance().player || Lifestolen.INSTANCE.getKillSwitch())
             return original;
-        return NoPushModule.INSTANCE.getNoPushByFluids().getValue() ? Vec3.ZERO : original;
+        return NoPushModule.INSTANCE.getNoPushByFluids() ? Vec3.ZERO : original;
     }
 }
