@@ -95,6 +95,7 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(NoPushModule)
         modules.add(FlyModule)
         modules.add(NoFallModule)
+        modules.add(InvMoveModule)
         modules.add(ScaffoldModule)
 
         modules.add(TracersModule)
