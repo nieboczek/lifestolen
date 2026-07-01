@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.util.PlacementUtil
 import nieboczek.lifestolen.util.Renderer3d
 
@@ -108,7 +109,8 @@ object AutoTrapModule : Module("AutoTrap", Category.COMBAT) {
         var bestDistSq = range * range
         val pos = player.position()
         val aabb = AABB(pos.subtract(range), pos.add(range))
-        val entities = player.level().getEntities(player, aabb) { it is Player && it.isAlive }
+        val entities =
+            player.level().getEntities(player, aabb) { it is Player && it.isAlive && !Lifestolen.isFriend(it) }
 
         for (entity in entities) {
             val distSq = player.distanceToSqr(entity)

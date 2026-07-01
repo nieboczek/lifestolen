@@ -4,6 +4,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.util.Renderer3d
 
 object ESPModule : Module("ESP", Category.VISUALS) {
@@ -17,7 +18,7 @@ object ESPModule : Module("ESP", Category.VISUALS) {
         val pos = player.position()
         val aabb = AABB(pos.subtract(range), pos.add(range))
         val entities = player.level().getEntities(mc.player, aabb) {
-            (!showOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive
+            (!showOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive && !Lifestolen.isFriend(it)
         }
 
         for (entity in entities) {

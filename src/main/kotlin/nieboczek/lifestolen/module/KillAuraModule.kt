@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Renderer3d
 import kotlin.math.atan2
@@ -62,7 +63,8 @@ object KillAuraModule : Module("KillAura", Category.COMBAT) {
         val pos = player.position()
         val aabb = AABB(pos.subtract(5.0), pos.add(5.0))
         val entities = player.level()
-            .getEntities(mc.player, aabb) { (!attackOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive }
+            .getEntities(mc.player, aabb)
+            { (!attackOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive && !Lifestolen.isFriend(it) }
 
         for (entity in entities) {
             val distSq = player.distanceToSqr(entity)

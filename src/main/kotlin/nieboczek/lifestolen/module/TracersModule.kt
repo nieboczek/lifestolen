@@ -3,6 +3,7 @@ package nieboczek.lifestolen.module
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.util.Renderer3d
 import org.joml.Vector3f
 
@@ -17,7 +18,11 @@ object TracersModule : Module("Tracers", Category.VISUALS) {
         val pos = player.position()
         val aabb = AABB(pos.subtract(range + 2.0), pos.add(range + 2.0))
         val entities = player.level().getEntities(mc.player, aabb) {
-            (!showOnlyPlayers || it is Player) && it is LivingEntity && it.isAlive
+            (!showOnlyPlayers || it is Player)
+                    && it is LivingEntity
+                    && it.isAlive
+                    && !Lifestolen.isFriend(it)
+                    && player.distanceToSqr(it) <= maxDistSq
         }
 
         val cam = Renderer3d.camera ?: return
@@ -27,8 +32,6 @@ object TracersModule : Module("Tracers", Category.VISUALS) {
         val eyeVec = computeEyeVector()
 
         for (entity in entities) {
-            if (player.distanceToSqr(entity) > maxDistSq) continue
-
             val entityPos = entity.position()
             val entityOldPos = entity.oldPosition()
             val ex = (entityOldPos.x + (entityPos.x - entityOldPos.x) * partial - camPos.x).toFloat()

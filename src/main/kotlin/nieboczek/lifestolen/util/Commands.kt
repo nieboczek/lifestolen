@@ -11,6 +11,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
+import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.Lifestolen.modules
@@ -20,10 +21,14 @@ import java.util.concurrent.CompletableFuture
 
 
 object Commands {
+    private val moduleIds = modules.map { it.id }
+    private val moduleSuggestionProvider = ListSuggestionProvider { moduleIds }
+
     // Used for /r /reply command
     var lastSender: String? = null
 
     fun register(dispatcher: CommandDispatcher<FabricClientCommandSource>) {
+        dispatcher.register(createFriendsCommand())
         dispatcher.register(createKillSwitchCommand())
         dispatcher.register(createBindCommand())
         dispatcher.register(createToggleCommand())
@@ -38,6 +43,38 @@ object Commands {
             }
         }
         return null
+    }
+
+    private fun createFriendsCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
+        return literal("friends").then(
+            literal("add").then(
+                argument("player", StringArgumentType.string())
+                    .suggests { context, builder -> EntityArgument.player().listSuggestions(context, builder) }
+                    .executes {
+                        val name = it.getArgument("player", String::class.java)
+                        Lifestolen.cfg!!.friends.add(name)
+                        Lifestolen.displayStatus(Component.literal("Added $name to friends"))
+                        1
+                    })
+        ).then(
+            literal("remove").then(
+                argument("player", StringArgumentType.string())
+                    .suggests(ListSuggestionProvider { Lifestolen.cfg!!.friends })
+                    .executes {
+                        val name = it.getArgument("player", String::class.java)
+                        if (Lifestolen.cfg!!.friends.remove(name))
+                            Lifestolen.displayStatus(Component.literal("Removed $name from friends"))
+                        else
+                            Lifestolen.displayStatus(Component.literal("$name isn't a friend"))
+                        1
+                    }
+            )
+        ).then(
+            literal("list").executes {
+                Lifestolen.displayStatus(Component.literal(Lifestolen.cfg!!.friends.toString()))
+                1
+            }
+        )
     }
 
     private fun createKillSwitchCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
@@ -62,20 +99,21 @@ object Commands {
 
     private fun createToggleCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
         return literal("t").then(
-            argument("module", StringArgumentType.string()).suggests(ModuleSuggestionProvider).executes {
+            argument("module", StringArgumentType.string()).suggests(moduleSuggestionProvider).executes {
                 val module = getModule(it, "module")!!
                 module.toggle()
 
-                val status = if (module.enabled) Component.literal("enabled").withColor(0x00FF00) else Component.literal("disabled").withColor(0xFF3636)
-                Lifestolen.displayStatus(Component.literal("Module ${module.id} has been ").append(status))
+                val status = if (module.enabled) Component.literal("enabled")
+                    .withColor(0x00FF00) else Component.literal("disabled").withColor(0xFF3636)
 
+                Lifestolen.displayStatus(Component.literal("Module ${module.id} has been ").append(status))
                 1
             })
     }
 
     private fun createBindCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
         return literal("bind").then(
-            argument("module", StringArgumentType.string()).suggests(ModuleSuggestionProvider).then(
+            argument("module", StringArgumentType.string()).suggests(moduleSuggestionProvider).then(
                 argument("key", StringArgumentType.string()).executes {
                     val module = getModule(it, "module")!!
                     val keycode = parseKeycode(it.getArgument("key", String::class.java))
@@ -191,15 +229,16 @@ object Commands {
         }
     }
 
-    private object ModuleSuggestionProvider : SuggestionProvider<FabricClientCommandSource> {
+    private class ListSuggestionProvider(val possibilities: () -> List<String>) :
+        SuggestionProvider<FabricClientCommandSource> {
         override fun getSuggestions(
             context: CommandContext<FabricClientCommandSource>, builder: SuggestionsBuilder
         ): CompletableFuture<Suggestions> {
             val incomplete = builder.remainingLowerCase
 
-            for (module in modules) {
-                if (module.id.lowercase().contains(incomplete)) {
-                    builder.suggest(module.id)
+            for (module in possibilities()) {
+                if (module.lowercase().contains(incomplete)) {
+                    builder.suggest(module)
                 }
             }
 
