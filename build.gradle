@@ -33,6 +33,39 @@ processResources {
 	}
 }
 
+def generatedDir = layout.buildDirectory.dir("generated/sources/main/kotlin")
+sourceSets.main.kotlin.srcDir(generatedDir)
+
+def generateBuildInfo = tasks.register("generateBuildInfo") {
+    def pkg = "nieboczek.lifestolen"
+	def objectName = "BuildInfo"
+
+	doLast {
+        def outputDir = generatedDir.get().asFile
+		def file = file("$outputDir/${pkg.replace('.', '/')}/${objectName}.kt")
+		file.parentFile.mkdirs()
+
+		def env1 = System.getenv("LIFESTOLEN_CONFIG_GLOBAL")
+		def configGlobal = env1 == "true" || env1 == "1" ? "true" : "false"
+		def env2 = System.getenv("LIFESTOLEN_CONFIG_LOCATION")
+		def configLocation = env2 == null ? "lifestolen.txt" : env2
+
+		file.text = """\
+package $pkg
+
+object $objectName {
+    const val MOD_VERSION: String = "${project.version}"
+    const val CONFIG_GLOBAL: Boolean = ${configGlobal}
+    const val CONFIG_LOCATION: String = "${configLocation}"
+}
+""".stripIndent()
+	}
+}
+
+tasks.named("compileKotlin") {
+	dependsOn(generateBuildInfo)
+}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
 }

@@ -1,6 +1,7 @@
 package nieboczek.lifestolen.config
 
 import net.minecraft.client.Minecraft
+import nieboczek.lifestolen.BuildInfo
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.Setting
 import nieboczek.lifestolen.serializer.SerializerError
@@ -17,8 +18,13 @@ object ConfigManager {
     private val serializers: MutableMap<String, ModuleSerializer> = HashMap()
 
     init {
-        val dir = Minecraft.getInstance().gameDirectory
-        val config = dir.toPath().resolve("lifestolen.txt").toFile()
+        @Suppress("KotlinConstantConditions")
+        val config = if (!BuildInfo.CONFIG_GLOBAL) {
+            val dir = Minecraft.getInstance().gameDirectory
+            dir.toPath().resolve(BuildInfo.CONFIG_LOCATION).toFile()
+        } else {
+            File(BuildInfo.CONFIG_LOCATION)
+        }
 
         try {
             config.createNewFile()
@@ -94,6 +100,7 @@ object ConfigManager {
                     val cfg = ClientConfig.serializer.deserialize(stream)
                     Lifestolen.cfg = cfg
                 }
+
                 else -> {
                     val serializer = serializers[id] ?: throw SerializerError("Serializer for $id not found")
                     serializer.deserialize(stream)
