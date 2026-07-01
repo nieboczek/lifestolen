@@ -9,12 +9,11 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.ByteBufferBuilder
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.Camera
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.resources.Identifier
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.Lifestolen
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -40,12 +39,12 @@ object Renderer3d {
     private var quadHasVertices = false
 
     private val linePipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
-        .withLocation(Identifier.fromNamespaceAndPath("lifestolen", "lines"))
+        .withLocation(Lifestolen.identifier("lines"))
         .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
         .build()
 
     private val quadPipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-        .withLocation(Identifier.fromNamespaceAndPath("lifestolen", "quads"))
+        .withLocation(Lifestolen.identifier("quads"))
         .withCull(false)
         .build()
 

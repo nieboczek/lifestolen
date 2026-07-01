@@ -13,6 +13,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.Identifier
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
@@ -34,6 +35,8 @@ object Lifestolen : ModInitializer, ClientModInitializer {
     var killSwitch = false
 
     private var rainbowColorOffset = 0
+
+    fun identifier(path: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, path)
 
     // TODO: remove this function and switch to GUI widgets completely
     fun displayStatus(msg: Component) {
