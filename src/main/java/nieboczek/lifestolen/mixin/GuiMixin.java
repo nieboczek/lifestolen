@@ -3,7 +3,6 @@ package nieboczek.lifestolen.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -18,7 +17,7 @@ public class GuiMixin {
             method = "extractRenderState"
     )
     public GuiGraphicsExtractor render(GuiGraphicsExtractor original) {
-        Lifestolen.render2d(original);
+        Lifestolen.INSTANCE.render2d(original);
         return original;
     }
 
@@ -28,6 +27,6 @@ public class GuiMixin {
     )
     public boolean handleKeybinds(KeyMapping instance, Operation<Boolean> original) {
         // nuke social interactions key when not kill switched
-        return Lifestolen.Companion.getKillSwitch() ? original.call(instance) : false;
+        return Lifestolen.INSTANCE.getKillSwitch() ? original.call(instance) : false;
     }
 }

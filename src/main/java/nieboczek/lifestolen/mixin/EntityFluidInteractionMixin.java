@@ -18,7 +18,7 @@ public class EntityFluidInteractionMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/material/FluidState;getFlow(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;")
     )
     private Vec3 update(Vec3 original, @Local(argsOnly = true, name = "entity") Entity entity) {
-        if (entity != Minecraft.getInstance().player || Lifestolen.Companion.getKillSwitch())
+        if (entity != Minecraft.getInstance().player || Lifestolen.INSTANCE.getKillSwitch())
             return original;
         return NoPushModule.INSTANCE.getNoPushByFluids().getValue() ? Vec3.ZERO : original;
     }

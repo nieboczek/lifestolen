@@ -16,7 +16,7 @@ import java.util.List;
 public class ClientLevelMixin {
     @Inject(method = "getPushableEntities", at = @At("HEAD"), cancellable = true)
     private void getPushableEntities(Entity pusher, AABB boundingBox, CallbackInfoReturnable<List<Entity>> cir) {
-        if (NoPushModule.INSTANCE.getNoPushByEntities().getValue() && !Lifestolen.Companion.getKillSwitch()) {
+        if (NoPushModule.INSTANCE.getNoPushByEntities().getValue() && !Lifestolen.INSTANCE.getKillSwitch()) {
             cir.setReturnValue(List.of());
             cir.cancel();
         }

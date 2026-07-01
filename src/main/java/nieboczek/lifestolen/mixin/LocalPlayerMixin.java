@@ -13,8 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
-
 @Mixin(LocalPlayer.class)
 public class LocalPlayerMixin {
     @ModifyExpressionValue(
@@ -49,7 +47,7 @@ public class LocalPlayerMixin {
 
     @Inject(method = "moveTowardsClosestSpace", at = @At("HEAD"), cancellable = true)
     private void moveTowardsClosestSpace(double x, double z, CallbackInfo ci) {
-        if (NoPushModule.INSTANCE.getNoPushByBlocks().getValue() && !Lifestolen.Companion.getKillSwitch()) {
+        if (NoPushModule.INSTANCE.getNoPushByBlocks().getValue() && !Lifestolen.INSTANCE.getKillSwitch()) {
             ci.cancel();
         }
     }

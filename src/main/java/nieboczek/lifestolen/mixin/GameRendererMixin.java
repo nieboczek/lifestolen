@@ -39,7 +39,7 @@ public class GameRendererMixin {
         Renderer3d.beginFrame(mainRenderTarget, mainCamera);
 
         try {
-            Lifestolen.render3d();
+            Lifestolen.INSTANCE.render3d();
         } finally {
             Renderer3d.endFrame();
         }
@@ -47,7 +47,7 @@ public class GameRendererMixin {
 
     @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
     private void bobView(CameraRenderState cameraState, PoseStack poseStack, CallbackInfo ci) {
-        if (TracersModule.INSTANCE.getEnabled() && !Lifestolen.Companion.getKillSwitch()) {
+        if (TracersModule.INSTANCE.getEnabled() && !Lifestolen.INSTANCE.getKillSwitch()) {
             ci.cancel();
         }
     }

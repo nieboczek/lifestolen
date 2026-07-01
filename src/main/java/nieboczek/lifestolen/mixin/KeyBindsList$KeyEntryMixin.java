@@ -16,13 +16,13 @@ public class KeyBindsList$KeyEntryMixin {
     @WrapOperation(method = "refreshEntry", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;getTranslatedKeyMessage()Lnet/minecraft/network/chat/Component;"))
     public Component getTranslatedKeyMessage(KeyMapping instance, Operation<Component> original) {
         boolean isSocialInteractions = instance.getDefaultKey() == InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_P);
-        return isSocialInteractions && Lifestolen.Companion.getKillSwitch() ? instance.getDefaultKey().getDisplayName() : original.call(instance);
+        return isSocialInteractions && Lifestolen.INSTANCE.getKillSwitch() ? instance.getDefaultKey().getDisplayName() : original.call(instance);
     }
 
     @WrapOperation(method = "refreshEntry", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;isDefault()Z", ordinal = 0))
     public boolean isDefault(KeyMapping instance, Operation<Boolean> original) {
         boolean isSocialInteractions = instance.getDefaultKey() == InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_P);
-        return (isSocialInteractions && Lifestolen.Companion.getKillSwitch()) || original.call(instance);
+        return (isSocialInteractions && Lifestolen.INSTANCE.getKillSwitch()) || original.call(instance);
     }
 }
 

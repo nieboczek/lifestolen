@@ -12,10 +12,16 @@
   "environment": "client",
   "entrypoints": {
     "main": [
-      "nieboczek.lifestolen.Lifestolen"
+      {
+        "adapter": "kotlin",
+        "value": "nieboczek.lifestolen.Lifestolen"
+      }
     ],
     "client": [
-      "nieboczek.lifestolen.Lifestolen"
+      {
+        "adapter": "kotlin",
+        "value": "nieboczek.lifestolen.Lifestolen"
+      }
     ]
   },
   "mixins": [

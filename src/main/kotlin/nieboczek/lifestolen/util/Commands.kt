@@ -13,7 +13,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.Lifestolen.Companion.modules
+import nieboczek.lifestolen.Lifestolen.modules
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 import java.util.concurrent.CompletableFuture
