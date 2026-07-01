@@ -69,7 +69,9 @@ class Lifestolen : ModInitializer, ClientModInitializer {
         @JvmStatic
         fun toggleKillSwitch() {
             killSwitch = !killSwitch
-            log.info("Set kill switch in title screen: $killSwitch")
+            // we never set Module#enabled, that's intended
+            if (killSwitch) modules.forEach { if (it.enabled) it.disable() }
+            else modules.forEach { if (it.enabled) it.enable() }
         }
     }
 

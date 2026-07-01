@@ -12,7 +12,7 @@ public abstract class LightmapRenderStateExtractorMixin {
     @ModifyVariable(method = "extract", at = @At(value = "STORE"), name = "brightnessOption")
     private float extract(float brightnessOption) {
         var xRay = XRayModule.INSTANCE;
-        if ((!xRay.getEnabled() || !xRay.getFullBright()) && !FullBrightModule.INSTANCE.getEnabled()) {
+        if ((!xRay.isEnabled() || !xRay.getFullBright()) && !FullBrightModule.isEnabled()) {
             return brightnessOption;
         }
         return Float.MAX_VALUE;

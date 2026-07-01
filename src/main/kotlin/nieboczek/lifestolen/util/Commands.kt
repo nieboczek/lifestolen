@@ -42,7 +42,7 @@ object Commands {
 
     private fun createKillSwitchCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
         return literal("killswitch").executes {
-            Lifestolen.killSwitch = !Lifestolen.killSwitch
+            Lifestolen.toggleKillSwitch()
             1
         }
     }

@@ -28,12 +28,12 @@ public abstract class LightDataAccessMixin {
 
     @ModifyReturnValue(method = "compute", at = @At("RETURN"))
     private int compute(int original) {
-        if (FullBrightModule.INSTANCE.getEnabled()) {
+        if (FullBrightModule.isEnabled()) {
             return original | MAX_LIGHT_LEVEL;
         }
 
         var xRay = XRayModule.INSTANCE;
-        if (xRay.getEnabled() && xRay.getFullBright()) {
+        if (xRay.isEnabled() && xRay.getFullBright()) {
             var state = level.getBlockState(pos);
             if (xRay.shouldRender(state)) {
                 return original | MAX_LIGHT_LEVEL;

@@ -20,9 +20,10 @@ public class ScreenMixin {
 
     @SuppressWarnings("ConstantValue")
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    public void keyPressed(KeyEvent keyEvent, CallbackInfoReturnable<Boolean> cir) {
-        if (((Object) this) instanceof TitleScreen && minecraft.options.keySocialInteractions.matches(keyEvent)) {
+    public void keyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+        if (((Object) this) instanceof TitleScreen && minecraft.options.keySocialInteractions.matches(event)) {
             Lifestolen.toggleKillSwitch();
+            Lifestolen.Companion.getLog().info("Set kill switch in title screen to {}", Lifestolen.Companion.getKillSwitch());
             cir.setReturnValue(true);
         }
     }

@@ -39,20 +39,18 @@ public abstract class AbstractBlockRenderContextMixin {
     @Inject(method = "shouldDrawSide", at = @At("HEAD"), cancellable = true)
     private void shouldDrawSide(Direction facing, CallbackInfoReturnable<Boolean> cir) {
         var xRay = XRayModule.INSTANCE;
-        if (!xRay.getEnabled() || state == null || pos == null) {
-            return;
-        }
+        if (!xRay.isEnabled() || state == null || pos == null) return;
         cir.setReturnValue(xRay.shouldRender(state));
     }
 
     @Inject(method = "shadeQuad", at = @At("RETURN"))
     private void shadeQuad(MutableQuadViewImpl quad, LightMode lightMode, boolean emissive, SodiumShadeMode shadeMode, CallbackInfo ci) {
         boolean fullBright;
-        if (FullBrightModule.INSTANCE.getEnabled()) {
+        if (FullBrightModule.isEnabled()) {
             fullBright = true;
         } else {
             var xRay = XRayModule.INSTANCE;
-            if (!xRay.getEnabled() || !xRay.getFullBright() || state == null || pos == null) return;
+            if (!xRay.isEnabled() || !xRay.getFullBright() || state == null || pos == null) return;
             fullBright = xRay.shouldRender(state);
         }
 

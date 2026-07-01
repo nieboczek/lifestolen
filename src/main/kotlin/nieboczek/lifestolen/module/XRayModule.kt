@@ -3,6 +3,7 @@ package nieboczek.lifestolen.module
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.serializer.minecraft.ResourceSerializer
 
 object XRayModule : Module("XRay", Category.VISUALS) {
@@ -95,9 +96,8 @@ object XRayModule : Module("XRay", Category.VISUALS) {
         ResourceSerializer(BuiltInRegistries.BLOCK)
     )
 
-    fun shouldRender(state: BlockState): Boolean {
-        return state.block in blocks
-    }
+    fun isEnabled(): Boolean = enabled && !Lifestolen.killSwitch
+    fun shouldRender(state: BlockState): Boolean = state.block in blocks
 
     override fun enable() = mc.levelExtractor.allChanged()
     override fun disable() = mc.levelExtractor.allChanged()
