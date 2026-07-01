@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Connection.class)
 public class ConnectionMixin {
     @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V", at = @At("HEAD"))
-    private void hookSendingPacket(Packet<?> packet, final CallbackInfo callbackInfo) {
+    private void send(Packet<?> packet, final CallbackInfo callbackInfo) {
         NoFallModule.INSTANCE.handlePacket(packet);
     }
 }
