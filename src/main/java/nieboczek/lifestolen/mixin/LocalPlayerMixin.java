@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.module.NoPushModule;
 import nieboczek.lifestolen.module.util.RotationUtil;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,7 +46,8 @@ public class LocalPlayerMixin {
 
     @Inject(method = "moveTowardsClosestSpace", at = @At("HEAD"), cancellable = true)
     private void moveTowardsClosestSpace(double x, double z, CallbackInfo ci) {
-        if (NoPushModule.INSTANCE.getNoPushByBlocks() && !Lifestolen.INSTANCE.getKillSwitch()) {
+        NoPushModule noPush = NoPushModule.INSTANCE;
+        if (noPush.isEnabled() && noPush.getNoPushByBlocks()) {
             ci.cancel();
         }
     }

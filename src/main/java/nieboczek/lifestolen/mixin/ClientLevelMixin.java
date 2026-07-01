@@ -3,7 +3,6 @@ package nieboczek.lifestolen.mixin;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
-import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.module.NoPushModule;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,7 +15,8 @@ import java.util.List;
 public class ClientLevelMixin {
     @Inject(method = "getPushableEntities", at = @At("HEAD"), cancellable = true)
     private void getPushableEntities(Entity pusher, AABB boundingBox, CallbackInfoReturnable<List<Entity>> cir) {
-        if (NoPushModule.INSTANCE.getNoPushByEntities() && !Lifestolen.INSTANCE.getKillSwitch()) {
+        NoPushModule noPush = NoPushModule.INSTANCE;
+        if (noPush.isEnabled() && noPush.getNoPushByEntities()) {
             cir.setReturnValue(List.of());
             cir.cancel();
         }
