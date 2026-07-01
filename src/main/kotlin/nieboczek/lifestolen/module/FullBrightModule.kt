@@ -7,4 +7,9 @@ object FullBrightModule : Module("FullBright", Category.VISUALS) {
 
     @JvmStatic
     fun isEnabled(): Boolean = enabled && (!Lifestolen.killSwitch || !affectedByKillSwitch)
+
+    override fun enable() = mc.levelExtractor.allChanged()
+    override fun disable() {
+        if (!enabled || affectedByKillSwitch) mc.levelExtractor.allChanged()
+    }
 }
