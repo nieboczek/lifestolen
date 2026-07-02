@@ -89,7 +89,11 @@ object Commands {
             argument<String>("message", StringArgumentType.greedyString()).executes {
                 if (lastSender != null) {
                     val message = StringArgumentType.getString(it, "message")
-                    it.getSource()!!.player.connection.sendCommand("msg $lastSender $message")
+                    val command =
+                        if (it.source!!.player.connection.commands.findNode(listOf("minecraft:msg")) != null) "minecraft:msg"
+                        else "msg"
+
+                    it.source!!.player.connection.sendCommand("$command $lastSender $message")
                 } else {
                     Lifestolen.displayStatus(Component.literal("No one to reply to"))
                 }
