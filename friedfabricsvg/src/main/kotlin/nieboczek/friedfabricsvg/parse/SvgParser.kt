@@ -58,10 +58,10 @@ object SvgParser {
                     bytes to "resource:$id"
                 }
                 is SvgSource.StringContent -> {
-                    source.xml.toByteArray(StandardCharsets.UTF_8) to "<string>"
+                    source.xml.toByteArray(StandardCharsets.UTF_8) to null
                 }
                 is SvgSource.Stream -> {
-                    source.stream.use { it.readAllBytes() } to "<stream>"
+                    source.stream.use { it.readAllBytes() } to null
                 }
                 is SvgSource.FilePath -> {
                     Files.readAllBytes(source.path) to source.path.toUri().toString()
