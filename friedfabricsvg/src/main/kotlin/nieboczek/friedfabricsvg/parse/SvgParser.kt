@@ -1,15 +1,12 @@
 package nieboczek.friedfabricsvg.parse
 
-import com.github.weisj.jsvg.SVGDocument
 import com.github.weisj.jsvg.parser.LoaderContext
 import com.github.weisj.jsvg.parser.SVGLoader
 import net.minecraft.client.Minecraft
-import net.minecraft.resources.Identifier
 import nieboczek.friedfabricsvg.api.SvgHandle
 import nieboczek.friedfabricsvg.api.SvgSource
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
-import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.security.MessageDigest
@@ -53,7 +50,7 @@ object SvgParser {
         return try {
             when (source) {
                 is SvgSource.Resource -> {
-                    val id = Identifier.fromNamespaceAndPath(source.namespace, source.path)
+                    val id = source.identifier
                     val resource = Minecraft.getInstance().resourceManager.getResource(id)
                     val bytes = resource.orElseThrow {
                         Exception("Resource not found: $id")
