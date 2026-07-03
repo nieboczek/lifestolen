@@ -12,6 +12,21 @@ repositories {
     mavenCentral()
 }
 
+loom {
+    runs {
+        // Empty — prevent Loom from generating default client/server run configs
+        // for this library subproject, which would cause Gradle 9's project-wide
+        // task resolution to start a second Minecraft process.
+    }
+}
+
+// Library project — don't run a separate client
+tasks.matching { it.name in ["runClient", "runServer", "runClientRenderDoc"] }.configureEach {
+    enabled = false
+    group = null
+    description = "$project.name is a library — use :runClient instead"
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -28,6 +43,16 @@ tasks.withType(JavaCompile).configureEach {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_25
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "loader_version", project.loader_version
+    inputs.property "minecraft_version", project.minecraft_version
+
+    filesMatching("fabric.mod.json") {
+        expand inputs.properties
     }
 }
 

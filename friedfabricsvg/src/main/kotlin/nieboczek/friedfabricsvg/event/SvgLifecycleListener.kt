@@ -9,15 +9,17 @@ import nieboczek.friedfabricsvg.parse.SvgDocumentCache
 
 object SvgLifecycleListener {
     fun register() {
-        val mc = Minecraft.getInstance()
-        val resourceManager = mc.resourceManager
-        if (resourceManager is net.minecraft.server.packs.resources.ReloadableResourceManager) {
-            resourceManager.registerReloadListener(
-                ResourceManagerReloadListener { _ ->
-                    FriedFabricsvgApi.invalidateAll()
-                    SvgDocumentCache.clear()
-                }
-            )
+        ClientLifecycleEvents.CLIENT_STARTED.register { _ ->
+            val mc = Minecraft.getInstance()
+            val resourceManager = mc.resourceManager
+            if (resourceManager is net.minecraft.server.packs.resources.ReloadableResourceManager) {
+                resourceManager.registerReloadListener(
+                    ResourceManagerReloadListener { _ ->
+                        FriedFabricsvgApi.invalidateAll()
+                        SvgDocumentCache.clear()
+                    }
+                )
+            }
         }
 
         ClientLifecycleEvents.CLIENT_STOPPING.register {
