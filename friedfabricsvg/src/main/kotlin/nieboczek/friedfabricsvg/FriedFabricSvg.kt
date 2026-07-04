@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.Identifier
 import net.minecraft.server.packs.resources.ReloadableResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
-import nieboczek.friedfabricsvg.api.SvgConfig
 import nieboczek.friedfabricsvg.api.SvgHandle
 import nieboczek.friedfabricsvg.api.SvgRenderOptions
 import nieboczek.friedfabricsvg.api.SvgSource
@@ -21,6 +20,7 @@ import nieboczek.friedfabricsvg.parse.SvgDocumentCache
 import nieboczek.friedfabricsvg.parse.SvgParser
 import nieboczek.friedfabricsvg.render.SvgRasterizer
 import nieboczek.friedfabricsvg.texture.SvgTextureAllocator
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
@@ -30,9 +30,8 @@ import java.util.concurrent.Executors
 object FriedFabricSvg : ClientModInitializer {
     const val MOD_ID = "friedfabricsvg"
 
-    private val log = LoggerFactory.getLogger("FriedFabricSvg")
-    private val config = SvgConfig()
-    private val cache = SvgCache(config.maxCacheEntries)
+    val log: Logger = LoggerFactory.getLogger("FriedFabricSvg")
+    private val cache = SvgCache(512)
     private val worker = Executors.newSingleThreadExecutor { r ->
         Thread(r, "$MOD_ID-worker").also { it.isDaemon = true }
     }

@@ -1,5 +1,3 @@
-@file:JvmName("SvgSource")
-
 package nieboczek.friedfabricsvg.api
 
 import net.minecraft.resources.Identifier

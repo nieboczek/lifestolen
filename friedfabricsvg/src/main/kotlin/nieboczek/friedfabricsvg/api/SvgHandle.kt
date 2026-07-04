@@ -1,7 +1,6 @@
 package nieboczek.friedfabricsvg.api
 
 import com.github.weisj.jsvg.SVGDocument
-import java.util.Arrays
 
 class SvgHandle internal constructor(
     private val contentHash: ByteArray,
@@ -18,5 +17,5 @@ class SvgHandle internal constructor(
         return contentHash.contentEquals(other.contentHash)
     }
 
-    override fun hashCode(): Int = Arrays.hashCode(contentHash)
+    override fun hashCode(): Int = contentHash.contentHashCode()
 }

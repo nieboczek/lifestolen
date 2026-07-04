@@ -12,7 +12,7 @@ import java.nio.file.Files
 import java.security.MessageDigest
 
 object SvgParser {
-    private val log = LoggerFactory.getLogger("friedfabricsvg/SvgParser")
+    private val log = LoggerFactory.getLogger("FriedFabricSvg/SvgParser")
     private val digestThreadLocal = ThreadLocal.withInitial { MessageDigest.getInstance("SHA-256") }
     private val loaderContext = LoaderContext.createDefault()
 

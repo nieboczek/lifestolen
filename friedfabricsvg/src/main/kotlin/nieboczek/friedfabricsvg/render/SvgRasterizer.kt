@@ -3,15 +3,13 @@ package nieboczek.friedfabricsvg.render
 import com.github.weisj.jsvg.SVGDocument
 import com.github.weisj.jsvg.view.ViewBox
 import com.mojang.blaze3d.platform.NativeImage
+import nieboczek.friedfabricsvg.FriedFabricSvg
 import nieboczek.friedfabricsvg.api.RenderMode
 import nieboczek.friedfabricsvg.api.SvgRenderOptions
-import org.slf4j.LoggerFactory
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 
 object SvgRasterizer {
-    private val log = LoggerFactory.getLogger("friedfabricsvg/SvgRasterizer")
-
     fun rasterize(
         document: SVGDocument,
         width: Int,
@@ -35,11 +33,25 @@ object SvgRasterizer {
             g.dispose()
 
             val nativeImage = NativeImage(NativeImage.Format.RGBA, width, height, false)
-            PixelConverter.convert(image, nativeImage)
+            convertBufferedToNative(image, nativeImage)
             nativeImage
         } catch (e: Exception) {
-            log.warn("Failed to rasterize SVG at ${width}x${height}", e)
+            FriedFabricSvg.log.warn("Failed to rasterize SVG at ${width}x${height}", e)
             null
+        }
+    }
+
+    fun convertBufferedToNative(source: BufferedImage, target: NativeImage) {
+        val w = source.width
+        val h = source.height
+        val pixels = IntArray(w * h)
+        source.getRGB(0, 0, w, h, pixels, 0, w)
+        var i = 0
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                target.setPixel(x, y, pixels[i])
+                i++
+            }
         }
     }
 }
