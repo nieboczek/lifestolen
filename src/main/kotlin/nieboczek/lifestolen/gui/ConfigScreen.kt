@@ -1,5 +1,6 @@
 package nieboczek.lifestolen.gui
 
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
@@ -38,7 +39,8 @@ class ConfigScreen : Screen(Component.literal("Lifestolen")) {
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
-        if (event.isEscape) {
+        val guiKey = KeyMappingHelper.getBoundKeyOf(minecraft.options.keySocialInteractions).value
+        if (event.key == guiKey || event.isEscape) {
             onClose()
             return true
         }
