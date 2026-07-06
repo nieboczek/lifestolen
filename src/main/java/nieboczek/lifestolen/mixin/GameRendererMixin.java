@@ -1,12 +1,17 @@
 package nieboczek.lifestolen.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.resource.CrossFrameResourcePool;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import nieboczek.lifestolen.Lifestolen;
+import nieboczek.lifestolen.gui.BlurredRectRenderer;
+import nieboczek.lifestolen.gui.ConfigScreen;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.util.Renderer3d;
@@ -29,6 +34,10 @@ public class GameRendererMixin {
     @Shadow
     @Final
     private RenderTarget mainRenderTarget;
+
+    @Shadow
+    @Final
+    private CrossFrameResourcePool resourcePool;
 
     @Inject(
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD),
@@ -62,5 +71,14 @@ public class GameRendererMixin {
     @Inject(method = "shouldRenderBlockOutline", at = @At("HEAD"), cancellable = true)
     private void shouldRenderBlockOutline(CallbackInfoReturnable<Boolean> cir) {
         if (FreeCamModule.INSTANCE.isEnabled()) cir.setReturnValue(false);
+    }
+
+    @Inject(method = "processBlurEffect", at = @At("HEAD"), cancellable = true)
+    private void onProcessBlurEffect(CallbackInfo ci) {
+        Screen screen = Minecraft.getInstance().gui.screen();
+        if (!(screen instanceof ConfigScreen) || !BlurredRectRenderer.INSTANCE.getActive()) return;
+
+        BlurredRectRenderer.INSTANCE.renderOnConfigScreen(mainRenderTarget, resourcePool);
+        ci.cancel();
     }
 }

@@ -7,35 +7,8 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.network.chat.Component
 
 class ConfigScreen : Screen(Component.literal("Lifestolen")) {
-    private fun GuiGraphicsExtractor.roundedRect(
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        fillColor: Int,
-        outlineColor: Int,
-        outlineWidth: Int,
-        radius: Float = 4f,
-    ) {
-        guiRenderState.addGuiElement(
-            RoundedRectRenderState(
-                x,
-                y,
-                x + width,
-                y + height,
-                fillColor,
-                outlineColor,
-                outlineWidth,
-                radius,
-                scissorStack.peek()
-            )
-        )
-    }
-
-    override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
-        graphics.fill(0, 0, width, height, 0xFF000000.toInt())
-
-        graphics.roundedRect(20, 20, 600, 320, 0xFF333333.toInt(), 0xFF555555.toInt(), 1)
+    override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
+        graphics.blurredRoundedRect(100, 100, width - 200, height - 200, 0x11333333, 0x11333333, 0, 32f, 16f)
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
@@ -47,5 +20,7 @@ class ConfigScreen : Screen(Component.literal("Lifestolen")) {
         return super.keyPressed(event)
     }
 
+    override fun extractTransparentBackground(graphics: GuiGraphicsExtractor) = graphics.blurBeforeThisStratum()
+    override fun isInGameUi() = true
     override fun isPauseScreen() = false
 }
