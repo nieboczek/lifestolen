@@ -35,6 +35,7 @@ object Lifestolen : ModInitializer, ClientModInitializer {
     var cfg: ClientConfig? = null
     var killSwitch = false
 
+    private var firstTickWithPlayer = false
     private var rainbowColorOffset = 0
 
     fun identifier(path: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, path)
@@ -67,6 +68,8 @@ object Lifestolen : ModInitializer, ClientModInitializer {
 
     fun toggleKillSwitch() {
         killSwitch = !killSwitch
+        if (!firstTickWithPlayer) return
+
         // we never set Module#enabled, that's intended
         if (killSwitch) modules.forEach { if (it.enabled) it.disable() }
         else modules.forEach { if (it.enabled) it.enable() }
@@ -84,8 +87,6 @@ object Lifestolen : ModInitializer, ClientModInitializer {
     override fun onInitialize() {}
 
     private fun clientStarted() {
-        log.info("cool version: ${BuildInfo.MOD_VERSION}")
-
         modules.add(KillAuraModule)
         modules.add(AutoTotemModule)
         modules.add(AutoWebModule)
@@ -98,6 +99,7 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(InvMoveModule)
         modules.add(ScaffoldModule)
 
+        modules.add(FreeCamModule)
         modules.add(TracersModule)
         modules.add(ESPModule)
         modules.add(ChestESPModule)
@@ -105,8 +107,6 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(XRayModule)
 
         ConfigManager.loadConfig()
-
-        modules.forEach { if (it.enabled) it.enable() }
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()
@@ -119,6 +119,10 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         }
 
         if (killSwitch || mc.player == null) return
+        if (!firstTickWithPlayer) {
+            firstTickWithPlayer = true
+            modules.forEach { if (it.enabled) it.enable() }
+        }
         RotationUtil.tick()
 
         val window = mc.window

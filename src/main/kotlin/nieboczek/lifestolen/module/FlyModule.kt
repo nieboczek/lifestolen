@@ -1,7 +1,6 @@
 package nieboczek.lifestolen.module
 
-import net.minecraft.util.Mth
-import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.module.util.RotationUtil
 
 object FlyModule : Module("Fly", Category.MOVEMENT) {
     val bypassVanillaCheck by boolean("Bypass Vanilla Check")
@@ -26,40 +25,6 @@ object FlyModule : Module("Fly", Category.MOVEMENT) {
             else -> 0.0
         }
 
-        val inputMoveVector = player.input.moveVector
-        val newDeltaMovement = if (inputMoveVector.x == 0f && inputMoveVector.y == 0f) {
-            Vec3(0.0, deltaY, 0.0)
-        } else {
-            val angle = Math.toRadians(getMovementYawOfInput().toDouble())
-            val newX = -Mth.sin(angle) * horizontalSpeed
-            val newZ = Mth.cos(angle) * horizontalSpeed
-            Vec3(newX, deltaY, newZ)
-        }
-
-        player.deltaMovement = newDeltaMovement
-    }
-
-    fun getMovementYawOfInput(): Float {
-        var movementYaw = player.yRot
-        val input = player.input.keyPresses
-
-        val diagonalMultiplier = when {
-            input.backward && !input.forward -> {
-                movementYaw += 180f
-                -0.5f
-            }
-
-            input.forward && !input.backward -> 0.5f
-            else -> 1f
-        }
-
-        if (input.left && !input.right) {
-            movementYaw -= 90f * diagonalMultiplier
-        }
-        if (input.right && !input.left) {
-            movementYaw += 90f * diagonalMultiplier
-        }
-
-        return movementYaw
+        player.deltaMovement = RotationUtil.getMovementDeltaFromPlayerInput(deltaY, horizontalSpeed)
     }
 }

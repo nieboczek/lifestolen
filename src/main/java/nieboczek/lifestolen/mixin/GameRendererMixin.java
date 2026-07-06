@@ -7,6 +7,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import nieboczek.lifestolen.Lifestolen;
+import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.util.Renderer3d;
 import org.joml.Matrix4f;
@@ -17,6 +18,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
@@ -50,5 +52,15 @@ public class GameRendererMixin {
         if (TracersModule.INSTANCE.getEnabled() && !Lifestolen.INSTANCE.getKillSwitch()) {
             ci.cancel();
         }
+    }
+
+    @Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
+    private void renderItemInHand(CallbackInfo ci) {
+        if (FreeCamModule.INSTANCE.isEnabled()) ci.cancel();
+    }
+
+    @Inject(method = "shouldRenderBlockOutline", at = @At("HEAD"), cancellable = true)
+    private void shouldRenderBlockOutline(CallbackInfoReturnable<Boolean> cir) {
+        if (FreeCamModule.INSTANCE.isEnabled()) cir.setReturnValue(false);
     }
 }

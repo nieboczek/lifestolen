@@ -1,8 +1,10 @@
 package nieboczek.lifestolen.module.util
 
 import net.minecraft.client.Minecraft
+import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.Lifestolen
-import java.util.*
+import nieboczek.lifestolen.mixininterfaces.IKeyboardInput
 import kotlin.math.abs
 
 object RotationUtil {
@@ -46,6 +48,42 @@ object RotationUtil {
             if (!moduleTargeted) lerpedRotation = null
             moduleTargeted = false
         }
+    }
+
+    fun getMovementDeltaFromPlayerInput(deltaY: Double, horizontalSpeed: Double): Vec3 {
+        val input = IKeyboardInput.getUnmodified(mc.player!!)
+        val x = if (input.left && input.right) 0f else (if (input.left) -1f else (if (input.right) 1f else 0f))
+        val y = if (input.backward && input.forward) 0f else (if (input.backward) -1f else (if (input.forward) 1f else 0f))
+
+        return if (x == 0f && y == 0f) {
+            Vec3(0.0, deltaY, 0.0)
+        } else {
+            val yaw = Math.toRadians(getMovementYawOfInput().toDouble())
+            val x = -Mth.sin(yaw) * horizontalSpeed
+            val z = Mth.cos(yaw) * horizontalSpeed
+            Vec3(x, deltaY, z)
+        }
+    }
+
+    fun getMovementYawOfInput(): Float {
+        val player = mc.player!!
+        val input = IKeyboardInput.getUnmodified(player)
+        var movementYaw = player.yRot
+
+        val diagonalMultiplier = when {
+            input.backward && !input.forward -> {
+                movementYaw += 180f
+                -0.5f
+            }
+
+            input.forward && !input.backward -> 0.5f
+            else -> 1f
+        }
+
+        if (input.left && !input.right) movementYaw -= 90f * diagonalMultiplier
+        if (input.right && !input.left) movementYaw += 90f * diagonalMultiplier
+
+        return movementYaw
     }
 
     private fun roughlyEqual(a: Rotation, b: Rotation): Boolean {

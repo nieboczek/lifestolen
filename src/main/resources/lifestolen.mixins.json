@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "BlockMixin",
+    "CameraMixin",
     "ClientLevelMixin",
     "ConnectionMixin",
     "EntityFluidInteractionMixin",
@@ -14,11 +15,15 @@
     "LightmapRenderStateExtractorMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
+    "MinecraftMixin",
     "ModelBlockRendererMixin",
+    "MultiPlayerGameModeMixin",
+    "OptionsMixin",
     "ScreenMixin",
+    "VisGraphMixin",
+    "iris.HandRendererMixin",
     "sodium.AbstractBlockRenderContextMixin",
-    "sodium.LightDataAccessMixin",
-    "VisGraphMixin"
+    "sodium.LightDataAccessMixin"
   ],
   "injectors": {
     "defaultRequire": 1
