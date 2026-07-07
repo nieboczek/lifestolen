@@ -3,6 +3,7 @@ package nieboczek.lifestolen.module
 import net.minecraft.client.CameraType
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.mixininterfaces.IKeyboardInput
 import nieboczek.lifestolen.module.util.RotationUtil
 
 object FreeCamModule : Module("FreeCam", Category.VISUALS) {
@@ -29,15 +30,10 @@ object FreeCamModule : Module("FreeCam", Category.VISUALS) {
 
         camPos = player.eyePosition
         oldCamPos = camPos
-
-        player.noPhysics = true
-        player.isNoGravity = true
     }
 
     override fun disable() {
         mc.options.cameraType = prevCamType
-        player.noPhysics = false
-        player.isNoGravity = false
     }
 
     override fun tick() {
@@ -46,21 +42,16 @@ object FreeCamModule : Module("FreeCam", Category.VISUALS) {
             return
         }
 
-        player.deltaMovement = Vec3.ZERO
-
-        val sprinting = mc.options.keySprint.isDown
-        val horizontalSpeed = if (sprinting) sprintHorizontalSpeed else baseHorizontalSpeed
-        val verticalSpeed = if (sprinting) sprintVerticalSpeed else baseVerticalSpeed
-
-        val shifting = mc.options.keyShift.isDown
-        val jumping = mc.options.keyJump.isDown
+        val input = IKeyboardInput.getUnmodified(player)
+        val horizontalSpeed = if (input.sprint) sprintHorizontalSpeed else baseHorizontalSpeed
+        val verticalSpeed = if (input.sprint) sprintVerticalSpeed else baseVerticalSpeed
         val deltaY = when {
-            jumping && !shifting -> verticalSpeed
-            shifting && !jumping -> -verticalSpeed
+            input.jump && !input.shift -> verticalSpeed
+            input.shift && !input.jump -> -verticalSpeed
             else -> 0.0
         }
 
         oldCamPos = camPos
-        camPos = camPos.add(RotationUtil.getMovementDeltaFromPlayerInput(deltaY, horizontalSpeed))
+        camPos = camPos.add(RotationUtil.getMovementDeltaFromInput(deltaY, horizontalSpeed, input))
     }
 }

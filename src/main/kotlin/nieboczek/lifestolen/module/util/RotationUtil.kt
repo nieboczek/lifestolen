@@ -2,9 +2,9 @@ package nieboczek.lifestolen.module.util
 
 import net.minecraft.client.Minecraft
 import net.minecraft.util.Mth
+import net.minecraft.world.entity.player.Input
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.mixininterfaces.IKeyboardInput
 import kotlin.math.abs
 
 object RotationUtil {
@@ -50,24 +50,22 @@ object RotationUtil {
         }
     }
 
-    fun getMovementDeltaFromPlayerInput(deltaY: Double, horizontalSpeed: Double): Vec3 {
-        val input = IKeyboardInput.getUnmodified(mc.player!!)
+    fun getMovementDeltaFromInput(deltaY: Double, horizontalSpeed: Double, input: Input): Vec3 {
         val x = if (input.left && input.right) 0f else (if (input.left) -1f else (if (input.right) 1f else 0f))
         val y = if (input.backward && input.forward) 0f else (if (input.backward) -1f else (if (input.forward) 1f else 0f))
 
         return if (x == 0f && y == 0f) {
             Vec3(0.0, deltaY, 0.0)
         } else {
-            val yaw = Math.toRadians(getMovementYawOfInput().toDouble())
+            val yaw = Math.toRadians(getMovementYawOfInput(input).toDouble())
             val x = -Mth.sin(yaw) * horizontalSpeed
             val z = Mth.cos(yaw) * horizontalSpeed
             Vec3(x, deltaY, z)
         }
     }
 
-    fun getMovementYawOfInput(): Float {
+    fun getMovementYawOfInput(input: Input): Float {
         val player = mc.player!!
-        val input = IKeyboardInput.getUnmodified(player)
         var movementYaw = player.yRot
 
         val diagonalMultiplier = when {
