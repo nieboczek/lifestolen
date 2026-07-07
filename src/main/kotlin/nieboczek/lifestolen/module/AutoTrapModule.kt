@@ -13,7 +13,7 @@ import nieboczek.lifestolen.module.util.PlacementUtil
 import nieboczek.lifestolen.util.Renderer3d
 
 object AutoTrapModule : Module("AutoTrap", Category.COMBAT) {
-    val range by double("Range", 4.0, 1.0..6.0, "blocks", 0.01)
+    private val range by double("Range", 4.0, 1.0..6.0, "blocks", 0.01)
 
     override fun tick() {
         // TODO: destroy small annoyances like flowers or any instant break block

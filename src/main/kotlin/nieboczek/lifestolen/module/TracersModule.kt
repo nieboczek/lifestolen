@@ -8,10 +8,10 @@ import nieboczek.lifestolen.util.Renderer3d
 import org.joml.Vector3f
 
 object TracersModule : Module("Tracers", Category.VISUALS) {
-    val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)
-    val showOnlyPlayers by boolean("Show Only Players")
-    val color by color("Color", 0xFF00A0FF.toInt())
-    val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
+    private val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)
+    private val showOnlyPlayers by boolean("Show Only Players")
+    private val color by color("Color", 0xFF00A0FF.toInt())
+    private val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
 
     override fun render3d() {
         val maxDistSq = range * range

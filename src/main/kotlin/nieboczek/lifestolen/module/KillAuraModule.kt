@@ -13,10 +13,10 @@ import kotlin.math.atan2
 import kotlin.math.sqrt
 
 object KillAuraModule : Module("KillAura", Category.COMBAT) {
-    val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
-    val attackOnlyPlayers by boolean("Attack Only Players")
-    val lookAtTarget by boolean("Look At Target")
-    val renderRangeOutline by boolean("Render Range Outline")
+    private val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
+    private val attackOnlyPlayers by boolean("Attack Only Players")
+    private val lookAtTarget by boolean("Look At Target")
+    private val renderRangeOutline by boolean("Render Range Outline")
 
     override fun tick() {
         val target = findNearestEntity() ?: return

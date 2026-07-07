@@ -7,7 +7,7 @@ import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.serializer.minecraft.ResourceSerializer
 
 object XRayModule : Module("XRay", Category.VISUALS) {
-    val fullBright by boolean("Full Bright", true)
+    val fullBright by boolean("Full Bright")
 
     private val defaultBlocks = listOf(
         Blocks.COAL_ORE,
@@ -90,7 +90,7 @@ object XRayModule : Module("XRay", Category.VISUALS) {
         Blocks.TNT,
     )
 
-    val blocks by list(
+    private val blocks by list(
         "Blocks",
         defaultBlocks.toMutableList(),
         ResourceSerializer(BuiltInRegistries.BLOCK)

@@ -8,34 +8,25 @@ import net.minecraft.world.entity.vehicle.boat.ChestBoat
 import net.minecraft.world.entity.vehicle.boat.ChestRaft
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecartContainer
 import net.minecraft.world.entity.vehicle.minecart.MinecartHopper
-import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity
-import net.minecraft.world.level.block.entity.BarrelBlockEntity
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.entity.BrewingStandBlockEntity
-import net.minecraft.world.level.block.entity.ChestBlockEntity
-import net.minecraft.world.level.block.entity.CrafterBlockEntity
-import net.minecraft.world.level.block.entity.DispenserBlockEntity
-import net.minecraft.world.level.block.entity.EnderChestBlockEntity
-import net.minecraft.world.level.block.entity.HopperBlockEntity
-import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity
+import net.minecraft.world.level.block.entity.*
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.util.Renderer3d
 
 object ChestESPModule : Module("ChestESP", Category.VISUALS) {
-    val range by int("Range", 128, 8..512, "blocks")
-    val color by color("Color", 0x55FFFFFF)
-    val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
-    val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
+    private val range by int("Range", 128, 8..512, "blocks")
+    private val color by color("Color", 0x55FFFFFF)
+    private val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
+    private val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
 
-    val showChests by boolean("Show Chests")
-    val showBarrels by boolean("Show Barrels")
-    val showEnderChests by boolean("Show Ender Chests")
-    val showFurnaces by boolean("Show Furnaces")
-    val showBrewingStands by boolean("Show Brewing Stands")
-    val showDispensers by boolean("Show Dispensers")
-    val showHoppers by boolean("Show Hoppers")
-    val showShulkerBoxes by boolean("Show Shulker Boxes")
+    private val showChests by boolean("Show Chests")
+    private val showBarrels by boolean("Show Barrels")
+    private val showEnderChests by boolean("Show Ender Chests")
+    private val showFurnaces by boolean("Show Furnaces")
+    private val showBrewingStands by boolean("Show Brewing Stands")
+    private val showDispensers by boolean("Show Dispensers")
+    private val showHoppers by boolean("Show Hoppers")
+    private val showShulkerBoxes by boolean("Show Shulker Boxes")
 
     private val blockPositions = mutableListOf<Pair<BlockPos, StorageType>>()
     private val entityRefs = mutableListOf<EntityRef>()

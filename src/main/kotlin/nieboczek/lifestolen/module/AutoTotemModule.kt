@@ -10,8 +10,8 @@ import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.InventoryMenu
 
 object AutoTotemModule : Module("AutoTotem", Category.COMBAT) {
-    val healthThreshold by int("Health Threshold", 12, 0..40)
-    val switchDelay by int("Switch Delay", 50, 0..500, "ms")
+    private val healthThreshold by int("Health Threshold", 12, 0..40)
+    private val switchDelay by int("Switch Delay", 50, 0..500, "ms")
 
     private var lastSwitchTime = 0L
 

@@ -8,11 +8,11 @@ import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.util.Renderer3d
 
 object ESPModule : Module("ESP", Category.VISUALS) {
-    val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)
-    val showOnlyPlayers by boolean("Show Only Players")
-    val color by color("Color", 0x55FFFFFF)
-    val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
-    val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
+    private val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)
+    private val showOnlyPlayers by boolean("Show Only Players")
+    private val color by color("Color", 0x55FFFFFF)
+    private val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
+    private val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
 
     override fun render3d() {
         val pos = player.position()
