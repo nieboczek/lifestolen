@@ -8,7 +8,9 @@ import net.minecraft.network.chat.Component
 
 class ConfigScreen : Screen(Component.literal("Lifestolen")) {
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        graphics.blurredRoundedRect(100, 100, width - 200, height - 200, 0x11333333, 0x11333333, 0, 32f, 16f)
+        graphics.blurredRoundedRect(4, 4, 100, 200, 0x33777777, radius = 8f, blurRadius = 16f)
+        graphics.blurredRoundedRect(108, 4, 100, 200, 0x33777777, radius = 8f, blurRadius = 16f)
+        graphics.blurredRoundedRect(212, 4, 100, 200, 0x33777777, radius = 8f, blurRadius = 16f)
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {

@@ -76,7 +76,7 @@ public class GameRendererMixin {
     @Inject(method = "processBlurEffect", at = @At("HEAD"), cancellable = true)
     private void onProcessBlurEffect(CallbackInfo ci) {
         Screen screen = Minecraft.getInstance().gui.screen();
-        if (!(screen instanceof ConfigScreen) || !BlurredRectRenderer.INSTANCE.getActive()) return;
+        if (!(screen instanceof ConfigScreen) || !BlurredRectRenderer.isActive()) return;
 
         BlurredRectRenderer.INSTANCE.renderOnConfigScreen(mainRenderTarget, resourcePool);
         ci.cancel();
