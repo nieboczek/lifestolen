@@ -29,8 +29,9 @@ void main() {
     vec4 original = texture(InSampler, texCoord);
     vec4 blurred = texture(BlurSampler, texCoord);
 
-    vec2 pos = texCoord - RectCenter;
-    float sdf = roundedRectSDF(pos, RectHalfSize, CornerRadius);
+    vec2 pos = (texCoord - RectCenter) * OutSize;
+    vec2 halfSize = RectHalfSize * OutSize;
+    float sdf = roundedRectSDF(pos, halfSize, CornerRadius);
     float mask = 1.0 - smoothstep(0.0, Feather, sdf);
 
     fragColor = mix(original, blurred, mask);

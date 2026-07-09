@@ -11,6 +11,7 @@
     "EntityFluidInteractionMixin",
     "GameRendererMixin",
     "GuiMixin",
+    "HudMixin",
     "KeyBindsList$KeyEntryMixin",
     "KeyboardInputMixin",
     "LightmapRenderStateExtractorMixin",

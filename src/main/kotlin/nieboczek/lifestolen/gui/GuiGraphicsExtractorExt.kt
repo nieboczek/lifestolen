@@ -24,8 +24,7 @@ fun GuiGraphicsExtractor.blurredRoundedRect(
     val cy = ((y + height / 2f) * guiScale) / physHeight
     val hx = (width * guiScale / 2f) / physWidth
     val hy = (height * guiScale / 2f) / physHeight
-    val minDim = minOf(physWidth, physHeight)
-    val cr = (radius * guiScale) / minDim
+    val cr = radius * guiScale
 
     BlurredRectRenderer.active = true
     BlurredRectRenderer.blurRadius = blurRadius
@@ -34,7 +33,7 @@ fun GuiGraphicsExtractor.blurredRoundedRect(
     BlurredRectRenderer.halfSizeX = hx
     BlurredRectRenderer.halfSizeY = hy
     BlurredRectRenderer.cornerRadius = cr
-    BlurredRectRenderer.feather = 0.5f / minDim
+    BlurredRectRenderer.feather = 0.5f
 
     guiRenderState.addGuiElement(
         RoundedRectRenderState(
