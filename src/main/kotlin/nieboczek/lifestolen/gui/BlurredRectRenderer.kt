@@ -9,8 +9,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LevelTargetBundle
 import nieboczek.lifestolen.Lifestolen.identifier
 
-private const val MAX_RECTS = 8
-
 data class BlurRectData(
     val centerX: Float,
     val centerY: Float,
@@ -22,6 +20,7 @@ data class BlurRectData(
 )
 
 object BlurredRectRenderer {
+    private const val MAX_RECTS = 8
     private val rects = mutableListOf<BlurRectData>()
 
     @JvmStatic

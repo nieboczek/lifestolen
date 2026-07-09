@@ -18,6 +18,7 @@ import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
+import nieboczek.lifestolen.gui.FontLoader
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
@@ -34,6 +35,8 @@ object Lifestolen : ModInitializer, ClientModInitializer {
 
     var cfg: ClientConfig? = null
     var killSwitch = false
+
+    val font by lazy(FontLoader::loadUiFont)
 
     private var firstTickWithPlayer = false
     private var rainbowColorOffset = 0
@@ -107,6 +110,9 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(XRayModule)
 
         ConfigManager.loadConfig()
+
+        // load lazies
+        font
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()
