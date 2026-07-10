@@ -40,19 +40,26 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         val paddingHorizontal = categoryGap * 2
         val categoryWidth = (width - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
         val moduleWidth = categoryWidth - (moduleHPadding * 2)
+        val lineY = marginTop + namePadding + fontBigHeight + namePadding
+
+        val guiScale = minecraft.window.guiScale.toFloat()
+        val lineHeight = outlineWidth / guiScale * 1.5f
+        val moduleStartY = lineY + kotlin.math.ceil(lineHeight).toInt() + moduleVPadding
 
         rainbowColorOffset += 1
         val hue = (rainbowColorOffset % 360) / 360f
         val rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
-        val guiScale = minecraft.window.guiScale.toFloat()
 
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
+            val lastModuleBottom = moduleStartY + ((moduleVPadding + moduleHeight) * category.modules.size)
+            val neededHeight = lastModuleBottom - marginTop + moduleVPadding
+
             graphics.blurredRoundedRect(
                 categoryX,
                 marginTop,
                 categoryWidth,
-                200,
+                neededHeight,
                 0x77000000,
                 outlineColor,
                 outlineWidth,
@@ -62,10 +69,6 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
             val nameX = categoryX + ((categoryWidth - fontBig.width(category.name)) / 2)
             graphics.text(fontBig, category.name, nameX, marginTop + namePadding, rainbowColor, false)
-
-            val lineY = marginTop + namePadding + fontBigHeight + namePadding
-            // reason for 1.5f: the roundedRect stuff does some weird stuff with outlines blah blah blah yeah
-            val lineHeight = outlineWidth / guiScale * 1.5f
             graphics.rect(
                 categoryX + (outlineWidth / guiScale),
                 lineY.toFloat(),
@@ -74,7 +77,6 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 outlineColor
             )
 
-            val moduleStartY = lineY + kotlin.math.ceil(lineHeight).toInt() + moduleVPadding
             val moduleX = categoryX + moduleHPadding
             category.modules.forEachIndexed { idx, module ->
                 val moduleY = moduleStartY + ((moduleVPadding + moduleHeight) * idx)
