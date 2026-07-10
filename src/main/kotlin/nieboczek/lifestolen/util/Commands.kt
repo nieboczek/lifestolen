@@ -3,7 +3,6 @@ package nieboczek.lifestolen.util
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
-import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.mojang.brigadier.suggestion.Suggestions
@@ -18,7 +17,6 @@ import nieboczek.lifestolen.Lifestolen.modules
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 import java.util.concurrent.CompletableFuture
-
 
 object Commands {
     private val moduleIds = modules.map { it.id }
@@ -45,8 +43,8 @@ object Commands {
         return null
     }
 
-    private fun createFriendsCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        return literal("friends").then(
+    private fun createFriendsCommand() =
+        literal("friends").then(
             literal("add").then(
                 argument("player", StringArgumentType.string())
                     .suggests { context, builder -> EntityArgument.player().listSuggestions(context, builder) }
@@ -75,17 +73,15 @@ object Commands {
                 1
             }
         )
-    }
 
-    private fun createKillSwitchCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        return literal("kys").executes {
+    private fun createKillSwitchCommand() =
+        literal("kys").executes {
             Lifestolen.toggleKillSwitch()
             1
         }
-    }
 
-    private fun createReplyCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        return literal("r").then(
+    private fun createReplyCommand() =
+        literal("r").then(
             argument<String>("message", StringArgumentType.greedyString()).executes {
                 if (lastSender != null) {
                     val message = StringArgumentType.getString(it, "message")
@@ -99,10 +95,9 @@ object Commands {
                 }
                 1
             })
-    }
 
-    private fun createToggleCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        return literal("t").then(
+    private fun createToggleCommand() =
+        literal("t").then(
             argument("module", StringArgumentType.string()).suggests(moduleSuggestionProvider).executes {
                 val module = getModule(it, "module")!!
                 module.toggle()
@@ -113,10 +108,9 @@ object Commands {
                 Lifestolen.displayStatus(Component.literal("Module ${module.id} has been ").append(status))
                 1
             })
-    }
 
-    private fun createBindCommand(): LiteralArgumentBuilder<FabricClientCommandSource> {
-        return literal("bind").then(
+    private fun createBindCommand() =
+        literal("bind").then(
             argument("module", StringArgumentType.string()).suggests(moduleSuggestionProvider).then(
                 argument("key", StringArgumentType.string()).executes {
                     val module = getModule(it, "module")!!
@@ -130,10 +124,9 @@ object Commands {
                     1
                 })
         )
-    }
 
-    private fun parseKeycode(label: String): Int {
-        return when (val lowerCaseLabel = label.lowercase()) {
+    private fun parseKeycode(label: String) =
+        when (val lowerCaseLabel = label.lowercase()) {
             "space" -> GLFW.GLFW_KEY_SPACE
             "shift", "lshift" -> GLFW.GLFW_KEY_LEFT_SHIFT
             "rshift" -> GLFW.GLFW_KEY_RIGHT_SHIFT
@@ -231,7 +224,6 @@ object Commands {
                 }
             }
         }
-    }
 
     private class ListSuggestionProvider(val possibilities: () -> List<String>) :
         SuggestionProvider<FabricClientCommandSource> {

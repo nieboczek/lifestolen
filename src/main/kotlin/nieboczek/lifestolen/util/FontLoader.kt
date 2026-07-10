@@ -42,7 +42,7 @@ object FontLoader {
                     val face = FT_Face.create(pb.get())
 
                     val oversample = 8f
-                    val provider = TrueTypeGlyphProvider(buf, face, 16f, oversample, 0f, 4f, "")
+                    val provider = TrueTypeGlyphProvider(buf, face, 16f, oversample, 0f, 5f, "")
                     val coloredProvider = ColoredGlyphProvider(provider, face, oversample)
                     return Font(UIFontProvider(coloredProvider))
                 }

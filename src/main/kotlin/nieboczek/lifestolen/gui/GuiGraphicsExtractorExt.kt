@@ -62,18 +62,21 @@ fun GuiGraphicsExtractor.roundedRect(
     outlineColor: Int = 0,
     outlineWidth: Int = 0,
     radius: Float = 4f,
-) {
-    guiRenderState.addGuiElement(
-        RoundedRectRenderState(
-            x,
-            y,
-            x + width,
-            y + height,
-            fillColor,
-            outlineColor,
-            outlineWidth,
-            radius,
-            scissorStack.peek()
-        )
+) = guiRenderState.addGuiElement(
+    RoundedRectRenderState(
+        x,
+        y,
+        x + width,
+        y + height,
+        fillColor,
+        outlineColor,
+        outlineWidth,
+        radius,
+        scissorStack.peek()
     )
-}
+)
+
+fun GuiGraphicsExtractor.rect(x: Float, y: Float, width: Float, height: Float, fillColor: Int) = guiRenderState.addGuiElement(
+    RectRenderState(x, y, (x + width), (y + height), fillColor)
+)
+

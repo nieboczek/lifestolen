@@ -8,6 +8,7 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.Module
+import java.awt.Color
 
 class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.literal(Lifestolen.CLIENT_NAME)) {
     companion object {
@@ -19,11 +20,21 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
     }
 
+    private var rainbowColorOffset = 0
+
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
+        val outlineColor = 0x77888888
+
+        val fontHeight = 12
+        val outlineWidth = 2
         val categoryGap = 8
         val marginTop = 8
+        val namePadding = 2
         val paddingHorizontal = categoryGap * 2
         val categoryWidth = (width - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
+
+        val guiScale = minecraft.window.guiScale.toFloat()
+        rainbowColorOffset += 1
 
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
@@ -32,12 +43,28 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 marginTop,
                 categoryWidth,
                 200,
-                0x33777777,
-                radius = 8f,
-                blurRadius = 12f
+                0x77000000,
+                outlineColor,
+                outlineWidth,
+                8f,
+                16f,
             )
 
-            graphics.text(font, category.name, categoryX, marginTop, -1, false)
+            val hue = (rainbowColorOffset % 360) / 360f
+            val color = Color.HSBtoRGB(hue, 0.5f, 1f)
+            val nameX = categoryX + (categoryWidth / 2) - (font.width(category.name) / 2)
+            graphics.text(font, category.name, nameX, marginTop + namePadding, color, false)
+
+            val lineY = marginTop + namePadding + fontHeight + namePadding
+            // reason for 1.5f: the roundedRect stuff does some weird stuff with outlines blah blah blah yeah
+            val lineHeight = outlineWidth / guiScale * 1.5f
+            graphics.rect(
+                categoryX + (outlineWidth / guiScale),
+                lineY.toFloat(),
+                categoryWidth - (outlineWidth / guiScale * 2),
+                lineHeight,
+                outlineColor
+            )
         }
     }
 

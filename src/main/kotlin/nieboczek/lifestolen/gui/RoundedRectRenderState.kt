@@ -30,7 +30,7 @@ class RoundedRectRenderState(
     override fun pipeline() = roundedRectPipeline
     override fun textureSetup() = TextureSetup.noTexture()
     override fun scissorArea() = scissorArea
-    override fun bounds(): ScreenRectangle = ScreenRectangle(x0, y0, x1 - x0, y1 - y0)
+    override fun bounds() = ScreenRectangle(x0, y0, x1 - x0, y1 - y0)
 
     override fun buildVertices(vertexConsumer: VertexConsumer) {
         val rw = x1 - x0

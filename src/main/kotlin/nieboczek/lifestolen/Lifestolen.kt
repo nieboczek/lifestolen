@@ -32,6 +32,7 @@ object Lifestolen : ClientModInitializer {
 
     val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
     val modules = mutableListOf<Module>()
+    val debug = HashMap<String, Int>()
 
     lateinit var cfg: ClientConfig
         private set
