@@ -32,13 +32,14 @@ object Lifestolen : ClientModInitializer {
 
     val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
     val modules = mutableListOf<Module>()
-    val debug = HashMap<String, Int>()
 
     lateinit var cfg: ClientConfig
         private set
     lateinit var fontBig: Font
         private set
     lateinit var font: Font
+        private set
+    lateinit var fontSmall: Font
         private set
 
     var killSwitch = false
@@ -114,6 +115,7 @@ object Lifestolen : ClientModInitializer {
         cfg = ConfigManager.loadConfig()
         fontBig = FontLoader.loadUiFont(16f, 5f, "ui_font_big")
         font = FontLoader.loadUiFont(12f, 1f, "ui_font")
+        fontSmall = FontLoader.loadUiFont(10f, 0f, "ui_font_small")
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()

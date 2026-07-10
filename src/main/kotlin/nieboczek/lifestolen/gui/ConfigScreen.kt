@@ -8,6 +8,7 @@ import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.module.Module
 import java.awt.Color
 
@@ -22,6 +23,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     private val fontBig = Lifestolen.fontBig
+    private val fontSmall = Lifestolen.fontSmall
+
     private var rainbowColorOffset = 0
     private var currentlyConfiguring: Module? = null
 
@@ -44,6 +47,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
         val fontBigHeight = 12
         val fontHeight = 8
+        val fontSmallHeight = 7
         val outlineWidth = 2
         val categoryGap = 8
         val marginTop = 8
@@ -60,7 +64,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
         val guiScale = minecraft.window.guiScale.toFloat()
         val lineHeight = outlineWidth / guiScale * 1.5f
-        val moduleStartY = lineY + kotlin.math.ceil(lineHeight).toInt() + moduleVPadding
+        val lineHeightCeil = kotlin.math.ceil(lineHeight).toInt()
+        val moduleStartY = lineY + lineHeightCeil + moduleVPadding
 
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
@@ -84,7 +89,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             graphics.rect(
                 categoryX + (outlineWidth / guiScale),
                 lineY.toFloat(),
-                categoryWidth - (outlineWidth / guiScale * 2),
+                categoryWidth - (outlineWidth / guiScale * 2f),
                 lineHeight,
                 outlineColor
             )
@@ -102,19 +107,62 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             }
         }
 
+        // ### MODULE SETTINGS ################################################
         val module = currentlyConfiguring ?: return
+
+        val windowX = width / 4
+        val windowY = height / 4
+        val windowWidth = width / 2
+        val windowHeight = height / 2
+
         graphics.fill(0, 0, width, height, 0x33000000)
         graphics.blurredRoundedRect(
-            width / 4,
-            height / 4,
-            width / 2,
-            height / 2,
+            windowX,
+            windowY,
+            windowWidth,
+            windowHeight,
             0xDD000000.toInt(),
             outlineColor,
             outlineWidth,
             8f,
             16f
         )
+
+        val settingHPadding = 4
+        val windowNameVPadding = 4
+        val nameX = windowX + settingHPadding
+        val nameY = windowY + windowNameVPadding
+        val windowLineY = nameY + fontBigHeight + windowNameVPadding
+
+        graphics.text(fontBig, module.id, nameX, nameY, rainbowColor, false)
+        graphics.rect(
+            windowX + (outlineWidth / guiScale),
+            windowLineY.toFloat(),
+            windowWidth - (outlineWidth / guiScale * 2f),
+            lineHeight,
+            outlineColor
+        )
+
+        val settingVPadding = 4
+        val settingX = windowX + settingHPadding
+        var settingY = windowLineY + lineHeightCeil
+
+        for (setting in module.settings) {
+            if (setting.id == "Enabled") continue
+            settingY += settingVPadding
+
+            graphics.text(fontSmall, setting.name, settingX, settingY, -1, false)
+            settingY += fontSmallHeight
+
+            when (setting) {
+                is ColorSetting -> {}
+                is KeybindSetting -> {}
+                is ListSetting<*> -> {}
+                is NumberSetting<*> -> {}
+                is RangeSetting<*, *> -> {}
+                is Setting<*> -> {}
+            }
+        }
     }
 
     private fun blendModuleColor(module: ModuleData, darkRainbowColor: Int, rainbowColor: Int): Int {
