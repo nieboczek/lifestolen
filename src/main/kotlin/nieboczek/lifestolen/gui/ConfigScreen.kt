@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
+import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.Module
@@ -15,7 +16,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private val categories = Module.Category.entries.map { category ->
             CategoryData(
                 category.toString(),
-                Lifestolen.modules.filter { it.category == category },
+                Lifestolen.modules.filter { it.category == category }.map { ModuleData(it) },
             )
         }
     }
@@ -24,6 +25,17 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     private var rainbowColorOffset = 0
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
+        rainbowColorOffset += 1
+        val hue = (rainbowColorOffset % 360) / 360f
+        val rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
+        val darkRainbowColor = Color.HSBtoRGB(hue, 0.5f, 0.75f)
+
+        val dt = a * 0.5f
+        categories.flatMap { it.modules }.forEach {
+            if (it.hovered) it.hoverProgress = (it.hoverProgress + dt).coerceAtMost(1f)
+            else it.hoverProgress = (it.hoverProgress - dt).coerceAtLeast(0f)
+        }
+
         val outlineColor = 0x77888888
 
         val fontBigHeight = 12
@@ -45,10 +57,6 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         val guiScale = minecraft.window.guiScale.toFloat()
         val lineHeight = outlineWidth / guiScale * 1.5f
         val moduleStartY = lineY + kotlin.math.ceil(lineHeight).toInt() + moduleVPadding
-
-        rainbowColorOffset += 1
-        val hue = (rainbowColorOffset % 360) / 360f
-        val rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
 
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
@@ -82,9 +90,14 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 val moduleY = moduleStartY + ((moduleVPadding + moduleHeight) * idx)
                 graphics.roundedRect(moduleX, moduleY, moduleWidth, moduleHeight, 0, outlineColor, outlineWidth, 4f)
 
-                val moduleNameX = moduleX + moduleNameHPadding + ((moduleWidth - font.width(module.id)) / 2)
-                val color = if (module.enabled) rainbowColor else 0xBBCCCCCC.toInt()
-                graphics.text(font, module.id, moduleNameX, moduleY + moduleNameVPadding, color, false)
+                module.bounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
+
+                val moduleNameX = moduleX + moduleNameHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
+                val color =
+                    if (module.live.enabled) lerpColor(darkRainbowColor, rainbowColor, module.hoverProgress)
+                    else lerpColor(0xBBCCCCCC.toInt(), 0xBBFFFFFF.toInt(), module.hoverProgress)
+
+                graphics.text(font, module.live.id, moduleNameX, moduleY + moduleNameVPadding, color, false)
             }
         }
     }
@@ -98,9 +111,69 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         return super.keyPressed(event)
     }
 
+    override fun mouseMoved(x: Double, y: Double) {
+        val hoveredModules = categories.flatMap { it.modules }.filter {
+            it.hovered = false
+            it.bounds.inBounds(x, y)
+        }
+        // only one module should be hovered at once
+        val module = hoveredModules.getOrNull(0) ?: return
+        module.hovered = true
+    }
+
+    override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        if (event.button() != 0) return true
+
+        val clickableModules = categories.flatMap { it.modules }.filter { it.bounds.inBounds(event) }
+        // only one module should be hovered at once
+        val module = clickableModules.getOrNull(0) ?: return true
+        module.live.toggle()
+        return true
+    }
+
+    override fun onClose() {
+        categories.flatMap { it.modules }.forEach {
+            it.hoverProgress = 0f
+            it.hovered = false
+        }
+        super.onClose()
+    }
+
+    private fun lerpColor(start: Int, target: Int, progress: Float): Int {
+        val startA = (start shr 24) and 0xFF
+        val startR = (start shr 16) and 0xFF
+        val startG = (start shr 8) and 0xFF
+        val startB = start and 0xFF
+        val targetA = (target shr 24) and 0xFF
+        val targetR = (target shr 16) and 0xFF
+        val targetG = (target shr 8) and 0xFF
+        val targetB = target and 0xFF
+        val a = (startA + ((targetA - startA) * progress).toInt()) shl 24
+        val r = (startR + ((targetR - startR) * progress).toInt()) shl 16
+        val g = (startG + ((targetG - startG) * progress).toInt()) shl 8
+        val b = startB + ((targetB - startB) * progress).toInt()
+        return a or r or g or b
+    }
+
     override fun extractTransparentBackground(graphics: GuiGraphicsExtractor) = graphics.blurBeforeThisStratum()
     override fun isInGameUi() = true
     override fun isPauseScreen() = false
 
-    class CategoryData(var name: String, val modules: List<Module>)
+    class CategoryData(val name: String, val modules: List<ModuleData>)
+    class ModuleData(
+        val live: Module,
+        var bounds: Bounds = Bounds(),
+        var hovered: Boolean = false,
+        var hoverProgress: Float = 0f,
+    )
+
+    class Bounds(val x: Int, val y: Int, width: Int, height: Int) {
+        val x2: Int = x + width
+        val y2: Int = y + height
+
+        constructor() : this(0, 0, 0, 0)
+
+        fun inBounds(event: MouseButtonEvent) = inBounds(event.x, event.y)
+        fun inBounds(cx: Double, cy: Double) = cx >= x && cy >= y && cx <= x2 && cy <= y2
+    }
 }
