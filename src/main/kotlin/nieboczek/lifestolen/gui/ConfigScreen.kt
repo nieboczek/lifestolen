@@ -34,6 +34,9 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         categories.flatMap { it.modules }.forEach {
             if (it.hovered) it.hoverProgress = (it.hoverProgress + dt).coerceAtMost(1f)
             else it.hoverProgress = (it.hoverProgress - dt).coerceAtLeast(0f)
+
+            if (it.live.enabled) it.enabledProgress = (it.enabledProgress + dt).coerceAtMost(1f)
+            else it.enabledProgress = (it.enabledProgress - dt).coerceAtLeast(0f)
         }
 
         val outlineColor = 0x77888888
@@ -93,13 +96,32 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 module.bounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
 
                 val moduleNameX = moduleX + moduleNameHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
-                val color =
-                    if (module.live.enabled) lerpColor(darkRainbowColor, rainbowColor, module.hoverProgress)
-                    else lerpColor(0xBBCCCCCC.toInt(), 0xBBFFFFFF.toInt(), module.hoverProgress)
-
+                val color = blendModuleColor(module, darkRainbowColor, rainbowColor)
                 graphics.text(font, module.live.id, moduleNameX, moduleY + moduleNameVPadding, color, false)
             }
         }
+    }
+
+    private fun blendModuleColor(module: ModuleData, darkRainbowColor: Int, rainbowColor: Int): Int {
+        val baseColor = lerpColor(0xBBCCCCCC.toInt(), darkRainbowColor, module.enabledProgress)
+        val hoverColor = lerpColor(0xBBFFFFFF.toInt(), rainbowColor, module.enabledProgress)
+        return lerpColor(baseColor, hoverColor, module.hoverProgress)
+    }
+
+    private fun lerpColor(start: Int, target: Int, progress: Float): Int {
+        val startA = (start shr 24) and 0xFF
+        val startR = (start shr 16) and 0xFF
+        val startG = (start shr 8) and 0xFF
+        val startB = start and 0xFF
+        val targetA = (target shr 24) and 0xFF
+        val targetR = (target shr 16) and 0xFF
+        val targetG = (target shr 8) and 0xFF
+        val targetB = target and 0xFF
+        val a = (startA + ((targetA - startA) * progress).toInt()) shl 24
+        val r = (startR + ((targetR - startR) * progress).toInt()) shl 16
+        val g = (startG + ((targetG - startG) * progress).toInt()) shl 8
+        val b = startB + ((targetB - startB) * progress).toInt()
+        return a or r or g or b
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
@@ -139,22 +161,6 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         super.onClose()
     }
 
-    private fun lerpColor(start: Int, target: Int, progress: Float): Int {
-        val startA = (start shr 24) and 0xFF
-        val startR = (start shr 16) and 0xFF
-        val startG = (start shr 8) and 0xFF
-        val startB = start and 0xFF
-        val targetA = (target shr 24) and 0xFF
-        val targetR = (target shr 16) and 0xFF
-        val targetG = (target shr 8) and 0xFF
-        val targetB = target and 0xFF
-        val a = (startA + ((targetA - startA) * progress).toInt()) shl 24
-        val r = (startR + ((targetR - startR) * progress).toInt()) shl 16
-        val g = (startG + ((targetG - startG) * progress).toInt()) shl 8
-        val b = startB + ((targetB - startB) * progress).toInt()
-        return a or r or g or b
-    }
-
     override fun extractTransparentBackground(graphics: GuiGraphicsExtractor) = graphics.blurBeforeThisStratum()
     override fun isInGameUi() = true
     override fun isPauseScreen() = false
@@ -165,6 +171,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         var bounds: Bounds = Bounds(),
         var hovered: Boolean = false,
         var hoverProgress: Float = 0f,
+        var enabledProgress: Float = if (live.enabled) 1f else 0f,
     )
 
     class Bounds(val x: Int, val y: Int, width: Int, height: Int) {
