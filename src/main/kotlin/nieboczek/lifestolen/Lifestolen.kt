@@ -2,13 +2,13 @@ package nieboczek.lifestolen
 
 import com.mojang.authlib.GameProfile
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.network.chat.ChatType
@@ -18,31 +18,33 @@ import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
-import nieboczek.lifestolen.gui.FontLoader
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
+import nieboczek.lifestolen.util.FontLoader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color
 
-object Lifestolen : ModInitializer, ClientModInitializer {
-    const val MOD_ID: String = "lifestolen"
-    const val CLIENT_NAME: String = "Lifestolen"
+object Lifestolen : ClientModInitializer {
+    const val MOD_ID = "lifestolen"
+    const val CLIENT_NAME = "Lifestolen"
 
     val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
-    val modules = ArrayList<Module>()
+    val modules = mutableListOf<Module>()
 
-    var cfg: ClientConfig? = null
+    lateinit var cfg: ClientConfig
+        private set
+    lateinit var font: Font
+        private set
+
     var killSwitch = false
-
-    val font by lazy(FontLoader::loadUiFont)
 
     private var firstTickWithPlayer = false
     private var rainbowColorOffset = 0
 
-    fun identifier(path: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, path)
-    fun isFriend(player: Entity): Boolean = cfg!!.friends.contains(player.name.string)
+    fun identifier(path: String) = Identifier.fromNamespaceAndPath(MOD_ID, path)
+    fun isFriend(player: Entity) = cfg.friends.contains(player.name.string)
 
     // TODO: remove this function and switch to GUI widgets completely
     fun displayStatus(msg: Component) {
@@ -52,12 +54,10 @@ object Lifestolen : ModInitializer, ClientModInitializer {
     fun render2d(context: GuiGraphicsExtractor) {
         if (killSwitch) return
 
-        if (cfg!!.renderClientBrandText) {
+        if (cfg.renderClientBrandText && Minecraft.getInstance().gui.screen() !is ConfigScreen) {
             rainbowColorOffset += 2
-            val hue = (rainbowColorOffset.mod(360)) / 360f
+            val hue = (rainbowColorOffset % 360) / 360f
             val color = Color.HSBtoRGB(hue, 1f, 1f)
-
-            val font = Minecraft.getInstance().font
             context.text(font, "$CLIENT_NAME v${BuildInfo.MOD_VERSION}", 4, 4, color, true)
         }
 
@@ -87,8 +87,6 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> Commands.register(dispatcher) }
     }
 
-    override fun onInitialize() {}
-
     private fun clientStarted() {
         modules.add(KillAuraModule)
         modules.add(AutoTotemModule)
@@ -109,10 +107,9 @@ object Lifestolen : ModInitializer, ClientModInitializer {
         modules.add(FullBrightModule)
         modules.add(XRayModule)
 
-        ConfigManager.loadConfig()
-
-        // load lazies
-        font
+        log.info("Loaded ${modules.size} modules")
+        cfg = ConfigManager.loadConfig()
+        font = FontLoader.loadUiFont()
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()

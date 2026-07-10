@@ -15,7 +15,7 @@ import java.nio.file.Files
 
 object ConfigManager {
     private val configFile: File
-    private val serializers: MutableMap<String, ModuleSerializer> = HashMap()
+    private val serializers = HashMap<String, ModuleSerializer>()
 
     init {
         @Suppress("KotlinConstantConditions")
@@ -35,11 +35,37 @@ object ConfigManager {
 
         @Suppress("unchecked_cast")
         Lifestolen.modules.forEach { serializers[it.id] = ModuleSerializer(it.settings as List<Setting<Any>>) }
+        Lifestolen.log.info("Loaded {} serializers", serializers.size)
+        Lifestolen.log.debug("Serializers: {}", serializers.keys)
+    }
+
+    fun loadConfig(): ClientConfig {
+        val source: String
+        try {
+            source = Files.readString(configFile.toPath())
+        } catch (e: IOException) {
+            throw RuntimeException(e)
+        }
+
+        if (source.isBlank()) {
+            val cfg = ClientConfig()
+            saveConfig(cfg)
+            Lifestolen.log.info("[ConfigManager::loadConfig] Saved default config")
+            return cfg
+        } else {
+            val cfg = deserializeConfig(TokenStream(source))
+            Lifestolen.log.info("[ConfigManager::loadConfig] Config loaded")
+            return cfg
+        }
     }
 
     fun saveConfig() {
+        saveConfig(Lifestolen.cfg)
+    }
+
+    private fun saveConfig(cfg: ClientConfig) {
         val builder = SerializedStringBuilder()
-        serializeConfig(builder)
+        serializeConfig(cfg, builder)
 
         try {
             FileWriter(configFile).use { writer ->
@@ -51,31 +77,13 @@ object ConfigManager {
         }
     }
 
-    fun loadConfig() {
-        val source: String
-        try {
-            source = Files.readString(configFile.toPath())
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
-
-        if (source.isBlank()) {
-            Lifestolen.cfg = ClientConfig()
-            saveConfig()
-            Lifestolen.log.info("[ConfigManager::loadConfig] Saved default config")
-        } else {
-            deserializeConfig(TokenStream(source))
-            Lifestolen.log.info("[ConfigManager::loadConfig] Config loaded")
-        }
-    }
-
-    private fun serializeConfig(builder: SerializedStringBuilder) {
+    private fun serializeConfig(cfg: ClientConfig, builder: SerializedStringBuilder) {
         builder.text('{').newLine()
         builder.indent()
 
         // Client config
         builder.indented().text(ClientConfig.ID).text(" = ")
-        ClientConfig.serializer.serialize(Lifestolen.cfg!!, builder)
+        ClientConfig.serializer.serialize(cfg, builder)
         builder.text(';').newLine()
 
         // Modules
@@ -89,7 +97,8 @@ object ConfigManager {
         builder.text("};").newLine()
     }
 
-    private fun deserializeConfig(stream: TokenStream) {
+    private fun deserializeConfig(stream: TokenStream): ClientConfig {
+        var clientConfig: ClientConfig? = null
         stream.expect(TokenType.L_BRACE)
 
         while (stream.continueIfNot(TokenType.R_BRACE)) {
@@ -97,8 +106,7 @@ object ConfigManager {
             stream.expect(TokenType.EQUAL)
             when (id) {
                 ClientConfig.ID -> {
-                    val cfg = ClientConfig.serializer.deserialize(stream)
-                    Lifestolen.cfg = cfg
+                    clientConfig = ClientConfig.serializer.deserialize(stream)
                 }
 
                 else -> {
@@ -110,6 +118,7 @@ object ConfigManager {
         }
 
         stream.expect(TokenType.SEMICOLON)
+        return clientConfig ?: ClientConfig()
     }
 
     private class ModuleSerializer(val settings: List<Setting<Any>>) {

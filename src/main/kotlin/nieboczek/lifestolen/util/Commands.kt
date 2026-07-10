@@ -52,17 +52,17 @@ object Commands {
                     .suggests { context, builder -> EntityArgument.player().listSuggestions(context, builder) }
                     .executes {
                         val name = it.getArgument("player", String::class.java)
-                        Lifestolen.cfg!!.friends.add(name)
+                        Lifestolen.cfg.friends.add(name)
                         Lifestolen.displayStatus(Component.literal("Added $name to friends"))
                         1
                     })
         ).then(
             literal("remove").then(
                 argument("player", StringArgumentType.string())
-                    .suggests(ListSuggestionProvider { Lifestolen.cfg!!.friends })
+                    .suggests(ListSuggestionProvider { Lifestolen.cfg.friends })
                     .executes {
                         val name = it.getArgument("player", String::class.java)
-                        if (Lifestolen.cfg!!.friends.remove(name))
+                        if (Lifestolen.cfg.friends.remove(name))
                             Lifestolen.displayStatus(Component.literal("Removed $name from friends"))
                         else
                             Lifestolen.displayStatus(Component.literal("$name isn't a friend"))
@@ -71,7 +71,7 @@ object Commands {
             )
         ).then(
             literal("list").executes {
-                Lifestolen.displayStatus(Component.literal(Lifestolen.cfg!!.friends.toString()))
+                Lifestolen.displayStatus(Component.literal(Lifestolen.cfg.friends.toString()))
                 1
             }
         )

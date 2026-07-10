@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.gui
+package nieboczek.lifestolen.util
 
 import com.mojang.blaze3d.font.GlyphBitmap
 import com.mojang.blaze3d.font.GlyphProvider
@@ -40,8 +40,9 @@ object FontLoader {
                     )
                     val face = FT_Face.create(pb.get())
 
-                    val provider = TrueTypeGlyphProvider(buf, face, 16f, 8f, 0f, 4f, "")
-                    val coloredProvider = ColoredGlyphProvider(provider, face, 8f)
+                    val oversample = 8f
+                    val provider = TrueTypeGlyphProvider(buf, face, 16f, oversample, 0f, 4f, "")
+                    val coloredProvider = ColoredGlyphProvider(provider, face, oversample)
                     return Font(UIFontProvider(coloredProvider))
                 }
             }

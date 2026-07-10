@@ -2,21 +2,19 @@
   "schemaVersion": 1,
   "id": "lifestolen",
   "version": "${version}",
-  "name": "lifestolen",
-  "description": "",
-  "authors": [],
-  "contact": {},
+  "name": "Lifestolen",
+  "description": "Minecraft utility mod",
+  "authors": [
+    "nieboczek"
+  ],
+  "contact": {
+    "sources": "https://github.com/nieboczek/lifestolen"
+  },
   "license": "GPL-3.0",
   "icon": "assets/lifestolen/icon.png",
   "accessWidener": "lifestolen.accesswidener",
   "environment": "client",
   "entrypoints": {
-    "main": [
-      {
-        "adapter": "kotlin",
-        "value": "nieboczek.lifestolen.Lifestolen"
-      }
-    ],
     "client": [
       {
         "adapter": "kotlin",
