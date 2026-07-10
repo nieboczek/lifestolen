@@ -14,6 +14,7 @@ import net.minecraft.client.gui.font.FontOption
 import net.minecraft.client.gui.font.FontSet
 import net.minecraft.client.gui.font.GlyphStitcher
 import net.minecraft.client.gui.font.glyphs.BakedGlyph
+import net.minecraft.client.gui.font.glyphs.EmptyGlyph
 import net.minecraft.client.gui.font.providers.FreeTypeUtil
 import net.minecraft.network.chat.FontDescription
 import nieboczek.lifestolen.Lifestolen
@@ -74,6 +75,7 @@ object FontLoader {
     ) : GlyphProvider {
         override fun getGlyph(codepoint: Int): UnbakedGlyph? {
             val original = delegate.getGlyph(codepoint) ?: return null
+            if (original is EmptyGlyph) return original
             return ColoredUnbakedGlyph(original, face, codepoint, oversample)
         }
 
