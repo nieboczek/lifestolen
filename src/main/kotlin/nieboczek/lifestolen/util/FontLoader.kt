@@ -25,7 +25,7 @@ import java.io.IOException
 import java.lang.AutoCloseable
 
 object FontLoader {
-    fun loadUiFont(): Font {
+    fun loadUiFont(size: Float, shiftY: Float, textureId: String): Font {
         val manager = Minecraft.getInstance().resourceManager
         val fontIdentifier = Lifestolen.identifier("fonts/pt-root-ui.medium.ttf")
 
@@ -42,9 +42,9 @@ object FontLoader {
                     val face = FT_Face.create(pb.get())
 
                     val oversample = 8f
-                    val provider = TrueTypeGlyphProvider(buf, face, 16f, oversample, 0f, 5f, "")
+                    val provider = TrueTypeGlyphProvider(buf, face, size, oversample, 0f, shiftY, "")
                     val coloredProvider = ColoredGlyphProvider(provider, face, oversample)
-                    return Font(UIFontProvider(coloredProvider))
+                    return Font(UIFontProvider(coloredProvider, textureId))
                 }
             }
         } catch (e: IOException) {
@@ -52,9 +52,9 @@ object FontLoader {
         }
     }
 
-    private class UIFontProvider(provider: GlyphProvider) : Font.Provider, AutoCloseable {
+    private class UIFontProvider(provider: GlyphProvider, textureId: String) : Font.Provider, AutoCloseable {
         private val set =
-            FontSet(GlyphStitcher(Minecraft.getInstance().textureManager, Lifestolen.identifier("ui_font")))
+            FontSet(GlyphStitcher(Minecraft.getInstance().textureManager, Lifestolen.identifier(textureId)))
 
         init {
             set.reload(

@@ -36,6 +36,8 @@ object Lifestolen : ClientModInitializer {
 
     lateinit var cfg: ClientConfig
         private set
+    lateinit var fontBig: Font
+        private set
     lateinit var font: Font
         private set
 
@@ -110,7 +112,8 @@ object Lifestolen : ClientModInitializer {
 
         log.info("Loaded ${modules.size} modules")
         cfg = ConfigManager.loadConfig()
-        font = FontLoader.loadUiFont()
+        fontBig = FontLoader.loadUiFont(16f, 5f, "ui_font_big")
+        font = FontLoader.loadUiFont(12f, 1f, "ui_font")
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()

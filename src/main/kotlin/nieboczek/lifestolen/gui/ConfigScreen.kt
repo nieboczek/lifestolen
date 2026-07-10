@@ -12,7 +12,7 @@ import java.awt.Color
 
 class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.literal(Lifestolen.CLIENT_NAME)) {
     companion object {
-        val categories = Module.Category.entries.map { category ->
+        private val categories = Module.Category.entries.map { category ->
             CategoryData(
                 category.toString(),
                 Lifestolen.modules.filter { it.category == category },
@@ -20,21 +20,31 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
     }
 
+    private val fontBig = Lifestolen.fontBig
     private var rainbowColorOffset = 0
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         val outlineColor = 0x77888888
 
-        val fontHeight = 12
+        val fontBigHeight = 12
+        val fontHeight = 8
         val outlineWidth = 2
         val categoryGap = 8
         val marginTop = 8
         val namePadding = 2
+        val moduleVPadding = 2
+        val moduleHPadding = 4
+        val moduleNameVPadding = 4
+        val moduleNameHPadding = 4
+        val moduleHeight = fontHeight + (moduleNameVPadding * 2)
         val paddingHorizontal = categoryGap * 2
         val categoryWidth = (width - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
+        val moduleWidth = categoryWidth - (moduleHPadding * 2)
 
-        val guiScale = minecraft.window.guiScale.toFloat()
         rainbowColorOffset += 1
+        val hue = (rainbowColorOffset % 360) / 360f
+        val rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
+        val guiScale = minecraft.window.guiScale.toFloat()
 
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
@@ -50,12 +60,10 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 16f,
             )
 
-            val hue = (rainbowColorOffset % 360) / 360f
-            val color = Color.HSBtoRGB(hue, 0.5f, 1f)
-            val nameX = categoryX + (categoryWidth / 2) - (font.width(category.name) / 2)
-            graphics.text(font, category.name, nameX, marginTop + namePadding, color, false)
+            val nameX = categoryX + ((categoryWidth - fontBig.width(category.name)) / 2)
+            graphics.text(fontBig, category.name, nameX, marginTop + namePadding, rainbowColor, false)
 
-            val lineY = marginTop + namePadding + fontHeight + namePadding
+            val lineY = marginTop + namePadding + fontBigHeight + namePadding
             // reason for 1.5f: the roundedRect stuff does some weird stuff with outlines blah blah blah yeah
             val lineHeight = outlineWidth / guiScale * 1.5f
             graphics.rect(
@@ -65,6 +73,17 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 lineHeight,
                 outlineColor
             )
+
+            val moduleStartY = lineY + kotlin.math.ceil(lineHeight).toInt() + moduleVPadding
+            val moduleX = categoryX + moduleHPadding
+            category.modules.forEachIndexed { idx, module ->
+                val moduleY = moduleStartY + ((moduleVPadding + moduleHeight) * idx)
+                graphics.roundedRect(moduleX, moduleY, moduleWidth, moduleHeight, 0, outlineColor, outlineWidth, 4f)
+
+                val moduleNameX = moduleX + moduleNameHPadding + ((moduleWidth - font.width(module.id)) / 2)
+                val color = if (module.enabled) rainbowColor else 0xBBCCCCCC.toInt()
+                graphics.text(font, module.id, moduleNameX, moduleY + moduleNameVPadding, color, false)
+            }
         }
     }
 
