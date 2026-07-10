@@ -23,6 +23,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
     private val fontBig = Lifestolen.fontBig
     private var rainbowColorOffset = 0
+    private var currentlyConfiguring: Module? = null
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
         rainbowColorOffset += 1
@@ -31,7 +32,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         val darkRainbowColor = Color.HSBtoRGB(hue, 0.5f, 0.75f)
 
         val dt = a * 0.5f
-        categories.flatMap { it.modules }.forEach {
+        getAllModules().forEach {
             if (it.hovered) it.hoverProgress = (it.hoverProgress + dt).coerceAtMost(1f)
             else it.hoverProgress = (it.hoverProgress - dt).coerceAtLeast(0f)
 
@@ -100,6 +101,20 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 graphics.text(font, module.live.id, moduleNameX, moduleY + moduleNameVPadding, color, false)
             }
         }
+
+        val module = currentlyConfiguring ?: return
+        graphics.fill(0, 0, width, height, 0x33000000)
+        graphics.blurredRoundedRect(
+            width / 4,
+            height / 4,
+            width / 2,
+            height / 2,
+            0xDD000000.toInt(),
+            outlineColor,
+            outlineWidth,
+            8f,
+            16f
+        )
     }
 
     private fun blendModuleColor(module: ModuleData, darkRainbowColor: Int, rainbowColor: Int): Int {
@@ -126,15 +141,21 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
     override fun keyPressed(event: KeyEvent): Boolean {
         val guiKey = KeyMappingHelper.getBoundKeyOf(minecraft.options.keySocialInteractions).value
-        if (event.key == guiKey || event.isEscape) {
-            onClose()
+        val shouldClose = event.key == guiKey || event.isEscape
+
+        if (currentlyConfiguring != null) {
+            if (shouldClose) currentlyConfiguring = null
             return true
         }
-        return super.keyPressed(event)
+
+        if (shouldClose) onClose()
+        return true
     }
 
     override fun mouseMoved(x: Double, y: Double) {
-        val hoveredModules = categories.flatMap { it.modules }.filter {
+        if (currentlyConfiguring != null) return
+
+        val hoveredModules = getAllModules().filter {
             it.hovered = false
             it.bounds.inBounds(x, y)
         }
@@ -144,22 +165,30 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
-        if (event.button() != 0) return true
+        if (currentlyConfiguring != null) return true
+        val module = getAllModules().find { it.bounds.inBounds(event) } ?: return true
 
-        val clickableModules = categories.flatMap { it.modules }.filter { it.bounds.inBounds(event) }
-        // only one module should be hovered at once
-        val module = clickableModules.getOrNull(0) ?: return true
-        module.live.toggle()
+        if (event.button() == 0) {
+            module.live.toggle()
+        } else if (event.button() == 1) {
+            currentlyConfiguring = module.live
+            resetState()
+        }
+
         return true
     }
 
     override fun onClose() {
-        categories.flatMap { it.modules }.forEach {
-            it.hoverProgress = 0f
-            it.hovered = false
-        }
+        resetState()
         super.onClose()
     }
+
+    private fun resetState() = getAllModules().forEach {
+        it.hoverProgress = 0f
+        it.hovered = false
+    }
+
+    private fun getAllModules() = categories.flatMap { it.modules }
 
     override fun extractTransparentBackground(graphics: GuiGraphicsExtractor) = graphics.blurBeforeThisStratum()
     override fun isInGameUi() = true
