@@ -17,8 +17,8 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
-import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.friedsvg.FriedSvg
+import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
@@ -41,6 +41,8 @@ object Lifestolen : ClientModInitializer {
     lateinit var font: Font
         private set
     lateinit var fontSmall: Font
+        private set
+    lateinit var fontExtraSmall: Font
         private set
 
     var killSwitch = false
@@ -118,6 +120,7 @@ object Lifestolen : ClientModInitializer {
         fontBig = FontLoader.loadUiFont(16f, 5f, "ui_font_big")
         font = FontLoader.loadUiFont(12f, 1f, "ui_font")
         fontSmall = FontLoader.loadUiFont(8f, -1f, "ui_font_small")
+        fontExtraSmall = FontLoader.loadUiFont(6f, -3f, "ui_font_extra_small")
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()

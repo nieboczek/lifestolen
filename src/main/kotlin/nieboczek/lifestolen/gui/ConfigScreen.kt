@@ -1,5 +1,6 @@
 package nieboczek.lifestolen.gui
 
+import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -26,8 +27,13 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private const val FONT_BIG_HEIGHT = 12
         private const val FONT_HEIGHT = 8
         private const val FONT_SMALL_HEIGHT = 6
+        private const val FONT_EXTRA_SMALL_HEIGHT = 4
         private const val SETTING_GAP = 6
         private const val MODULE_INSIDE_V_PADDING = 4
+
+        private val fontBig = Lifestolen.fontBig
+        private val fontSmall = Lifestolen.fontSmall
+        private val fontExtraSmall = Lifestolen.fontExtraSmall
 
         private val categories = Module.Category.entries.map { category ->
             CategoryState(
@@ -72,10 +78,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private fun lerpOutlineColor(progress: Float): Int = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, progress)
     }
 
-    private val fontBig = Lifestolen.fontBig
-    private val fontSmall = Lifestolen.fontSmall
-
     private var currentlyHovered: Hoverable? = null
+    private var currentlyRecording: KeybindSettingState? = null
     private var rainbowColorOffset = 0f
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
@@ -151,7 +155,10 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                     var settingY = moduleY + MODULE_INSIDE_V_PADDING + FONT_HEIGHT + MODULE_INSIDE_V_PADDING
 
                     graphics.enableScissor(
-                        settingX, settingY - 1, settingX + moduleWidth, settingY + module.computeExpandedHeight()
+                        settingX,
+                        settingY - MODULE_INSIDE_V_PADDING,
+                        settingX + moduleWidth,
+                        settingY + module.computeExpandedHeight()
                     )
 
                     for (setting in module.settings) {
@@ -192,6 +199,12 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
+        currentlyRecording?.let {
+            it.captureKey(if (event.isEscape) 0 else event.key)
+            currentlyRecording = null
+            return true
+        }
+
         if (event.key == GLFW.GLFW_KEY_F1) {
             debugMode = !debugMode
             return true
@@ -219,6 +232,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        if (currentlyRecording != null) return true
+
         val module = getAllModules().find { it.clickableBounds.isInBounds(event) }
 
         if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
@@ -236,6 +251,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             currentlyConfiguring?.takeIf { it.expanded }?.let { module ->
                 module.settings.forEach {
                     if (it is Clickable && it.bounds.isInBounds(event)) {
+                        if (it is KeybindSettingState) currentlyRecording = it
                         it.click()
                         return true
                     }
@@ -342,8 +358,40 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class KeybindSettingState(setting: KeybindSetting, var recording: Boolean = false) : SettingState<Int>(setting) {
-        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    class KeybindSettingState(
+        setting: KeybindSetting,
+        var recording: Boolean = false,
+        override var bounds: Bounds = Bounds(),
+        override var hovered: Boolean = false,
+        override var hoverProgress: Float = 0f,
+    ) : SettingState<Int>(setting), Hoverable, Clickable {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {
+            val width = 40
+            val height = 10
+            val ax = x - width
+            val ay = y - 2
+
+            val outlineColor = lerpOutlineColor(hoverProgress)
+            graphics.roundedRect(ax, ay, width, height, 0, outlineColor, OUTLINE_WIDTH, 3f)
+
+            val text =
+                if (recording) "..." else if (live.value == 0) "None" else InputConstants.Type.KEYSYM.getOrCreate(live.value).displayName.string
+            val textX = ax + ((width - fontExtraSmall.width(text)) / 2)
+            val textY = y + (FONT_SMALL_HEIGHT / 2) - (FONT_EXTRA_SMALL_HEIGHT / 2)
+            val color = lerpColor(0xDDCCCCCC.toInt(), 0xDDFFFFFF.toInt(), hoverProgress)
+            graphics.text(fontExtraSmall, text, textX, textY, color, false)
+
+            bounds = Bounds(ax, ay, width, height)
+        }
+
+        override fun click() {
+            recording = true
+        }
+
+        fun captureKey(key: Int) {
+            live.value = key
+            recording = false
+        }
     }
 
     class BlockListSettingState(setting: BlockListSetting, var hoveredIdx: Int = 0, var hoverProgress: Float = 0f) :
@@ -395,7 +443,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {
             val size = 10
             val ax = x - size
-            val ay = y - ((size - FONT_SMALL_HEIGHT) / 2)
+            val ay = y - 2
             val color = lerpOutlineColor(hoverProgress)
 
             graphics.roundedRect(ax, ay, size, size, 0, color, OUTLINE_WIDTH, 3f)
