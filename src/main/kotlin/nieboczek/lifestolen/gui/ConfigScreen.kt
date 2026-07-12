@@ -134,7 +134,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
             for (module in category.modules) {
                 val height = moduleHeight + module.computeExpandedHeight()
-                graphics.roundedRect(moduleX, moduleY, moduleWidth, height, 0, OUTLINE_COLOR, OUTLINE_WIDTH, 4f)
+                val outlineColor = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, module.hoverProgress)
+                graphics.roundedRect(moduleX, moduleY, moduleWidth, height, 0, outlineColor, OUTLINE_WIDTH, 4f)
                 module.bounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
 
                 val moduleNameX = moduleX + moduleInsideHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
