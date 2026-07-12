@@ -1,4 +1,4 @@
-package nieboczek.friedfabricsvg.api
+package nieboczek.lifestolen.friedsvg
 
 import com.github.weisj.jsvg.SVGDocument
 

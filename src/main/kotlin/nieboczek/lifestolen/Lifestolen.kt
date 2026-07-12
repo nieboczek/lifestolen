@@ -18,6 +18,7 @@ import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
+import nieboczek.lifestolen.friedsvg.FriedSvg
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
@@ -83,6 +84,7 @@ object Lifestolen : ClientModInitializer {
     }
 
     override fun onInitializeClient() {
+        FriedSvg.initialize()
         ClientLifecycleEvents.CLIENT_STARTED.register { this.clientStarted() }
         ClientLifecycleEvents.CLIENT_STOPPING.register { this.clientStopping() }
         ClientTickEvents.END_CLIENT_TICK.register { mc -> this.clientTick(mc) }
