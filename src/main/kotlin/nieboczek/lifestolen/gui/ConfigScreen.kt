@@ -7,9 +7,12 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.Identifier
 import net.minecraft.world.level.block.Block
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
+import nieboczek.lifestolen.friedsvg.FriedSvg
+import nieboczek.lifestolen.friedsvg.blitPixel
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
@@ -18,6 +21,7 @@ import kotlin.math.ceil
 class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.literal(Lifestolen.CLIENT_NAME)) {
     companion object {
         private const val OUTLINE_COLOR = 0x92888888.toInt()
+        private const val HOVERED_OUTLINE_COLOR = 0x92BBBBBB.toInt()
         private const val OUTLINE_WIDTH = 2
         private const val FONT_BIG_HEIGHT = 12
         private const val FONT_HEIGHT = 8
@@ -68,6 +72,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
     private val fontBig = Lifestolen.fontBig
     private val fontSmall = Lifestolen.fontSmall
+
+    private var currentlyHovered: Hoverable? = null
     private var rainbowColorOffset = 0f
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
@@ -141,10 +147,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                     var settingY = moduleY + MODULE_INSIDE_V_PADDING + FONT_HEIGHT + MODULE_INSIDE_V_PADDING
 
                     graphics.enableScissor(
-                        settingX,
-                        settingY - 1,
-                        settingX + moduleWidth,
-                        settingY + module.computeExpandedHeight()
+                        settingX, settingY - 1, settingX + moduleWidth, settingY + module.computeExpandedHeight()
                     )
 
                     for (setting in module.settings) {
@@ -196,16 +199,23 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseMoved(x: Double, y: Double) {
-        val module = getAllModules().filter {
-            it.hovered = false
-            it.bounds.inBounds(x, y)
-        }.getOrNull(0) ?: return
+        currentlyHovered?.hovered = false
 
-        module.hovered = true
+        getAllModules().find { it.bounds.isInBounds(x, y) }?.let {
+            it.hovered = true
+            currentlyHovered = it
+        }
+
+        getAllModules().flatMap { it.settings }.forEach {
+            if (it is Hoverable && it.bounds.isInBounds(x, y)) {
+                it.hovered = true
+                currentlyHovered = it
+            }
+        }
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
-        val module = getAllModules().find { it.bounds.inBounds(event) }
+        val module = getAllModules().find { it.bounds.isInBounds(event) }
 
         if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             module?.let { module ->
@@ -220,15 +230,11 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             }
         } else if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             currentlyConfiguring?.takeIf { it.expanded }?.let { module ->
-                val setting = module.settings.find {
-                    when (it) {
-                        is BooleanSettingData -> it.bounds.inBounds(event)
-                        else -> false
+                module.settings.forEach {
+                    if (it is Clickable && it.bounds.isInBounds(event)) {
+                        it.click()
+                        return true
                     }
-                }
-                setting?.let {
-                    it.click()
-                    return true
                 }
             }
 
@@ -260,7 +266,13 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             mod.expandProgress = if (mod.expanded) (mod.expandProgress + dt).coerceAtMost(1f)
             else (mod.expandProgress - dt).coerceAtLeast(0f)
 
-            mod.settings.forEach { it.tick(dt) }
+            mod.settings.forEach {
+                it.tick(dt)
+                if (it is Hoverable) {
+                    it.hoverProgress = if (it.hovered) (it.hoverProgress + dt).coerceAtMost(1f)
+                    else (it.hoverProgress - dt).coerceAtLeast(0f)
+                }
+            }
         }
     }
 
@@ -274,13 +286,13 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     class ModuleData(
         val live: Module,
         val settings: List<SettingData<*>>,
-        var bounds: Bounds = Bounds(),
-        var hovered: Boolean = false,
-        var hoverProgress: Float = 0f,
+        override var bounds: Bounds = Bounds(),
+        override var hovered: Boolean = false,
+        override var hoverProgress: Float = 0f,
         var expanded: Boolean = false,
         var expandProgress: Float = 0f,
         var enabledProgress: Float = if (live.enabled) 1f else 0f,
-    ) {
+    ) : Hoverable {
         fun computeExpandedHeight(): Int {
             if (expandProgress == 0f) return 0
             val baseHeight = settings.fold(0) { acc, data ->
@@ -295,8 +307,18 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     abstract class SettingData<T>(val live: Setting<T>) {
         abstract fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int)
         open fun calculateHeight() = FONT_SMALL_HEIGHT
-        open fun click() {}
         open fun tick(dt: Float) {}
+    }
+
+    interface Hoverable {
+        var hovered: Boolean
+        var hoverProgress: Float
+        val bounds: Bounds
+    }
+
+    interface Clickable {
+        val bounds: Bounds
+        fun click()
     }
 
     class ColorSettingData(
@@ -349,15 +371,37 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class BooleanSettingData(setting: BooleanSetting, var progress: Float = 0f, var bounds: Bounds = Bounds()) :
-        SettingData<Boolean>(setting) {
+    class BooleanSettingData(
+        setting: BooleanSetting,
+        var enableProgress: Float = 0f,
+        override var bounds: Bounds = Bounds(),
+        override var hovered: Boolean = false,
+        override var hoverProgress: Float = 0f,
+    ) : SettingData<Boolean>(setting), Hoverable, Clickable {
+        companion object {
+            private val checkmarkHandle = FriedSvg.loadSvg(Lifestolen.identifier("svg/checkmark.svg"))
+            private var checkmarkTexture: Identifier? = null
+
+            init {
+                FriedSvg.getTextureAsync(checkmarkHandle, 160, 160).thenAccept { checkmarkTexture = it }
+            }
+        }
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {
             val size = 10
-            // TODO: replace with checkmark symbol later
-            val f = lerpColor(0, -1, progress)
             val ax = x - size
             val ay = y - ((size - FONT_SMALL_HEIGHT) / 2)
-            graphics.roundedRect(ax, ay, size, size, f, OUTLINE_COLOR, OUTLINE_WIDTH, 3f)
+            val color = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, hoverProgress)
+
+            graphics.roundedRect(ax, ay, size, size, 0, color, OUTLINE_WIDTH, 3f)
+
+            if (enableProgress > 0f) {
+                val clipWidth = (size * enableProgress).toInt()
+                graphics.enableScissor(ax - 1, ay, ax + clipWidth, ay + size)
+                graphics.blitPixel(checkmarkTexture!!, ax, ay, size, size)
+                graphics.disableScissor()
+            }
+
             bounds = Bounds(ax, ay, size, size)
         }
 
@@ -366,7 +410,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
 
         override fun tick(dt: Float) {
-            progress = if (live.value) (progress + dt).coerceAtMost(1f) else (progress - dt).coerceAtLeast(0f)
+            enableProgress =
+                if (live.value) (enableProgress + dt).coerceAtMost(1f) else (enableProgress - dt).coerceAtLeast(0f)
         }
     }
 
@@ -376,7 +421,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
         constructor() : this(0, 0, 0, 0)
 
-        fun inBounds(event: MouseButtonEvent) = inBounds(event.x, event.y)
-        fun inBounds(cx: Double, cy: Double) = cx >= x && cy >= y && cx <= x2 && cy <= y2
+        fun isInBounds(event: MouseButtonEvent) = isInBounds(event.x, event.y)
+        fun isInBounds(cx: Double, cy: Double) = cx >= x && cy >= y && cx <= x2 && cy <= y2
     }
 }

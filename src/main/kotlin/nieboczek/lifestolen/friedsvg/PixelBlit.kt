@@ -6,8 +6,10 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.render.TextureSetup
+import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState
 import net.minecraft.resources.Identifier
+import org.joml.Matrix3x2f
 
 class PixelBlitRenderState(
     private val pipeline: RenderPipeline,
@@ -24,17 +26,12 @@ class PixelBlitRenderState(
     private val scissorArea: ScreenRectangle?,
 ) : GuiElementRenderState {
     private val bounds: ScreenRectangle?
-    private val gx0: Float
-    private val gy0: Float
-    private val gx1: Float
-    private val gy1: Float
+    private val gx0 = pixelX.toFloat()
+    private val gy0 = pixelY.toFloat()
+    private val gx1 = (pixelX + pixelWidth).toFloat()
+    private val gy1 = (pixelY + pixelHeight).toFloat()
 
     init {
-        val guiScale = Minecraft.getInstance().window.guiScale
-        gx0 = (pixelX / guiScale).toFloat()
-        gy0 = (pixelY / guiScale).toFloat()
-        gx1 = ((pixelX + pixelWidth) / guiScale).toFloat()
-        gy1 = ((pixelY + pixelHeight) / guiScale).toFloat()
         val b = ScreenRectangle(gx0.toInt(), gy0.toInt(), (gx1 - gx0).toInt(), (gy1 - gy0).toInt())
         bounds = if (scissorArea != null) scissorArea.intersection(b) else b
     }
@@ -45,20 +42,19 @@ class PixelBlitRenderState(
     override fun bounds(): ScreenRectangle? = bounds
 
     override fun buildVertices(consumer: VertexConsumer) {
-        consumer.addVertex(gx0, gy0, 0.0f).setUv(u0, v0).setColor(color)
-        consumer.addVertex(gx0, gy1, 0.0f).setUv(u0, v1).setColor(color)
-        consumer.addVertex(gx1, gy1, 0.0f).setUv(u1, v1).setColor(color)
-        consumer.addVertex(gx1, gy0, 0.0f).setUv(u1, v0).setColor(color)
+        val pose = Matrix3x2f()
+        consumer.addVertexWith2DPose(pose, gx0, gy0).setUv(u0, v0).setColor(color)
+        consumer.addVertexWith2DPose(pose, gx0, gy1).setUv(u0, v1).setColor(color)
+        consumer.addVertexWith2DPose(pose, gx1, gy1).setUv(u1, v1).setColor(color)
+        consumer.addVertexWith2DPose(pose, gx1, gy0).setUv(u1, v0).setColor(color)
     }
 }
 
-fun GuiGraphicsExtractor.blitPixel(
-    pipeline: RenderPipeline, texture: Identifier, x: Int, y: Int, width: Int, height: Int
-) {
+fun GuiGraphicsExtractor.blitPixel(texture: Identifier, x: Int, y: Int, width: Int, height: Int) {
     val texture = Minecraft.getInstance().textureManager.getTexture(texture)
     guiRenderState.addGuiElement(
         PixelBlitRenderState(
-            pipeline,
+            RenderPipelines.GUI_TEXTURED,
             TextureSetup.singleTexture(texture.textureView, texture.sampler),
             x,
             y,
