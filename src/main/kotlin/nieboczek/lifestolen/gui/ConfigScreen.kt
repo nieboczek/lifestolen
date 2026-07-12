@@ -30,27 +30,27 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private const val MODULE_INSIDE_V_PADDING = 4
 
         private val categories = Module.Category.entries.map { category ->
-            CategoryData(
+            CategoryState(
                 category.toString(),
                 Lifestolen.modules.filter { it.category == category }.map { mod ->
-                    ModuleData(mod, mod.settings.map { setting ->
+                    ModuleState(mod, mod.settings.map { setting ->
                         when (setting) {
-                            is ColorSetting -> ColorSettingData(setting)
-                            is KeybindSetting -> KeybindSettingData(setting)
-                            is BlockListSetting -> BlockListSettingData(setting)
-                            is DoubleSetting -> DoubleSettingData(setting)
-                            is FloatSetting -> FloatSettingData(setting)
-                            is IntSetting -> IntSettingData(setting)
-                            is IntRangeSetting -> IntRangeSettingData(setting)
-                            is BooleanSetting -> BooleanSettingData(setting)
+                            is ColorSetting -> ColorSettingState(setting)
+                            is KeybindSetting -> KeybindSettingState(setting)
+                            is BlockListSetting -> BlockListSettingState(setting)
+                            is DoubleSetting -> DoubleSettingState(setting)
+                            is FloatSetting -> FloatSettingState(setting)
+                            is IntSetting -> IntSettingState(setting)
+                            is IntRangeSetting -> IntRangeSettingState(setting)
+                            is BooleanSetting -> BooleanSettingState(setting)
                             else -> error("Unsupported setting type: ${setting.javaClass.name}")
-                        } as SettingData<*>
+                        } as SettingState<*>
                     })
                 },
             )
         }
 
-        private var currentlyConfiguring: ModuleData? = null
+        private var currentlyConfiguring: ModuleState? = null
         private var debugMode = false
 
         private fun lerpColor(start: Int, target: Int, progress: Float): Int {
@@ -104,7 +104,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
             val lastModuleBottom = moduleStartY + ((moduleVPadding + moduleHeight) * category.modules.size)
-            val expandedHeight = category.modules.fold(0) { acc, data -> acc + data.computeExpandedHeight() }
+            val expandedHeight = category.modules.fold(0) { acc, state -> acc + state.computeExpandedHeight() }
             val neededHeight = lastModuleBottom - marginTop + moduleVPadding + expandedHeight
 
             graphics.blurredRoundedRect(
@@ -183,7 +183,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
     }
 
-    private fun blendModuleColor(module: ModuleData, darkRainbowColor: Int, rainbowColor: Int): Int {
+    private fun blendModuleColor(module: ModuleState, darkRainbowColor: Int, rainbowColor: Int): Int {
         val baseColor = lerpColor(0xBBCCCCCC.toInt(), darkRainbowColor, module.enabledProgress)
         val hoverColor = lerpColor(0xBBFFFFFF.toInt(), rainbowColor, module.enabledProgress)
         return lerpColor(baseColor, hoverColor, module.hoverProgress)
@@ -284,10 +284,10 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     override fun isInGameUi() = true
     override fun isPauseScreen() = false
 
-    class CategoryData(val name: String, val modules: List<ModuleData>)
-    class ModuleData(
+    class CategoryState(val name: String, val modules: List<ModuleState>)
+    class ModuleState(
         val live: Module,
-        val settings: List<SettingData<*>>,
+        val settings: List<SettingState<*>>,
         var clickableBounds: Bounds = Bounds(),
         override var bounds: Bounds = Bounds(),
         override var hovered: Boolean = false,
@@ -298,16 +298,16 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     ) : Hoverable {
         fun computeExpandedHeight(): Int {
             if (expandProgress == 0f) return 0
-            val baseHeight = settings.fold(0) { acc, data ->
-                if (data.live.id == "Enabled") return@fold acc
-                acc + data.calculateHeight()
+            val baseHeight = settings.fold(0) { acc, state ->
+                if (state.live.id == "Enabled") return@fold acc
+                acc + state.calculateHeight()
             }
             val paddedHeight = baseHeight + MODULE_INSIDE_V_PADDING + (SETTING_GAP * (settings.size - 2))
             return (paddedHeight * expandProgress).toInt()
         }
     }
 
-    abstract class SettingData<T>(val live: Setting<T>) {
+    abstract class SettingState<T>(val live: Setting<T>) {
         abstract fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int)
         open fun calculateHeight() = FONT_SMALL_HEIGHT
         open fun tick(dt: Float) {}
@@ -324,7 +324,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         fun click()
     }
 
-    class ColorSettingData(
+    class ColorSettingState(
         setting: ColorSetting,
         v: Int = setting.value,
         arr: FloatArray = Color.RGBtoHSB(v and 0xFF, (v shr 2) and 0xFF, (v shr 4) and 0xFF, null),
@@ -336,51 +336,51 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         var oldSaturation: Float = targetSaturation,
         var oldBrightness: Float = targetBrightness,
         var oldAlpha: Int = targetAlpha,
-    ) : SettingData<Int>(setting) {
+    ) : SettingState<Int>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class KeybindSettingData(setting: KeybindSetting, var recording: Boolean = false) : SettingData<Int>(setting) {
+    class KeybindSettingState(setting: KeybindSetting, var recording: Boolean = false) : SettingState<Int>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class BlockListSettingData(setting: BlockListSetting, var hoveredIdx: Int = 0, var hoverProgress: Float = 0f) :
-        SettingData<MutableList<Block>>(setting) {
+    class BlockListSettingState(setting: BlockListSetting, var hoveredIdx: Int = 0, var hoverProgress: Float = 0f) :
+        SettingState<MutableList<Block>>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class DoubleSettingData(setting: DoubleSetting, var target: Number = setting.value, var old: Number = target) :
-        SettingData<Double>(setting) {
+    class DoubleSettingState(setting: DoubleSetting, var target: Number = setting.value, var old: Number = target) :
+        SettingState<Double>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class FloatSettingData(setting: FloatSetting, var target: Number = setting.value, var old: Number = target) :
-        SettingData<Float>(setting) {
+    class FloatSettingState(setting: FloatSetting, var target: Number = setting.value, var old: Number = target) :
+        SettingState<Float>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class IntSettingData(val setting: IntSetting, var target: Number = setting.value, var old: Number = target) :
-        SettingData<Int>(setting) {
+    class IntSettingState(val setting: IntSetting, var target: Number = setting.value, var old: Number = target) :
+        SettingState<Int>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class IntRangeSettingData(
+    class IntRangeSettingState(
         setting: IntRangeSetting,
         var targetMin: Number = setting.value.first,
         var targetMax: Number = setting.value.last,
         var oldMin: Number = targetMin,
         var oldMax: Number = targetMax,
-    ) : SettingData<IntRange>(setting) {
+    ) : SettingState<IntRange>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class BooleanSettingData(
+    class BooleanSettingState(
         setting: BooleanSetting,
         var enableProgress: Float = 0f,
         override var bounds: Bounds = Bounds(),
         override var hovered: Boolean = false,
         override var hoverProgress: Float = 0f,
-    ) : SettingData<Boolean>(setting), Hoverable, Clickable {
+    ) : SettingState<Boolean>(setting), Hoverable, Clickable {
         companion object {
             private val checkmarkHandle = FriedSvg.loadSvg(Lifestolen.identifier("svg/checkmark.svg"))
             private var checkmarkTexture: Identifier? = null
