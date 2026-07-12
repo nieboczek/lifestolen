@@ -136,7 +136,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 val height = moduleHeight + module.computeExpandedHeight()
                 val outlineColor = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, module.hoverProgress)
                 graphics.roundedRect(moduleX, moduleY, moduleWidth, height, 0, outlineColor, OUTLINE_WIDTH, 4f)
-                module.bounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
+                module.clickableBounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
+                module.bounds = Bounds(moduleX, moduleY, moduleWidth, height)
 
                 val moduleNameX = moduleX + moduleInsideHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
                 val color = blendModuleColor(module, darkRainbowColor, rainbowColor)
@@ -216,7 +217,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
-        val module = getAllModules().find { it.bounds.isInBounds(event) }
+        val module = getAllModules().find { it.clickableBounds.isInBounds(event) }
 
         if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
             module?.let { module ->
@@ -287,6 +288,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     class ModuleData(
         val live: Module,
         val settings: List<SettingData<*>>,
+        var clickableBounds: Bounds = Bounds(),
         override var bounds: Bounds = Bounds(),
         override var hovered: Boolean = false,
         override var hoverProgress: Float = 0f,
