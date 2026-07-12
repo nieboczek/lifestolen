@@ -111,11 +111,11 @@ object Lifestolen : ClientModInitializer {
         modules.add(FullBrightModule)
         modules.add(XRayModule)
 
-        log.info("Loaded ${modules.size} modules")
+        log.info("Loaded {} modules", modules.size)
         cfg = ConfigManager.loadConfig()
         fontBig = FontLoader.loadUiFont(16f, 5f, "ui_font_big")
         font = FontLoader.loadUiFont(12f, 1f, "ui_font")
-        fontSmall = FontLoader.loadUiFont(10f, 0f, "ui_font_small")
+        fontSmall = FontLoader.loadUiFont(8f, -1f, "ui_font_small")
     }
 
     private fun clientStopping() = ConfigManager.saveConfig()

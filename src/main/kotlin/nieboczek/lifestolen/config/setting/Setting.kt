@@ -4,7 +4,7 @@ import nieboczek.lifestolen.serializer.base.Serializer
 import nieboczek.lifestolen.util.StringUtils
 import kotlin.reflect.KProperty
 
-open class Setting<T>(val name: String, val default: T, val serializer: Serializer<T>) {
+abstract class Setting<T>(val name: String, val default: T, val serializer: Serializer<T>) {
     val id = StringUtils.titleCaseToPascalCase(name)
     var value = default
 

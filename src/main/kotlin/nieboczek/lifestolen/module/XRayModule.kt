@@ -4,6 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.config.setting.BlockListSetting
 import nieboczek.lifestolen.serializer.minecraft.ResourceSerializer
 
 object XRayModule : Module("XRay", Category.VISUALS) {
@@ -90,11 +91,7 @@ object XRayModule : Module("XRay", Category.VISUALS) {
         Blocks.TNT,
     )
 
-    private val blocks by list(
-        "Blocks",
-        defaultBlocks.toMutableList(),
-        ResourceSerializer(BuiltInRegistries.BLOCK)
-    )
+    private val blocks by addSetting(BlockListSetting("Blocks", defaultBlocks.toMutableList()))
 
     fun isEnabled(): Boolean = enabled && !Lifestolen.killSwitch
     fun shouldRender(state: BlockState): Boolean = state.block in blocks

@@ -7,79 +7,108 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.world.level.block.Block
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.module.Module
+import org.lwjgl.glfw.GLFW
 import java.awt.Color
+import kotlin.math.ceil
 
 class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.literal(Lifestolen.CLIENT_NAME)) {
     companion object {
+        private const val OUTLINE_COLOR = 0x92888888.toInt()
+        private const val OUTLINE_WIDTH = 2
+        private const val FONT_BIG_HEIGHT = 12
+        private const val FONT_HEIGHT = 8
+        private const val FONT_SMALL_HEIGHT = 6
+        private const val SETTING_GAP = 6
+        private const val MODULE_INSIDE_V_PADDING = 4
+
         private val categories = Module.Category.entries.map { category ->
             CategoryData(
                 category.toString(),
-                Lifestolen.modules.filter { it.category == category }.map { ModuleData(it) },
+                Lifestolen.modules.filter { it.category == category }.map { mod ->
+                    ModuleData(mod, mod.settings.map { setting ->
+                        when (setting) {
+                            is ColorSetting -> ColorSettingData(setting)
+                            is KeybindSetting -> KeybindSettingData(setting)
+                            is BlockListSetting -> BlockListSettingData(setting)
+                            is DoubleSetting -> DoubleSettingData(setting)
+                            is FloatSetting -> FloatSettingData(setting)
+                            is IntSetting -> IntSettingData(setting)
+                            is IntRangeSetting -> IntRangeSettingData(setting)
+                            is BooleanSetting -> BooleanSettingData(setting)
+                            else -> error("Unsupported setting type: ${setting.javaClass.name}")
+                        } as SettingData<*>
+                    })
+                },
             )
+        }
+
+        private var currentlyConfiguring: ModuleData? = null
+        private var debugMode = false
+
+        private fun lerpColor(start: Int, target: Int, progress: Float): Int {
+            val startA = (start shr 24) and 0xFF
+            val startR = (start shr 16) and 0xFF
+            val startG = (start shr 8) and 0xFF
+            val startB = start and 0xFF
+            val targetA = (target shr 24) and 0xFF
+            val targetR = (target shr 16) and 0xFF
+            val targetG = (target shr 8) and 0xFF
+            val targetB = target and 0xFF
+            val a = (startA + ((targetA - startA) * progress).toInt()) shl 24
+            val r = (startR + ((targetR - startR) * progress).toInt()) shl 16
+            val g = (startG + ((targetG - startG) * progress).toInt()) shl 8
+            val b = startB + ((targetB - startB) * progress).toInt()
+            return a or r or g or b
         }
     }
 
     private val fontBig = Lifestolen.fontBig
     private val fontSmall = Lifestolen.fontSmall
-
-    private var rainbowColorOffset = 0
-    private var currentlyConfiguring: Module? = null
+    private var rainbowColorOffset = 0f
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        rainbowColorOffset += 1
-        val hue = (rainbowColorOffset % 360) / 360f
+        rainbowColorOffset += a
+        val hue = (rainbowColorOffset % 60f) / 60f
         val rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
         val darkRainbowColor = Color.HSBtoRGB(hue, 0.5f, 0.75f)
 
-        val dt = a * 0.5f
-        getAllModules().forEach {
-            if (it.hovered) it.hoverProgress = (it.hoverProgress + dt).coerceAtMost(1f)
-            else it.hoverProgress = (it.hoverProgress - dt).coerceAtLeast(0f)
+        tickModules(a)
 
-            if (it.live.enabled) it.enabledProgress = (it.enabledProgress + dt).coerceAtMost(1f)
-            else it.enabledProgress = (it.enabledProgress - dt).coerceAtLeast(0f)
-        }
-
-        val outlineColor = 0x77888888
-
-        val fontBigHeight = 12
-        val fontHeight = 8
-        val fontSmallHeight = 7
-        val outlineWidth = 2
         val categoryGap = 8
         val marginTop = 8
         val namePadding = 2
         val moduleVPadding = 2
         val moduleHPadding = 4
-        val moduleNameVPadding = 4
-        val moduleNameHPadding = 4
-        val moduleHeight = fontHeight + (moduleNameVPadding * 2)
+        val moduleInsideHPadding = 4
+        val moduleHeight = FONT_HEIGHT + (MODULE_INSIDE_V_PADDING * 2)
         val paddingHorizontal = categoryGap * 2
         val categoryWidth = (width - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
         val moduleWidth = categoryWidth - (moduleHPadding * 2)
-        val lineY = marginTop + namePadding + fontBigHeight + namePadding
+        val lineY = marginTop + namePadding + FONT_BIG_HEIGHT + namePadding
 
         val guiScale = minecraft.window.guiScale.toFloat()
-        val lineHeight = outlineWidth / guiScale * 1.5f
-        val lineHeightCeil = kotlin.math.ceil(lineHeight).toInt()
+        val lineHeight = OUTLINE_WIDTH / guiScale * 1.5f
+        val lineHeightCeil = ceil(lineHeight).toInt()
         val moduleStartY = lineY + lineHeightCeil + moduleVPadding
 
         categories.forEachIndexed { idx, category ->
             val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
             val lastModuleBottom = moduleStartY + ((moduleVPadding + moduleHeight) * category.modules.size)
-            val neededHeight = lastModuleBottom - marginTop + moduleVPadding
+            val expandedHeight = category.modules.fold(0) { acc, data -> acc + data.computeExpandedHeight() }
+            val neededHeight = lastModuleBottom - marginTop + moduleVPadding + expandedHeight
 
             graphics.blurredRoundedRect(
                 categoryX,
                 marginTop,
                 categoryWidth,
                 neededHeight,
-                0x77000000,
-                outlineColor,
-                outlineWidth,
+                0x92000000.toInt(),
+                OUTLINE_COLOR,
+                OUTLINE_WIDTH,
                 8f,
                 16f,
             )
@@ -87,81 +116,65 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val nameX = categoryX + ((categoryWidth - fontBig.width(category.name)) / 2)
             graphics.text(fontBig, category.name, nameX, marginTop + namePadding, rainbowColor, false)
             graphics.rect(
-                categoryX + (outlineWidth / guiScale),
+                categoryX + (OUTLINE_WIDTH / guiScale),
                 lineY.toFloat(),
-                categoryWidth - (outlineWidth / guiScale * 2f),
+                categoryWidth - (OUTLINE_WIDTH / guiScale * 2f),
                 lineHeight,
-                outlineColor
+                OUTLINE_COLOR
             )
 
             val moduleX = categoryX + moduleHPadding
-            category.modules.forEachIndexed { idx, module ->
-                val moduleY = moduleStartY + ((moduleVPadding + moduleHeight) * idx)
-                graphics.roundedRect(moduleX, moduleY, moduleWidth, moduleHeight, 0, outlineColor, outlineWidth, 4f)
+            var moduleY = moduleStartY
 
+            for (module in category.modules) {
+                val height = moduleHeight + module.computeExpandedHeight()
+                graphics.roundedRect(moduleX, moduleY, moduleWidth, height, 0, OUTLINE_COLOR, OUTLINE_WIDTH, 4f)
                 module.bounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
 
-                val moduleNameX = moduleX + moduleNameHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
+                val moduleNameX = moduleX + moduleInsideHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
                 val color = blendModuleColor(module, darkRainbowColor, rainbowColor)
-                graphics.text(font, module.live.id, moduleNameX, moduleY + moduleNameVPadding, color, false)
+                graphics.text(font, module.live.id, moduleNameX, moduleY + MODULE_INSIDE_V_PADDING, color, false)
+
+                if (module.expandProgress > 0f) {
+                    val settingX = moduleX + moduleInsideHPadding
+                    val rightAlignedX = moduleX + moduleWidth - moduleInsideHPadding
+                    var settingY = moduleY + MODULE_INSIDE_V_PADDING + FONT_HEIGHT + MODULE_INSIDE_V_PADDING
+
+                    graphics.enableScissor(
+                        settingX,
+                        settingY - 1,
+                        settingX + moduleWidth,
+                        settingY + module.computeExpandedHeight()
+                    )
+
+                    for (setting in module.settings) {
+                        if (setting.live.id == "Enabled") continue
+
+                        graphics.text(fontSmall, setting.live.name, settingX, settingY, -1, false)
+                        setting.extractRenderState(graphics, rightAlignedX, settingY)
+
+                        if (debugMode) {
+                            val x = categoryX.toFloat()
+                            val w = categoryWidth.toFloat()
+                            val h = 1f / guiScale
+                            graphics.rect(x, settingY.toFloat(), w, h, 0xFFFF0000.toInt())
+                            graphics.rect(x, (settingY + (FONT_SMALL_HEIGHT / 2)).toFloat(), w, h, 0xFF00FF00.toInt())
+                            graphics.rect(x, (settingY + FONT_SMALL_HEIGHT).toFloat(), w, h, 0xFFFF0000.toInt())
+                        }
+
+                        settingY += SETTING_GAP + setting.calculateHeight()
+                    }
+
+                    graphics.disableScissor()
+                }
+
+                moduleY += moduleVPadding + moduleHeight + module.computeExpandedHeight()
             }
         }
 
-        // ### MODULE SETTINGS ################################################
-        val module = currentlyConfiguring ?: return
-
-        val windowX = width / 4
-        val windowY = height / 4
-        val windowWidth = width / 2
-        val windowHeight = height / 2
-
-        graphics.fill(0, 0, width, height, 0x33000000)
-        graphics.blurredRoundedRect(
-            windowX,
-            windowY,
-            windowWidth,
-            windowHeight,
-            0xDD000000.toInt(),
-            outlineColor,
-            outlineWidth,
-            8f,
-            16f
-        )
-
-        val settingHPadding = 4
-        val windowNameVPadding = 4
-        val nameX = windowX + settingHPadding
-        val nameY = windowY + windowNameVPadding
-        val windowLineY = nameY + fontBigHeight + windowNameVPadding
-
-        graphics.text(fontBig, module.id, nameX, nameY, rainbowColor, false)
-        graphics.rect(
-            windowX + (outlineWidth / guiScale),
-            windowLineY.toFloat(),
-            windowWidth - (outlineWidth / guiScale * 2f),
-            lineHeight,
-            outlineColor
-        )
-
-        val settingVPadding = 4
-        val settingX = windowX + settingHPadding
-        var settingY = windowLineY + lineHeightCeil
-
-        for (setting in module.settings) {
-            if (setting.id == "Enabled") continue
-            settingY += settingVPadding
-
-            graphics.text(fontSmall, setting.name, settingX, settingY, -1, false)
-            settingY += fontSmallHeight
-
-            when (setting) {
-                is ColorSetting -> {}
-                is KeybindSetting -> {}
-                is ListSetting<*> -> {}
-                is NumberSetting<*> -> {}
-                is RangeSetting<*, *> -> {}
-                is Setting<*> -> {}
-            }
+        if (debugMode) {
+            val text = "Debug mode is active. Press F1 to deactivate."
+            graphics.centeredText(font, text, width / 2, height - FONT_HEIGHT - 8, rainbowColor)
         }
     }
 
@@ -171,69 +184,84 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         return lerpColor(baseColor, hoverColor, module.hoverProgress)
     }
 
-    private fun lerpColor(start: Int, target: Int, progress: Float): Int {
-        val startA = (start shr 24) and 0xFF
-        val startR = (start shr 16) and 0xFF
-        val startG = (start shr 8) and 0xFF
-        val startB = start and 0xFF
-        val targetA = (target shr 24) and 0xFF
-        val targetR = (target shr 16) and 0xFF
-        val targetG = (target shr 8) and 0xFF
-        val targetB = target and 0xFF
-        val a = (startA + ((targetA - startA) * progress).toInt()) shl 24
-        val r = (startR + ((targetR - startR) * progress).toInt()) shl 16
-        val g = (startG + ((targetG - startG) * progress).toInt()) shl 8
-        val b = startB + ((targetB - startB) * progress).toInt()
-        return a or r or g or b
-    }
-
     override fun keyPressed(event: KeyEvent): Boolean {
-        val guiKey = KeyMappingHelper.getBoundKeyOf(minecraft.options.keySocialInteractions).value
-        val shouldClose = event.key == guiKey || event.isEscape
-
-        if (currentlyConfiguring != null) {
-            if (shouldClose) currentlyConfiguring = null
+        if (event.key == GLFW.GLFW_KEY_F1) {
+            debugMode = !debugMode
             return true
         }
 
-        if (shouldClose) onClose()
+        val guiKey = KeyMappingHelper.getBoundKeyOf(minecraft.options.keySocialInteractions).value
+        if (event.key == guiKey || event.isEscape) onClose()
         return true
     }
 
     override fun mouseMoved(x: Double, y: Double) {
-        if (currentlyConfiguring != null) return
-
-        val hoveredModules = getAllModules().filter {
+        val module = getAllModules().filter {
             it.hovered = false
             it.bounds.inBounds(x, y)
-        }
-        // only one module should be hovered at once
-        val module = hoveredModules.getOrNull(0) ?: return
+        }.getOrNull(0) ?: return
+
         module.hovered = true
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
-        if (currentlyConfiguring != null) return true
-        val module = getAllModules().find { it.bounds.inBounds(event) } ?: return true
+        val module = getAllModules().find { it.bounds.inBounds(event) }
 
-        if (event.button() == 0) {
-            module.live.toggle()
-        } else if (event.button() == 1) {
-            currentlyConfiguring = module.live
-            resetState()
+        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            module?.let { module ->
+                if (currentlyConfiguring == module) {
+                    module.expanded = !module.expanded
+                } else {
+                    currentlyConfiguring?.let { it.expanded = false }
+                    module.expanded = true
+                    currentlyConfiguring = module
+                }
+                return true
+            }
+        } else if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            currentlyConfiguring?.takeIf { it.expanded }?.let { module ->
+                val setting = module.settings.find {
+                    when (it) {
+                        is BooleanSettingData -> it.bounds.inBounds(event)
+                        else -> false
+                    }
+                }
+                setting?.let {
+                    it.click()
+                    return true
+                }
+            }
+
+            module?.let {
+                it.live.toggle()
+                return true
+            }
         }
-
         return true
     }
 
     override fun onClose() {
-        resetState()
+        getAllModules().forEach {
+            it.hoverProgress = 0f
+            it.hovered = false
+        }
         super.onClose()
     }
 
-    private fun resetState() = getAllModules().forEach {
-        it.hoverProgress = 0f
-        it.hovered = false
+    private fun tickModules(a: Float) {
+        val dt = a * 0.5f
+        getAllModules().forEach { mod ->
+            mod.hoverProgress = if (mod.hovered) (mod.hoverProgress + dt).coerceAtMost(1f)
+            else (mod.hoverProgress - dt).coerceAtLeast(0f)
+
+            mod.enabledProgress = if (mod.live.enabled) (mod.enabledProgress + dt).coerceAtMost(1f)
+            else (mod.enabledProgress - dt).coerceAtLeast(0f)
+
+            mod.expandProgress = if (mod.expanded) (mod.expandProgress + dt).coerceAtMost(1f)
+            else (mod.expandProgress - dt).coerceAtLeast(0f)
+
+            mod.settings.forEach { it.tick(dt) }
+        }
     }
 
     private fun getAllModules() = categories.flatMap { it.modules }
@@ -245,11 +273,102 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     class CategoryData(val name: String, val modules: List<ModuleData>)
     class ModuleData(
         val live: Module,
+        val settings: List<SettingData<*>>,
         var bounds: Bounds = Bounds(),
         var hovered: Boolean = false,
         var hoverProgress: Float = 0f,
+        var expanded: Boolean = false,
+        var expandProgress: Float = 0f,
         var enabledProgress: Float = if (live.enabled) 1f else 0f,
-    )
+    ) {
+        fun computeExpandedHeight(): Int {
+            if (expandProgress == 0f) return 0
+            val baseHeight = settings.fold(0) { acc, data ->
+                if (data.live.id == "Enabled") return@fold acc
+                acc + data.calculateHeight()
+            }
+            val paddedHeight = baseHeight + MODULE_INSIDE_V_PADDING + (SETTING_GAP * (settings.size - 2))
+            return (paddedHeight * expandProgress).toInt()
+        }
+    }
+
+    abstract class SettingData<T>(val live: Setting<T>) {
+        abstract fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int)
+        open fun calculateHeight() = FONT_SMALL_HEIGHT
+        open fun click() {}
+        open fun tick(dt: Float) {}
+    }
+
+    class ColorSettingData(
+        setting: ColorSetting,
+        v: Int = setting.value,
+        arr: FloatArray = Color.RGBtoHSB(v and 0xFF, (v shr 2) and 0xFF, (v shr 4) and 0xFF, null),
+        var targetHue: Float = arr[0],
+        var targetSaturation: Float = arr[1],
+        var targetBrightness: Float = arr[2],
+        var targetAlpha: Int = (v shr 6) and 0xFF,
+        var oldHue: Float = targetHue,
+        var oldSaturation: Float = targetSaturation,
+        var oldBrightness: Float = targetBrightness,
+        var oldAlpha: Int = targetAlpha,
+    ) : SettingData<Int>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class KeybindSettingData(setting: KeybindSetting, var recording: Boolean = false) : SettingData<Int>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class BlockListSettingData(setting: BlockListSetting, var hoveredIdx: Int = 0, var hoverProgress: Float = 0f) :
+        SettingData<MutableList<Block>>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class DoubleSettingData(setting: DoubleSetting, var target: Number = setting.value, var old: Number = target) :
+        SettingData<Double>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class FloatSettingData(setting: FloatSetting, var target: Number = setting.value, var old: Number = target) :
+        SettingData<Float>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class IntSettingData(val setting: IntSetting, var target: Number = setting.value, var old: Number = target) :
+        SettingData<Int>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class IntRangeSettingData(
+        setting: IntRangeSetting,
+        var targetMin: Number = setting.value.first,
+        var targetMax: Number = setting.value.last,
+        var oldMin: Number = targetMin,
+        var oldMax: Number = targetMax,
+    ) : SettingData<IntRange>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+    }
+
+    class BooleanSettingData(setting: BooleanSetting, var progress: Float = 0f, var bounds: Bounds = Bounds()) :
+        SettingData<Boolean>(setting) {
+        override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {
+            val size = 10
+            // TODO: replace with checkmark symbol later
+            val f = lerpColor(0, -1, progress)
+            val ax = x - size
+            val ay = y - ((size - FONT_SMALL_HEIGHT) / 2)
+            graphics.roundedRect(ax, ay, size, size, f, OUTLINE_COLOR, OUTLINE_WIDTH, 3f)
+            bounds = Bounds(ax, ay, size, size)
+        }
+
+        override fun click() {
+            live.value = !live.value
+        }
+
+        override fun tick(dt: Float) {
+            progress = if (live.value) (progress + dt).coerceAtMost(1f) else (progress - dt).coerceAtLeast(0f)
+        }
+    }
 
     class Bounds(val x: Int, val y: Int, width: Int, height: Int) {
         val x2: Int = x + width
