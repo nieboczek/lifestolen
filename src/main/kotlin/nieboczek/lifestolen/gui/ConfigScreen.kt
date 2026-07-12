@@ -68,6 +68,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val b = startB + ((targetB - startB) * progress).toInt()
             return a or r or g or b
         }
+
+        private fun lerpOutlineColor(progress: Float): Int = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, progress)
     }
 
     private val fontBig = Lifestolen.fontBig
@@ -134,7 +136,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
             for (module in category.modules) {
                 val height = moduleHeight + module.computeExpandedHeight()
-                val outlineColor = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, module.hoverProgress)
+                val outlineColor = lerpOutlineColor(module.hoverProgress)
                 graphics.roundedRect(moduleX, moduleY, moduleWidth, height, 0, outlineColor, OUTLINE_WIDTH, 4f)
                 module.clickableBounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
                 module.bounds = Bounds(moduleX, moduleY, moduleWidth, height)
@@ -394,7 +396,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val size = 10
             val ax = x - size
             val ay = y - ((size - FONT_SMALL_HEIGHT) / 2)
-            val color = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, hoverProgress)
+            val color = lerpOutlineColor(hoverProgress)
 
             graphics.roundedRect(ax, ay, size, size, 0, color, OUTLINE_WIDTH, 3f)
 
