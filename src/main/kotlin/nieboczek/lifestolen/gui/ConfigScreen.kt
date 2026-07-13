@@ -198,7 +198,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             mod.expandProgress = if (mod.expanded) (mod.expandProgress + dt).coerceAtMost(1f)
             else (mod.expandProgress - dt).coerceAtLeast(0f)
 
-            mod.settings.forEach {
+            mod.getVisibleChildren().forEach {
                 it.tick(dt)
                 if (it is Hoverable) {
                     it.hoverProgress = if (it.hovered) (it.hoverProgress + dt).coerceAtMost(1f)
@@ -217,6 +217,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     abstract class Widget {
         var bounds: Bounds = Bounds()
 
+        open fun getVisibleChildren() = listOf<Widget>()
         open fun tick(dt: Float) {}
     }
 
@@ -293,6 +294,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 moduleY += moduleVPadding + moduleHeight + module.computeExpandedHeight()
             }
         }
+
+        override fun getVisibleChildren() = modules
     }
 
     class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable {
@@ -348,6 +351,24 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
                 graphics.disableScissor()
             }
+        }
+
+        override fun getVisibleChildren(): List<Widget> {
+            if (expandProgress == 0f) return emptyList()
+            if (expandProgress == 1f) return settings
+
+            var availableHeight = computeExpandedHeight() - MODULE_INSIDE_V_PADDING
+            if (availableHeight <= 0) return emptyList()
+
+            val children = mutableListOf<Widget>()
+            for (setting in settings) {
+                availableHeight -= setting.calculateHeight()
+                if (availableHeight < 0) return children
+
+                children.add(setting)
+                availableHeight -= SETTING_GAP
+            }
+            return children
         }
 
         fun computeExpandedHeight(): Int {
