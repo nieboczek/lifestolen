@@ -17,6 +17,7 @@ import nieboczek.lifestolen.friedsvg.blitPixel
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
+import java.util.*
 import kotlin.math.ceil
 
 class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.literal(Lifestolen.CLIENT_NAME)) {
@@ -36,26 +37,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private val fontSmall = Lifestolen.fontSmall
         private val fontExtraSmall = Lifestolen.fontExtraSmall
 
-        private val categories = Module.Category.entries.map { category ->
-            CategoryWidget(
-                category.toString(),
-                Lifestolen.modules.filter { it.category == category }.map { mod ->
-                    ModuleWidget(mod, mod.settings.map { setting ->
-                        when (setting) {
-                            is ColorSetting -> ColorSettingWidget(setting)
-                            is KeybindSetting -> KeybindSettingWidget(setting)
-                            is BlockListSetting -> BlockListSettingWidget(setting)
-                            is DoubleSetting -> DoubleSettingWidget(setting)
-                            is FloatSetting -> FloatSettingWidget(setting)
-                            is IntSetting -> IntSettingWidget(setting)
-                            is IntRangeSetting -> IntRangeSettingWidget(setting)
-                            is BooleanSetting -> BooleanSettingWidget(setting)
-                            else -> error("Unsupported setting type: ${setting.javaClass.name}")
-                        } as SettingWidget<*>
-                    })
-                },
-            )
-        }
+        private val rootWidget = RootWidget()
 
         private var currentlyConfiguring: ModuleWidget? = null
         private var debugMode = false
@@ -95,11 +77,17 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
         darkRainbowColor = Color.HSBtoRGB(hue, 0.5f, 0.75f)
 
-        tickModules(a)
-
-        categories.forEachIndexed { idx, category ->
-            category.render(graphics, idx, width)
+        val dt = a * 0.5f
+        walkWidgets {
+            it.tick(dt)
+            if (it is Hoverable) {
+                it.hoverProgress = if (it.hovered) (it.hoverProgress + dt).coerceAtMost(1f)
+                else (it.hoverProgress - dt).coerceAtLeast(0f)
+            }
+            return@walkWidgets false
         }
+
+        rootWidget.render(graphics, width)
 
         if (debugMode) {
             val text = "Debug mode is active. Press F1 to deactivate."
@@ -125,90 +113,64 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseMoved(x: Double, y: Double) {
-        currentlyHovered?.hovered = false
-
-        getAllModules().find { it.bounds.isInBounds(x, y) }?.let {
-            it.hovered = true
-            currentlyHovered = it
+        currentlyHovered?.let {
+            // only find another hoverable if the same isn't still being hovered
+            if ((it as Widget).bounds.isInBounds(x, y)) return
+            it.hovered = false
         }
 
-        getAllModules().flatMap { it.settings }.forEach {
+        walkWidgets {
             if (it is Hoverable && it.bounds.isInBounds(x, y)) {
                 it.hovered = true
                 currentlyHovered = it
+                return@walkWidgets true
             }
+            return@walkWidgets false
         }
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
         if (currentlyCapturing != null) return true
 
-        val module = getAllModules().find { it.clickableBounds.isInBounds(event) }
+        walkWidgets {
+            if (it is Clickable && it.bounds.isInBounds(event)) {
+                val action = it.click(event.button())
 
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-            module?.let { module ->
-                if (currentlyConfiguring == module) {
-                    module.expanded = !module.expanded
-                } else {
-                    currentlyConfiguring?.let { it.expanded = false }
-                    module.expanded = true
-                    currentlyConfiguring = module
-                }
-                return true
-            }
-        } else if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-            currentlyConfiguring?.takeIf { it.expanded }?.let { module ->
-                module.settings.forEach {
-                    if (it !is Clickable || !it.bounds.isInBounds(event)) return@forEach
-
-                    val action = it.click(event.button())
-                    if (action == Clickable.Action.CAPTURE_KEY) {
-                        if (it !is KeyCapturer) error("${it.javaClass.simpleName} responded with Clickable.Action.CAPTURE_KEY, but is not a KeyCapturer")
-                        currentlyCapturing = it
+                if (action == Clickable.Action.CAPTURE_KEY) {
+                    if (it !is KeyCapturer) {
+                        error("${it.javaClass.simpleName} responded with Clickable.Action.CAPTURE_KEY, but is not a KeyCapturer")
                     }
-                    return true
+                    currentlyCapturing = it
                 }
-            }
 
-            module?.let {
-                it.live.toggle()
-                return true
+                return@walkWidgets true
             }
+            return@walkWidgets false
         }
         return true
     }
 
     override fun onClose() {
-        getAllModules().forEach {
-            it.hoverProgress = 0f
-            it.hovered = false
+        walkWidgets {
+            if (it is Hoverable) {
+                it.hoverProgress = 0f
+                it.hovered = false
+            }
+            return@walkWidgets false
         }
         super.onClose()
     }
 
-    private fun tickModules(a: Float) {
-        val dt = a * 0.5f
-        getAllModules().forEach { mod ->
-            mod.hoverProgress = if (mod.hovered) (mod.hoverProgress + dt).coerceAtMost(1f)
-            else (mod.hoverProgress - dt).coerceAtLeast(0f)
+    private fun walkWidgets(walker: (Widget) -> Boolean) {
+        val stack = Stack<Widget>()
+        stack.addAll(rootWidget.getVisibleChildren())
 
-            mod.enabledProgress = if (mod.live.enabled) (mod.enabledProgress + dt).coerceAtMost(1f)
-            else (mod.enabledProgress - dt).coerceAtLeast(0f)
-
-            mod.expandProgress = if (mod.expanded) (mod.expandProgress + dt).coerceAtMost(1f)
-            else (mod.expandProgress - dt).coerceAtLeast(0f)
-
-            mod.getVisibleChildren().forEach {
-                it.tick(dt)
-                if (it is Hoverable) {
-                    it.hoverProgress = if (it.hovered) (it.hoverProgress + dt).coerceAtMost(1f)
-                    else (it.hoverProgress - dt).coerceAtLeast(0f)
-                }
-            }
+        while (stack.isNotEmpty()) {
+            val w = stack.pop()
+            if (walker(w)) return
+            stack.addAll(w.getVisibleChildren())
         }
     }
-
-    private fun getAllModules() = categories.flatMap { it.modules }
 
     override fun extractTransparentBackground(graphics: GuiGraphicsExtractor) = graphics.blurBeforeThisStratum()
     override fun isInGameUi() = true
@@ -242,8 +204,39 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
     }
 
+    class RootWidget : Widget() {
+        val categories = Module.Category.entries.map { category ->
+            CategoryWidget(
+                category.toString(),
+                Lifestolen.modules.filter { it.category == category }.map { mod ->
+                    ModuleWidget(mod, mod.settings.map { setting ->
+                        when (setting) {
+                            is ColorSetting -> ColorSettingWidget(setting)
+                            is KeybindSetting -> KeybindSettingWidget(setting)
+                            is BlockListSetting -> BlockListSettingWidget(setting)
+                            is DoubleSetting -> DoubleSettingWidget(setting)
+                            is FloatSetting -> FloatSettingWidget(setting)
+                            is IntSetting -> IntSettingWidget(setting)
+                            is IntRangeSetting -> IntRangeSettingWidget(setting)
+                            is BooleanSetting -> BooleanSettingWidget(setting)
+                            else -> error("Unsupported setting type: ${setting.javaClass.name}")
+                        } as SettingWidget<*>
+                    })
+                },
+            )
+        }
+
+        fun render(graphics: GuiGraphicsExtractor, screenWidth: Int) {
+            categories.forEachIndexed { idx, category ->
+                category.render(graphics, idx, categories.size, screenWidth)
+            }
+        }
+
+        override fun getVisibleChildren() = categories
+    }
+
     class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget() {
-        fun render(graphics: GuiGraphicsExtractor, idx: Int, screenWidth: Int) {
+        fun render(graphics: GuiGraphicsExtractor, idx: Int, categoriesSize: Int, screenWidth: Int) {
             val categoryGap = 8
             val marginTop = 8
             val namePadding = 2
@@ -251,7 +244,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val moduleHPadding = 4
             val moduleHeight = FONT_HEIGHT + (MODULE_INSIDE_V_PADDING * 2)
             val paddingHorizontal = categoryGap * 2
-            val categoryWidth = (screenWidth - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
+            val categoryWidth =
+                (screenWidth - (paddingHorizontal * 2) - ((categoriesSize - 1) * categoryGap)) / categoriesSize
             val moduleWidth = categoryWidth - (moduleHPadding * 2)
             val lineY = marginTop + namePadding + FONT_BIG_HEIGHT + namePadding
 
@@ -298,7 +292,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         override fun getVisibleChildren() = modules
     }
 
-    class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable {
+    class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable, Clickable {
         var clickableBounds = Bounds()
         override var hovered = false
         override var hoverProgress = 0f
@@ -353,6 +347,14 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             }
         }
 
+        override fun tick(dt: Float) {
+            enabledProgress = if (live.enabled) (enabledProgress + dt).coerceAtMost(1f)
+            else (enabledProgress - dt).coerceAtLeast(0f)
+
+            expandProgress = if (expanded) (expandProgress + dt).coerceAtMost(1f)
+            else (expandProgress - dt).coerceAtLeast(0f)
+        }
+
         override fun getVisibleChildren(): List<Widget> {
             if (expandProgress == 0f) return emptyList()
             if (expandProgress == 1f) return settings
@@ -369,6 +371,21 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 availableHeight -= SETTING_GAP
             }
             return children
+        }
+
+        override fun click(button: Int): Clickable.Action {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                if (currentlyConfiguring == this) {
+                    expanded = !expanded
+                } else {
+                    currentlyConfiguring?.let { it.expanded = false }
+                    expanded = true
+                    currentlyConfiguring = this
+                }
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                live.toggle()
+            }
+            return Clickable.Action.NONE
         }
 
         fun computeExpandedHeight(): Int {
