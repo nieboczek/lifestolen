@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.gui
+package nieboczek.lifestolen.gui.render
 
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.navigation.ScreenRectangle

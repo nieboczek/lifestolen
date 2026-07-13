@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import nieboczek.lifestolen.Lifestolen;
-import nieboczek.lifestolen.gui.BlurredRectRenderer;
+import nieboczek.lifestolen.gui.render.BlurredRectRenderer;
 import nieboczek.lifestolen.gui.ConfigScreen;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.TracersModule;
