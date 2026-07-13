@@ -31,6 +31,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private const val SETTING_GAP = 6
         private const val MODULE_INSIDE_V_PADDING = 4
 
+        private val fontN = Lifestolen.font
         private val fontBig = Lifestolen.fontBig
         private val fontSmall = Lifestolen.fontSmall
         private val fontExtraSmall = Lifestolen.fontExtraSmall
@@ -39,7 +40,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             CategoryState(
                 category.toString(),
                 Lifestolen.modules.filter { it.category == category }.map { mod ->
-                    ModuleState(mod, mod.settings.map { setting ->
+                    ModuleWidget(mod, mod.settings.map { setting ->
                         when (setting) {
                             is ColorSetting -> ColorSettingWidget(setting)
                             is KeybindSetting -> KeybindSettingWidget(setting)
@@ -56,8 +57,12 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             )
         }
 
-        private var currentlyConfiguring: ModuleState? = null
+        private var currentlyConfiguring: ModuleWidget? = null
         private var debugMode = false
+
+        private var guiScale = 1f
+        private var rainbowColor = 0
+        private var darkRainbowColor = 0
 
         private fun lerpColor(start: Int, target: Int, progress: Float): Int {
             val startA = (start shr 24) and 0xFF
@@ -83,10 +88,12 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     private var rainbowColorOffset = 0f
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
+        guiScale = minecraft.window.guiScale.toFloat()
+
         rainbowColorOffset += a
         val hue = (rainbowColorOffset % 60f) / 60f
-        val rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
-        val darkRainbowColor = Color.HSBtoRGB(hue, 0.5f, 0.75f)
+        rainbowColor = Color.HSBtoRGB(hue, 0.5f, 1f)
+        darkRainbowColor = Color.HSBtoRGB(hue, 0.5f, 0.75f)
 
         tickModules(a)
 
@@ -95,14 +102,12 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         val namePadding = 2
         val moduleVPadding = 2
         val moduleHPadding = 4
-        val moduleInsideHPadding = 4
         val moduleHeight = FONT_HEIGHT + (MODULE_INSIDE_V_PADDING * 2)
         val paddingHorizontal = categoryGap * 2
         val categoryWidth = (width - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
         val moduleWidth = categoryWidth - (moduleHPadding * 2)
         val lineY = marginTop + namePadding + FONT_BIG_HEIGHT + namePadding
 
-        val guiScale = minecraft.window.guiScale.toFloat()
         val lineHeight = OUTLINE_WIDTH / guiScale * 1.5f
         val lineHeightCeil = ceil(lineHeight).toInt()
         val moduleStartY = lineY + lineHeightCeil + moduleVPadding
@@ -139,49 +144,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             var moduleY = moduleStartY
 
             for (module in category.modules) {
-                val height = moduleHeight + module.computeExpandedHeight()
-                val outlineColor = lerpOutlineColor(module.hoverProgress)
-                graphics.roundedRect(moduleX, moduleY, moduleWidth, height, 0, outlineColor, OUTLINE_WIDTH, 4f)
-                module.clickableBounds = Bounds(moduleX, moduleY, moduleWidth, moduleHeight)
-                module.bounds = Bounds(moduleX, moduleY, moduleWidth, height)
-
-                val moduleNameX = moduleX + moduleInsideHPadding + ((moduleWidth - font.width(module.live.id)) / 2)
-                val color = blendModuleColor(module, darkRainbowColor, rainbowColor)
-                graphics.text(font, module.live.id, moduleNameX, moduleY + MODULE_INSIDE_V_PADDING, color, false)
-
-                if (module.expandProgress > 0f) {
-                    val settingX = moduleX + moduleInsideHPadding
-                    val rightAlignedX = moduleX + moduleWidth - moduleInsideHPadding
-                    var settingY = moduleY + MODULE_INSIDE_V_PADDING + FONT_HEIGHT + MODULE_INSIDE_V_PADDING
-
-                    graphics.enableScissor(
-                        settingX,
-                        settingY - MODULE_INSIDE_V_PADDING,
-                        settingX + moduleWidth,
-                        settingY + module.computeExpandedHeight()
-                    )
-
-                    for (setting in module.settings) {
-                        if (setting.live.id == "Enabled") continue
-
-                        graphics.text(fontSmall, setting.live.name, settingX, settingY, -1, false)
-                        setting.render(graphics, rightAlignedX, settingY)
-
-                        if (debugMode) {
-                            val x = categoryX.toFloat()
-                            val w = categoryWidth.toFloat()
-                            val h = 1f / guiScale
-                            graphics.rect(x, settingY.toFloat(), w, h, 0xFFFF0000.toInt())
-                            graphics.rect(x, (settingY + (FONT_SMALL_HEIGHT / 2)).toFloat(), w, h, 0xFF00FF00.toInt())
-                            graphics.rect(x, (settingY + FONT_SMALL_HEIGHT).toFloat(), w, h, 0xFFFF0000.toInt())
-                        }
-
-                        settingY += SETTING_GAP + setting.calculateHeight()
-                    }
-
-                    graphics.disableScissor()
-                }
-
+                module.render(graphics, moduleX, moduleY, moduleWidth, moduleHeight)
                 moduleY += moduleVPadding + moduleHeight + module.computeExpandedHeight()
             }
         }
@@ -190,12 +153,6 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val text = "Debug mode is active. Press F1 to deactivate."
             graphics.centeredText(font, text, width / 2, height - FONT_HEIGHT - 8, rainbowColor)
         }
-    }
-
-    private fun blendModuleColor(module: ModuleState, darkRainbowColor: Int, rainbowColor: Int): Int {
-        val baseColor = lerpColor(0xBBCCCCCC.toInt(), darkRainbowColor, module.enabledProgress)
-        val hoverColor = lerpColor(0xBBFFFFFF.toInt(), rainbowColor, module.enabledProgress)
-        return lerpColor(baseColor, hoverColor, module.hoverProgress)
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
@@ -308,14 +265,12 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     abstract class Widget {
         var bounds: Bounds = Bounds()
 
-        open fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
         open fun tick(dt: Float) {}
     }
 
     interface Hoverable {
         var hovered: Boolean
         var hoverProgress: Float
-        val bounds: Bounds
     }
 
     interface Clickable {
@@ -334,15 +289,62 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
     }
 
-    class CategoryState(val name: String, val modules: List<ModuleState>)
-    class ModuleState(val live: Module, val settings: List<SettingWidget<*>>) : Hoverable {
+    class CategoryState(val name: String, val modules: List<ModuleWidget>)
+
+    class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable {
         var clickableBounds = Bounds()
-        override var bounds = Bounds()
         override var hovered = false
         override var hoverProgress = 0f
         var expanded = false
         var expandProgress = 0f
         var enabledProgress = if (live.enabled) 1f else 0f
+
+        fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, moduleWidth: Int, moduleHeight: Int) {
+            val moduleInsideHPadding = 4
+
+            val height = moduleHeight + computeExpandedHeight()
+            val outlineColor = lerpOutlineColor(hoverProgress)
+            graphics.roundedRect(x, y, moduleWidth, height, 0, outlineColor, OUTLINE_WIDTH, 4f)
+            clickableBounds = Bounds(x, y, moduleWidth, moduleHeight)
+            bounds = Bounds(x, y, moduleWidth, height)
+
+            val moduleNameX = x + moduleInsideHPadding + ((moduleWidth - fontN.width(live.id)) / 2)
+            val color = blendModuleColor(this, darkRainbowColor, rainbowColor)
+            graphics.text(fontN, live.id, moduleNameX, y + MODULE_INSIDE_V_PADDING, color, false)
+
+            if (expandProgress > 0f) {
+                val settingX = x + moduleInsideHPadding
+                val rightAlignedX = x + moduleWidth - moduleInsideHPadding
+                var settingY = y + MODULE_INSIDE_V_PADDING + FONT_HEIGHT + MODULE_INSIDE_V_PADDING
+
+                graphics.enableScissor(
+                    settingX,
+                    settingY - MODULE_INSIDE_V_PADDING,
+                    settingX + moduleWidth,
+                    settingY + computeExpandedHeight()
+                )
+
+                for (setting in settings) {
+                    if (setting.live.id == "Enabled") continue
+
+                    graphics.text(fontSmall, setting.live.name, settingX, settingY, -1, false)
+                    setting.render(graphics, rightAlignedX, settingY)
+
+                    if (debugMode) {
+                        val x = x.toFloat()
+                        val w = moduleWidth.toFloat()
+                        val h = 1f / guiScale
+                        graphics.rect(x, settingY.toFloat(), w, h, 0xFFFF0000.toInt())
+                        graphics.rect(x, (settingY + (FONT_SMALL_HEIGHT / 2)).toFloat(), w, h, 0xFF00FF00.toInt())
+                        graphics.rect(x, (settingY + FONT_SMALL_HEIGHT).toFloat(), w, h, 0xFFFF0000.toInt())
+                    }
+
+                    settingY += SETTING_GAP + setting.calculateHeight()
+                }
+
+                graphics.disableScissor()
+            }
+        }
 
         fun computeExpandedHeight(): Int {
             if (expandProgress == 0f) return 0
@@ -353,9 +355,16 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val paddedHeight = baseHeight + MODULE_INSIDE_V_PADDING + (SETTING_GAP * (settings.size - 2))
             return (paddedHeight * expandProgress).toInt()
         }
+
+        private fun blendModuleColor(module: ModuleWidget, darkRainbowColor: Int, rainbowColor: Int): Int {
+            val baseColor = lerpColor(0xBBCCCCCC.toInt(), darkRainbowColor, module.enabledProgress)
+            val hoverColor = lerpColor(0xBBFFFFFF.toInt(), rainbowColor, module.enabledProgress)
+            return lerpColor(baseColor, hoverColor, module.hoverProgress)
+        }
     }
 
     abstract class SettingWidget<T>(val live: Setting<T>) : Widget() {
+        abstract fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int)
         open fun calculateHeight() = FONT_SMALL_HEIGHT
     }
 
