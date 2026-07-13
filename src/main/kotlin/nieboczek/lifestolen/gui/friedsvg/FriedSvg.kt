@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.friedsvg
+package nieboczek.lifestolen.gui.friedsvg
 
 import com.mojang.blaze3d.platform.NativeImage
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents

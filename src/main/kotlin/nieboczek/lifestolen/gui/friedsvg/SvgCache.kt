@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.friedsvg
+package nieboczek.lifestolen.gui.friedsvg
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture

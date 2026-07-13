@@ -6,8 +6,8 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.level.block.Block
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
-import nieboczek.lifestolen.friedsvg.FriedSvg
-import nieboczek.lifestolen.friedsvg.blitPixel
+import nieboczek.lifestolen.gui.friedsvg.FriedSvg
+import nieboczek.lifestolen.gui.friedsvg.blitPixel
 import nieboczek.lifestolen.gui.render.roundedRect
 import org.lwjgl.glfw.GLFW
 import java.awt.Color

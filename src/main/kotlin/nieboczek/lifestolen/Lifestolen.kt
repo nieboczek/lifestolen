@@ -17,7 +17,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
-import nieboczek.lifestolen.friedsvg.FriedSvg
+import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil

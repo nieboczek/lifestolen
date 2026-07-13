@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.friedsvg
+package nieboczek.lifestolen.gui.friedsvg
 
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.VertexConsumer
