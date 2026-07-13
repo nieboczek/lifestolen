@@ -79,7 +79,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     private var currentlyHovered: Hoverable? = null
-    private var currentlyRecording: KeybindSettingState? = null
+    private var currentlyCapturing: KeyCapturer? = null
     private var rainbowColorOffset = 0f
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
@@ -199,9 +199,9 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun keyPressed(event: KeyEvent): Boolean {
-        currentlyRecording?.let {
-            it.captureKey(if (event.isEscape) 0 else event.key)
-            currentlyRecording = null
+        currentlyCapturing?.let {
+            val action = it.captureKey(if (event.isEscape) 0 else event.key)
+            if (action == KeyCapturer.Action.STOP_CAPTURING) currentlyCapturing = null
             return true
         }
 
@@ -232,7 +232,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
-        if (currentlyRecording != null) return true
+        if (currentlyCapturing != null) return true
 
         val module = getAllModules().find { it.clickableBounds.isInBounds(event) }
 
@@ -250,11 +250,14 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         } else if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             currentlyConfiguring?.takeIf { it.expanded }?.let { module ->
                 module.settings.forEach {
-                    if (it is Clickable && it.bounds.isInBounds(event)) {
-                        if (it is KeybindSettingState) currentlyRecording = it
-                        it.click()
-                        return true
+                    if (it !is Clickable || !it.bounds.isInBounds(event)) return@forEach
+
+                    val action = it.click(event.button())
+                    if (action == Clickable.Action.CAPTURE_KEY) {
+                        if (it !is KeyCapturer) error("${it.javaClass.simpleName} responded with Clickable.Action.CAPTURE_KEY, but is not a KeyCapturer")
+                        currentlyCapturing = it
                     }
+                    return true
                 }
             }
 
@@ -302,18 +305,46 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     override fun isInGameUi() = true
     override fun isPauseScreen() = false
 
+    abstract class Widget {
+        var bounds: Bounds = Bounds()
+
+        open fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
+        open fun tick(dt: Float) {}
+    }
+
+    interface Hoverable {
+        var hovered: Boolean
+        var hoverProgress: Float
+        val bounds: Bounds
+    }
+
+    interface Clickable {
+        val bounds: Bounds
+        fun click(button: Int): Action
+
+        enum class Action {
+            NONE, CAPTURE_KEY;
+        }
+    }
+
+    interface KeyCapturer {
+        fun captureKey(key: Int): Action
+
+        enum class Action {
+            NONE, STOP_CAPTURING;
+        }
+    }
+
     class CategoryState(val name: String, val modules: List<ModuleState>)
-    class ModuleState(
-        val live: Module,
-        val settings: List<SettingState<*>>,
-        var clickableBounds: Bounds = Bounds(),
-        override var bounds: Bounds = Bounds(),
-        override var hovered: Boolean = false,
-        override var hoverProgress: Float = 0f,
-        var expanded: Boolean = false,
-        var expandProgress: Float = 0f,
-        var enabledProgress: Float = if (live.enabled) 1f else 0f,
-    ) : Hoverable {
+    class ModuleState(val live: Module, val settings: List<SettingState<*>>) : Hoverable {
+        var clickableBounds = Bounds()
+        override var bounds = Bounds()
+        override var hovered = false
+        override var hoverProgress = 0f
+        var expanded = false
+        var expandProgress = 0f
+        var enabledProgress = if (live.enabled) 1f else 0f
+
         fun computeExpandedHeight(): Int {
             if (expandProgress == 0f) return 0
             val baseHeight = settings.fold(0) { acc, state ->
@@ -331,36 +362,30 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         open fun tick(dt: Float) {}
     }
 
-    interface Hoverable {
-        var hovered: Boolean
-        var hoverProgress: Float
-        val bounds: Bounds
-    }
+    class ColorSettingState(setting: ColorSetting) : SettingState<Int>(setting) {
+        var oldHue: Float
+        var oldSaturation: Float
+        var oldBrightness: Float
+        var oldAlpha: Int
 
-    interface Clickable {
-        val bounds: Bounds
-        fun click()
-    }
+        init {
+            val v = setting.value
+            val arr = Color.RGBtoHSB(v and 0xFF, (v shr 2) and 0xFF, (v shr 4) and 0xFF, null)
+            oldHue = arr[0]
+            oldSaturation = arr[1]
+            oldBrightness = arr[2]
+            oldAlpha = (v shr 6) and 0xFF
+        }
 
-    class ColorSettingState(
-        setting: ColorSetting,
-        v: Int = setting.value,
-        arr: FloatArray = Color.RGBtoHSB(v and 0xFF, (v shr 2) and 0xFF, (v shr 4) and 0xFF, null),
-        var oldHue: Float = arr[0],
-        var oldSaturation: Float = arr[1],
-        var oldBrightness: Float = arr[2],
-        var oldAlpha: Int = (v shr 6) and 0xFF,
-    ) : SettingState<Int>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class KeybindSettingState(
-        setting: KeybindSetting,
-        var recording: Boolean = false,
-        override var bounds: Bounds = Bounds(),
-        override var hovered: Boolean = false,
-        override var hoverProgress: Float = 0f,
-    ) : SettingState<Int>(setting), Hoverable, Clickable {
+    class KeybindSettingState(setting: KeybindSetting) : SettingState<Int>(setting), Hoverable, Clickable, KeyCapturer {
+        var recording = false
+        override var bounds = Bounds()
+        override var hovered = false
+        override var hoverProgress = 0f
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {
             val width = 40
             val height = 10
@@ -380,49 +405,59 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             bounds = Bounds(ax, ay, width, height)
         }
 
-        override fun click() {
-            recording = true
+        override fun click(button: Int): Clickable.Action {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                recording = true
+                return Clickable.Action.CAPTURE_KEY
+            }
+            return Clickable.Action.NONE
         }
 
-        fun captureKey(key: Int) {
+        override fun captureKey(key: Int): KeyCapturer.Action {
             live.value = key
             recording = false
+            return KeyCapturer.Action.STOP_CAPTURING
         }
     }
 
-    class BlockListSettingState(setting: BlockListSetting, var hoveredIdx: Int = 0, var hoverProgress: Float = 0f) :
-        SettingState<MutableList<Block>>(setting) {
+    class BlockListSettingState(setting: BlockListSetting) : SettingState<MutableList<Block>>(setting) {
+        var hoveredIdx = 0
+        var hoverProgress = 0f
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class DoubleSettingState(val setting: DoubleSetting, var old: Double = setting.value) :
-        SettingState<Double>(setting) {
+    class DoubleSettingState(val setting: DoubleSetting) : SettingState<Double>(setting) {
+        var old = setting.value
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class FloatSettingState(val setting: FloatSetting, var old: Float = setting.value) : SettingState<Float>(setting) {
+    class FloatSettingState(val setting: FloatSetting) : SettingState<Float>(setting) {
+        var old = setting.value
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class IntSettingState(val setting: IntSetting, var old: Int = setting.value) : SettingState<Int>(setting) {
+    class IntSettingState(val setting: IntSetting) : SettingState<Int>(setting) {
+        var old = setting.value
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class IntRangeSettingState(
-        setting: IntRangeSetting,
-        var oldMin: Number = setting.value.first,
-        var oldMax: Number = setting.value.last,
-    ) : SettingState<IntRange>(setting) {
+    class IntRangeSettingState(val setting: IntRangeSetting) : SettingState<IntRange>(setting) {
+        var oldMin = setting.value.first
+        var oldMax = setting.value.last
+
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class BooleanSettingState(
-        setting: BooleanSetting,
-        var enableProgress: Float = 0f,
-        override var bounds: Bounds = Bounds(),
-        override var hovered: Boolean = false,
-        override var hoverProgress: Float = 0f,
-    ) : SettingState<Boolean>(setting), Hoverable, Clickable {
+    class BooleanSettingState(setting: BooleanSetting) : SettingState<Boolean>(setting), Hoverable, Clickable {
+        var enableProgress = 0f
+        override var bounds = Bounds()
+        override var hovered = false
+        override var hoverProgress = 0f
+
         companion object {
             private val checkmarkHandle = FriedSvg.loadSvg(Lifestolen.identifier("svg/checkmark.svg"))
             private var checkmarkTexture: Identifier? = null
@@ -450,8 +485,9 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             bounds = Bounds(ax, ay, size, size)
         }
 
-        override fun click() {
-            live.value = !live.value
+        override fun click(button: Int): Clickable.Action {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) live.value = !live.value
+            return Clickable.Action.NONE
         }
 
         override fun tick(dt: Float) {
