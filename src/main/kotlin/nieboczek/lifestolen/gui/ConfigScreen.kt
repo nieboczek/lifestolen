@@ -37,7 +37,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private val fontExtraSmall = Lifestolen.fontExtraSmall
 
         private val categories = Module.Category.entries.map { category ->
-            CategoryState(
+            CategoryWidget(
                 category.toString(),
                 Lifestolen.modules.filter { it.category == category }.map { mod ->
                     ModuleWidget(mod, mod.settings.map { setting ->
@@ -97,56 +97,8 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
         tickModules(a)
 
-        val categoryGap = 8
-        val marginTop = 8
-        val namePadding = 2
-        val moduleVPadding = 2
-        val moduleHPadding = 4
-        val moduleHeight = FONT_HEIGHT + (MODULE_INSIDE_V_PADDING * 2)
-        val paddingHorizontal = categoryGap * 2
-        val categoryWidth = (width - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
-        val moduleWidth = categoryWidth - (moduleHPadding * 2)
-        val lineY = marginTop + namePadding + FONT_BIG_HEIGHT + namePadding
-
-        val lineHeight = OUTLINE_WIDTH / guiScale * 1.5f
-        val lineHeightCeil = ceil(lineHeight).toInt()
-        val moduleStartY = lineY + lineHeightCeil + moduleVPadding
-
         categories.forEachIndexed { idx, category ->
-            val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
-            val lastModuleBottom = moduleStartY + ((moduleVPadding + moduleHeight) * category.modules.size)
-            val expandedHeight = category.modules.fold(0) { acc, state -> acc + state.computeExpandedHeight() }
-            val neededHeight = lastModuleBottom - marginTop + moduleVPadding + expandedHeight
-
-            graphics.blurredRoundedRect(
-                categoryX,
-                marginTop,
-                categoryWidth,
-                neededHeight,
-                0x92000000.toInt(),
-                OUTLINE_COLOR,
-                OUTLINE_WIDTH,
-                8f,
-                16f,
-            )
-
-            val nameX = categoryX + ((categoryWidth - fontBig.width(category.name)) / 2)
-            graphics.text(fontBig, category.name, nameX, marginTop + namePadding, rainbowColor, false)
-            graphics.rect(
-                categoryX + (OUTLINE_WIDTH / guiScale),
-                lineY.toFloat(),
-                categoryWidth - (OUTLINE_WIDTH / guiScale * 2f),
-                lineHeight,
-                OUTLINE_COLOR
-            )
-
-            val moduleX = categoryX + moduleHPadding
-            var moduleY = moduleStartY
-
-            for (module in category.modules) {
-                module.render(graphics, moduleX, moduleY, moduleWidth, moduleHeight)
-                moduleY += moduleVPadding + moduleHeight + module.computeExpandedHeight()
-            }
+            category.render(graphics, idx, width)
         }
 
         if (debugMode) {
@@ -289,7 +241,59 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
     }
 
-    class CategoryState(val name: String, val modules: List<ModuleWidget>)
+    class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget() {
+        fun render(graphics: GuiGraphicsExtractor, idx: Int, screenWidth: Int) {
+            val categoryGap = 8
+            val marginTop = 8
+            val namePadding = 2
+            val moduleVPadding = 2
+            val moduleHPadding = 4
+            val moduleHeight = FONT_HEIGHT + (MODULE_INSIDE_V_PADDING * 2)
+            val paddingHorizontal = categoryGap * 2
+            val categoryWidth = (screenWidth - (paddingHorizontal * 2) - ((categories.size - 1) * categoryGap)) / categories.size
+            val moduleWidth = categoryWidth - (moduleHPadding * 2)
+            val lineY = marginTop + namePadding + FONT_BIG_HEIGHT + namePadding
+
+            val lineHeight = OUTLINE_WIDTH / guiScale * 1.5f
+            val lineHeightCeil = ceil(lineHeight).toInt()
+            val moduleStartY = lineY + lineHeightCeil + moduleVPadding
+
+            val categoryX = paddingHorizontal + (idx * categoryWidth) + (idx * categoryGap)
+            val lastModuleBottom = moduleStartY + ((moduleVPadding + moduleHeight) * modules.size)
+            val expandedHeight = modules.fold(0) { acc, state -> acc + state.computeExpandedHeight() }
+            val neededHeight = lastModuleBottom - marginTop + moduleVPadding + expandedHeight
+
+            graphics.blurredRoundedRect(
+                categoryX,
+                marginTop,
+                categoryWidth,
+                neededHeight,
+                0x92000000.toInt(),
+                OUTLINE_COLOR,
+                OUTLINE_WIDTH,
+                8f,
+                16f,
+            )
+
+            val nameX = categoryX + ((categoryWidth - fontBig.width(name)) / 2)
+            graphics.text(fontBig, name, nameX, marginTop + namePadding, rainbowColor, false)
+            graphics.rect(
+                categoryX + (OUTLINE_WIDTH / guiScale),
+                lineY.toFloat(),
+                categoryWidth - (OUTLINE_WIDTH / guiScale * 2f),
+                lineHeight,
+                OUTLINE_COLOR
+            )
+
+            val moduleX = categoryX + moduleHPadding
+            var moduleY = moduleStartY
+
+            for (module in modules) {
+                module.render(graphics, moduleX, moduleY, moduleWidth, moduleHeight)
+                moduleY += moduleVPadding + moduleHeight + module.computeExpandedHeight()
+            }
+        }
+    }
 
     class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable {
         var clickableBounds = Bounds()
