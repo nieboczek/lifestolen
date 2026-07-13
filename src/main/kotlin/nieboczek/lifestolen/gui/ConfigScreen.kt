@@ -503,7 +503,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     class BooleanSettingWidget(setting: BooleanSetting) : SettingWidget<Boolean>(setting), Hoverable, Clickable {
-        var enableProgress = 0f
+        var enableProgress = if (live.value) 1f else 0f
         override var hovered = false
         override var hoverProgress = 0f
 
