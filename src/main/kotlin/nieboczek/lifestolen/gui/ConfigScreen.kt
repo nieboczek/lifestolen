@@ -65,7 +65,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         private fun lerpOutlineColor(progress: Float): Int = lerpColor(OUTLINE_COLOR, HOVERED_OUTLINE_COLOR, progress)
     }
 
-    private var currentlyHovered: Hoverable? = null
+    private var currentlyHovered = ArrayList<Hoverable>(4)
     private var currentlyCapturing: KeyCapturer? = null
     private var rainbowColorOffset = 0f
 
@@ -113,17 +113,13 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
     }
 
     override fun mouseMoved(x: Double, y: Double) {
-        currentlyHovered?.let {
-            // only find another hoverable if the same isn't still being hovered
-            if ((it as Widget).bounds.isInBounds(x, y)) return
-            it.hovered = false
-        }
+        currentlyHovered.forEach { it.hovered = false }
+        currentlyHovered.clear()
 
         walkWidgets {
             if (it is Hoverable && it.bounds.isInBounds(x, y)) {
                 it.hovered = true
-                currentlyHovered = it
-                return@walkWidgets true
+                currentlyHovered.add(it)
             }
             return@walkWidgets false
         }
@@ -202,6 +198,13 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         enum class Action {
             NONE, STOP_CAPTURING;
         }
+    }
+
+    /** Use when you need to handle clicks with separate bounds */
+    class ClickableWidget(
+        private val onClick: (Int) -> Clickable.Action
+    ) : Widget(), Clickable {
+        override fun click(button: Int) = onClick(button)
     }
 
     class RootWidget : Widget() {
@@ -292,8 +295,22 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         override fun getVisibleChildren() = modules
     }
 
-    class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable, Clickable {
-        var clickableBounds = Bounds()
+    class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Widget(), Hoverable {
+        val clickHandler = ClickableWidget { button ->
+            if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                if (currentlyConfiguring == this) {
+                    expanded = !expanded
+                } else {
+                    currentlyConfiguring?.let { it.expanded = false }
+                    expanded = true
+                    currentlyConfiguring = this
+                }
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                live.toggle()
+            }
+            Clickable.Action.NONE
+        }
+
         override var hovered = false
         override var hoverProgress = 0f
         var expanded = false
@@ -306,7 +323,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             val height = moduleHeight + computeExpandedHeight()
             val outlineColor = lerpOutlineColor(hoverProgress)
             graphics.roundedRect(x, y, moduleWidth, height, 0, outlineColor, OUTLINE_WIDTH, 4f)
-            clickableBounds = Bounds(x, y, moduleWidth, moduleHeight)
+            clickHandler.bounds = Bounds(x, y, moduleWidth, moduleHeight)
             bounds = Bounds(x, y, moduleWidth, height)
 
             val moduleNameX = x + moduleInsideHPadding + ((moduleWidth - fontN.width(live.id)) / 2)
@@ -356,13 +373,13 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         }
 
         override fun getVisibleChildren(): List<Widget> {
-            if (expandProgress == 0f) return emptyList()
-            if (expandProgress == 1f) return settings
+            if (expandProgress == 0f) return listOf(clickHandler)
+            if (expandProgress == 1f) return listOf(clickHandler) + settings
 
             var availableHeight = computeExpandedHeight() - MODULE_INSIDE_V_PADDING
-            if (availableHeight <= 0) return emptyList()
+            if (availableHeight <= 0) return listOf(clickHandler)
 
-            val children = mutableListOf<Widget>()
+            val children = mutableListOf<Widget>(clickHandler)
             for (setting in settings) {
                 availableHeight -= setting.calculateHeight()
                 if (availableHeight < 0) return children
@@ -371,21 +388,6 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
                 availableHeight -= SETTING_GAP
             }
             return children
-        }
-
-        override fun click(button: Int): Clickable.Action {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-                if (currentlyConfiguring == this) {
-                    expanded = !expanded
-                } else {
-                    currentlyConfiguring?.let { it.expanded = false }
-                    expanded = true
-                    currentlyConfiguring = this
-                }
-            } else if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-                live.toggle()
-            }
-            return Clickable.Action.NONE
         }
 
         fun computeExpandedHeight(): Int {
