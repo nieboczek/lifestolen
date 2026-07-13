@@ -346,14 +346,10 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         setting: ColorSetting,
         v: Int = setting.value,
         arr: FloatArray = Color.RGBtoHSB(v and 0xFF, (v shr 2) and 0xFF, (v shr 4) and 0xFF, null),
-        var targetHue: Float = arr[0],
-        var targetSaturation: Float = arr[1],
-        var targetBrightness: Float = arr[2],
-        var targetAlpha: Int = (v shr 6) and 0xFF,
-        var oldHue: Float = targetHue,
-        var oldSaturation: Float = targetSaturation,
-        var oldBrightness: Float = targetBrightness,
-        var oldAlpha: Int = targetAlpha,
+        var oldHue: Float = arr[0],
+        var oldSaturation: Float = arr[1],
+        var oldBrightness: Float = arr[2],
+        var oldAlpha: Int = (v shr 6) and 0xFF,
     ) : SettingState<Int>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
@@ -399,27 +395,23 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class DoubleSettingState(setting: DoubleSetting, var target: Number = setting.value, var old: Number = target) :
+    class DoubleSettingState(val setting: DoubleSetting, var old: Double = setting.value) :
         SettingState<Double>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class FloatSettingState(setting: FloatSetting, var target: Number = setting.value, var old: Number = target) :
-        SettingState<Float>(setting) {
+    class FloatSettingState(val setting: FloatSetting, var old: Float = setting.value) : SettingState<Float>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
-    class IntSettingState(val setting: IntSetting, var target: Number = setting.value, var old: Number = target) :
-        SettingState<Int>(setting) {
+    class IntSettingState(val setting: IntSetting, var old: Int = setting.value) : SettingState<Int>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
 
     class IntRangeSettingState(
         setting: IntRangeSetting,
-        var targetMin: Number = setting.value.first,
-        var targetMax: Number = setting.value.last,
-        var oldMin: Number = targetMin,
-        var oldMax: Number = targetMax,
+        var oldMin: Number = setting.value.first,
+        var oldMax: Number = setting.value.last,
     ) : SettingState<IntRange>(setting) {
         override fun extractRenderState(graphics: GuiGraphicsExtractor, x: Int, y: Int) {}
     }
