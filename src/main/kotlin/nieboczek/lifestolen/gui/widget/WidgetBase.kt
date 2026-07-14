@@ -37,10 +37,13 @@ interface KeyCapturer {
     }
 }
 
-class ClickableWidget(
-    private val onClick: (Int) -> Clickable.Action
-) : Widget(), Clickable {
+class ClickableWidget(private val onClick: (Int) -> Clickable.Action) : Widget(), Clickable {
     override fun click(button: Int) = onClick(button)
+}
+
+class HoverableWidget : Widget(), Hoverable {
+    override var hoverProgress = 0f
+    override var hovered = false
 }
 
 class Bounds(val x: Int, val y: Int, width: Int, height: Int) {

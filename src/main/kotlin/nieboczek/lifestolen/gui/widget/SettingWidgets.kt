@@ -114,9 +114,7 @@ class BlockListSettingWidget(setting: BlockListSetting) : SettingWidget<MutableL
     override fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {}
 }
 
-class SliderWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Widget(), Hoverable, Draggable {
-    override var hovered = false
-    override var hoverProgress = 0f
+class SliderWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Widget(), Draggable {
     override var dragging = false
     override var dragProgress = 0f
 
@@ -125,9 +123,11 @@ class SliderWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Widget(),
     private var railWidth = 0
     private var headSize = FONT_SMALL_HEIGHT
 
+    private val hoverable = HoverableWidget()
+
     fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {
         val railColor = OUTLINE_COLOR
-        val headColor = lerpColor(0xFF999999.toInt(), 0xFFBBBBBB.toInt(), max(hoverProgress, dragProgress))
+        val headColor = lerpColor(0xFF999999.toInt(), 0xFFBBBBBB.toInt(), max(hoverable.hoverProgress, dragProgress))
 
         val ax = x - width
         val ay = y + FONT_SMALL_HEIGHT + 4
@@ -138,11 +138,12 @@ class SliderWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Widget(),
         val headX = computeHeadX(displayValue, ax, width, size)
 
         graphics.roundedRect(headX, ay.toFloat(), size.toFloat(), size.toFloat(), headColor, radius = 3.5f)
-        bounds = Bounds(headX.toInt(), ay, size, size)
+        hoverable.bounds = Bounds(headX.toInt(), ay, size, size)
 
         railX = ax
         railWidth = width
         headSize = size
+        bounds = Bounds(ax, ay, width, size)
     }
 
     override fun drag(x: Double, y: Double) {
@@ -179,6 +180,8 @@ class SliderWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Widget(),
         val t = ((value - min) / (max - min)).toFloat().coerceIn(0f, 1f)
         return x + ((width - headSize) * t)
     }
+
+    override fun getVisibleChildren() = listOf(hoverable)
 }
 
 class NumberSettingWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : SettingWidget<T>(setting), Hoverable {
@@ -196,8 +199,12 @@ class NumberSettingWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Se
         graphics.roundedRect(ax, ay, boxWidth, height, 0, outlineColor, OUTLINE_WIDTH, 3f)
         bounds = Bounds(ax, ay, boxWidth, height)
 
-        val decimalPlaces = setting.step.toString().substringAfter('.', "").length
-        val text = if (live.value is Int) live.value.toString() else "%.${decimalPlaces}f".format(live.value)
+        val text = if (live.value is Int) {
+            live.value.toString()
+        } else {
+            val decimalPlaces = setting.step.toString().substringAfter('.', "").length
+            "%.${decimalPlaces}f".format(live.value)
+        }
         val textX = ax + ((boxWidth - fontExtraSmall.width(text)) / 2)
         val textY = y + (FONT_SMALL_HEIGHT / 2) - (FONT_EXTRA_SMALL_HEIGHT / 2)
         val color = lerpColor(0xDDCCCCCC.toInt(), 0xDDFFFFFF.toInt(), hoverProgress)
