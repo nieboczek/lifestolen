@@ -46,9 +46,9 @@ class ColorSettingWidget(setting: ColorSetting) : SettingWidget<Int>(setting) {
 }
 
 class KeybindSettingWidget(setting: KeybindSetting) : SettingWidget<Int>(setting), Hoverable, Clickable, KeyCapturer {
-    var recording = false
     override var hovered = false
     override var hoverProgress = 0f
+    private var recording = false
 
     override fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {
         val width = 40
@@ -196,9 +196,9 @@ class IntRangeSettingWidget(setting: IntRangeSetting) : SettingWidget<IntRange>(
 }
 
 class BooleanSettingWidget(setting: BooleanSetting) : SettingWidget<Boolean>(setting), Hoverable, Clickable {
-    var enableProgress = if (live.value) 1f else 0f
     override var hovered = false
     override var hoverProgress = 0f
+    private var enableProgress = if (live.value) 1f else 0f
 
     companion object {
         private val checkmarkHandle = FriedSvg.loadSvg(Lifestolen.identifier("svg/checkmark.svg"))
