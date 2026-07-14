@@ -75,19 +75,37 @@ fun GuiGraphicsExtractor.roundedRect(
     radius: Float = 4f,
 ) = guiRenderState.addGuiElement(
     RoundedRectRenderState(
-        x,
-        y,
-        x + width,
-        y + height,
-        fillColor,
-        outlineColor,
-        outlineWidth,
-        radius,
-        scissorStack.peek()
+        x, y, x + width, y + height, fillColor, outlineColor, outlineWidth, radius, scissorStack.peek()
     )
 )
 
-fun GuiGraphicsExtractor.rect(x: Float, y: Float, width: Float, height: Float, fillColor: Int) = guiRenderState.addGuiElement(
-    RectRenderState(x, y, (x + width), (y + height), fillColor)
-)
+fun GuiGraphicsExtractor.rect(x: Float, y: Float, width: Float, height: Float, fillColor: Int) =
+    guiRenderState.addGuiElement(
+        RectRenderState(x, y, (x + width), (y + height), fillColor)
+    )
 
+fun GuiGraphicsExtractor.rect(x: Int, y: Int, width: Int, height: Int, fillColor: Int) =
+    fill(x, y, x + width, y + height, fillColor)
+
+fun GuiGraphicsExtractor.colorPickerRect(
+    x: Int,
+    y: Int,
+    width: Int,
+    height: Int,
+    pickerType: Int,
+    hue: Float = 0f,
+    saturation: Float = 1f,
+    value: Float = 1f,
+) = guiRenderState.addGuiElement(
+    ColorPickerRenderState(
+        x.toFloat(),
+        y.toFloat(),
+        (x + width).toFloat(),
+        (y + height).toFloat(),
+        pickerType,
+        hue,
+        saturation,
+        value,
+        scissorStack.peek()
+    )
+)

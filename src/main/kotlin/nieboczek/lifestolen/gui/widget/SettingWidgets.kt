@@ -9,6 +9,8 @@ import nieboczek.lifestolen.Lifestolen.fontExtraSmall
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.gui.friedsvg.blitPixel
+import nieboczek.lifestolen.gui.render.ColorPickerRenderState
+import nieboczek.lifestolen.gui.render.colorPickerRect
 import nieboczek.lifestolen.gui.render.rect
 import nieboczek.lifestolen.gui.render.roundedRect
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_EXTRA_SMALL_HEIGHT
@@ -28,21 +30,42 @@ abstract class SettingWidget<T>(val live: Setting<T>) : Widget() {
 }
 
 class ColorSettingWidget(setting: ColorSetting) : SettingWidget<Int>(setting) {
-    var oldHue: Float
-    var oldSaturation: Float
-    var oldBrightness: Float
-    var oldAlpha: Int
+    private var oldHue: Float
+    private var oldSaturation: Float
+    private var oldBrightness: Float
+    private var oldAlpha: Int
+
+    private val size = 48
 
     init {
         val v = setting.value
-        val arr = Color.RGBtoHSB(v and 0xFF, (v shr 2) and 0xFF, (v shr 4) and 0xFF, null)
+        val arr = Color.RGBtoHSB((v shr 16) and 0xFF, (v shr 8) and 0xFF, v and 0xFF, null)
         oldHue = arr[0]
         oldSaturation = arr[1]
         oldBrightness = arr[2]
-        oldAlpha = (v shr 6) and 0xFF
+        oldAlpha = (v shr 24) and 0xFF
     }
 
-    override fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {}
+    override fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {
+        val sliderWidth = 8
+        val gap = 4
+        val ay = y - 2
+        val squareX = x - size
+
+        graphics.colorPickerRect(
+            squareX, ay, size, size, ColorPickerRenderState.TYPE_SV_SQUARE, oldHue
+        )
+
+        val hsX = squareX - sliderWidth - gap
+        graphics.colorPickerRect(hsX, ay, sliderWidth, size, ColorPickerRenderState.TYPE_HUE_SLIDER)
+
+        val asX = hsX - sliderWidth - gap
+        graphics.colorPickerRect(
+            asX, ay, sliderWidth, size, ColorPickerRenderState.TYPE_ALPHA_SLIDER, oldHue, oldSaturation, oldBrightness
+        )
+    }
+
+    override fun calculateHeight() = size - 4
 }
 
 class KeybindSettingWidget(setting: KeybindSetting) : SettingWidget<Int>(setting), Hoverable, Clickable, KeyCapturer {
