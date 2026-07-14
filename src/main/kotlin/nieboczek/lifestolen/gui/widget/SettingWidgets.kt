@@ -30,20 +30,71 @@ abstract class SettingWidget<T>(val live: Setting<T>) : Widget() {
 }
 
 class ColorSettingWidget(setting: ColorSetting) : SettingWidget<Int>(setting) {
-    private var oldHue: Float
-    private var oldSaturation: Float
-    private var oldBrightness: Float
-    private var oldAlpha: Int
+    private var hue: Float
+    private var saturation: Float
+    private var brightness: Float
+    private var alpha: Float
 
     private val size = 48
+
+    private inner class SvSquareRect : Widget(), Draggable {
+        override var dragging = false
+        override var dragProgress = 0f
+
+        var rx = 0
+        var ry = 0
+        var rw = 0
+        var rh = 0
+
+        override fun drag(x: Double, y: Double) {
+            saturation = ((x - rx) / rw).coerceIn(0.0, 1.0).toFloat()
+            brightness = (1.0 - (y - ry) / rh).coerceIn(0.0, 1.0).toFloat()
+            updateColor()
+        }
+    }
+
+    private inner class HueSliderRect : Widget(), Draggable {
+        override var dragging = false
+        override var dragProgress = 0f
+
+        var ry = 0
+        var rh = 0
+
+        override fun drag(x: Double, y: Double) {
+            hue = ((y - ry) / rh).coerceIn(0.0, 1.0).toFloat()
+            updateColor()
+        }
+    }
+
+    private inner class AlphaSliderRect : Widget(), Draggable {
+        override var dragging = false
+        override var dragProgress = 0f
+
+        var ry = 0
+        var rh = 0
+
+        override fun drag(x: Double, y: Double) {
+            alpha = (1.0 - (y - ry) / rh).coerceIn(0.0, 1.0).toFloat()
+            updateColor()
+        }
+    }
+
+    private val svSquare = SvSquareRect()
+    private val hueSlider = HueSliderRect()
+    private val alphaSlider = AlphaSliderRect()
+
+    private fun updateColor() {
+        val rgb = Color.HSBtoRGB(hue, saturation, brightness)
+        live.value = ((alpha * 255f).toInt() shl 24) or (rgb and 0xFFFFFF)
+    }
 
     init {
         val v = setting.value
         val arr = Color.RGBtoHSB((v shr 16) and 0xFF, (v shr 8) and 0xFF, v and 0xFF, null)
-        oldHue = arr[0]
-        oldSaturation = arr[1]
-        oldBrightness = arr[2]
-        oldAlpha = (v shr 24) and 0xFF
+        hue = arr[0]
+        saturation = arr[1]
+        brightness = arr[2]
+        alpha = ((v shr 24) and 0xFF) / 255f
     }
 
     override fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {
@@ -51,19 +102,68 @@ class ColorSettingWidget(setting: ColorSetting) : SettingWidget<Int>(setting) {
         val gap = 4
         val ay = y - 2
         val squareX = x - size
+        val barOverhang = 1f
+        val barWidth = sliderWidth + (barOverhang * 2f)
+        val barHeight = 2f
+        val barYOffset = barHeight / -2f
+        val barFill = 0xFFFFFFFF.toInt()
+        val barOutline = 0xFF000000.toInt()
 
         graphics.colorPickerRect(
-            squareX, ay, size, size, ColorPickerRenderState.TYPE_SV_SQUARE, oldHue
+            squareX, ay, size, size, ColorPickerRenderState.TYPE_SV_SQUARE, hue
         )
+
+        val circleSize = 4
+        val cx = squareX + size * saturation
+        val cy = ay + size * (1 - brightness)
+
+        graphics.roundedRect(
+            cx - circleSize / 2,
+            cy - circleSize / 2,
+            circleSize.toFloat(),
+            circleSize.toFloat(),
+            0xFFFFFFFF.toInt(),
+            0xFF000000.toInt(),
+            1,
+            circleSize / 2f
+        )
+
+        with(svSquare) {
+            rx = squareX
+            ry = ay
+            rw = size
+            rh = size
+            bounds = Bounds(squareX, ay, size, size)
+        }
 
         val hsX = squareX - sliderWidth - gap
         graphics.colorPickerRect(hsX, ay, sliderWidth, size, ColorPickerRenderState.TYPE_HUE_SLIDER)
 
+        val hy = (ay + size * hue) + barYOffset
+        graphics.roundedRect((hsX - barOverhang), hy, barWidth, barHeight, barFill, barOutline, 1, 1f)
+
+        with(hueSlider) {
+            ry = ay
+            rh = size
+            bounds = Bounds(hsX, ay, sliderWidth, size)
+        }
+
         val asX = hsX - sliderWidth - gap
         graphics.colorPickerRect(
-            asX, ay, sliderWidth, size, ColorPickerRenderState.TYPE_ALPHA_SLIDER, oldHue, oldSaturation, oldBrightness
+            asX, ay, sliderWidth, size, ColorPickerRenderState.TYPE_ALPHA_SLIDER, hue, saturation, brightness
         )
+
+        val ahy = ay + size * (1f - alpha) + barYOffset
+        graphics.roundedRect((asX - barOverhang), ahy, barWidth, barHeight, barFill, barOutline, 1, 1f)
+
+        with(alphaSlider) {
+            ry = ay
+            rh = size
+            bounds = Bounds(asX, ay, sliderWidth, size)
+        }
     }
+
+    override fun getVisibleChildren() = listOf<Widget>(svSquare, hueSlider, alphaSlider)
 
     override fun calculateHeight() = size - 4
 }
