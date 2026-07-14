@@ -20,6 +20,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
     private var currentlyHovered = ArrayList<Hoverable>(4)
     private var currentlyCapturing: KeyCapturer? = null
+    private var currentlyDragging: Draggable? = null
     private var rainbowColorOffset = 0f
 
     override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
@@ -36,6 +37,10 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
             if (it is Hoverable) {
                 it.hoverProgress = if (it.hovered) (it.hoverProgress + dt).coerceAtMost(1f)
                 else (it.hoverProgress - dt).coerceAtLeast(0f)
+            }
+            if (it is Draggable) {
+                it.dragProgress = if (it.dragging) (it.dragProgress + dt).coerceAtMost(1f)
+                else (it.dragProgress - dt).coerceAtLeast(0f)
             }
             return@walkWidgets false
         }
@@ -94,7 +99,29 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
                 return@walkWidgets true
             }
+            if (it is Draggable && it.bounds.isInBounds(event)) {
+                currentlyDragging = it
+                it.dragging = true
+                it.drag(event.x, event.y)
+                return@walkWidgets true
+            }
             return@walkWidgets false
+        }
+        return true
+    }
+
+    override fun mouseDragged(event: MouseButtonEvent, dx: Double, dy: Double): Boolean {
+        if (event.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) return true
+        currentlyDragging?.drag(event.x, event.y)
+        return true
+    }
+
+    override fun mouseReleased(event: MouseButtonEvent): Boolean {
+        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            currentlyDragging?.let {
+                it.dragging = false
+                currentlyDragging = null
+            }
         }
         return true
     }

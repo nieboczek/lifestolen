@@ -38,19 +38,7 @@ fun GuiGraphicsExtractor.blurredRoundedRect(
         )
     )
 
-    guiRenderState.addGuiElement(
-        RoundedRectRenderState(
-            x,
-            y,
-            x + width,
-            y + height,
-            fillColor,
-            outlineColor,
-            outlineWidth,
-            radius,
-            scissorStack.peek()
-        )
-    )
+    roundedRect(x, y, width, height, fillColor, outlineColor, outlineWidth, radius)
 }
 
 fun GuiGraphicsExtractor.roundedRect(
@@ -58,6 +46,29 @@ fun GuiGraphicsExtractor.roundedRect(
     y: Int,
     width: Int,
     height: Int,
+    fillColor: Int,
+    outlineColor: Int = 0,
+    outlineWidth: Int = 0,
+    radius: Float = 4f,
+) = guiRenderState.addGuiElement(
+    RoundedRectRenderState(
+        x.toFloat(),
+        y.toFloat(),
+        (x + width).toFloat(),
+        (y + height).toFloat(),
+        fillColor,
+        outlineColor,
+        outlineWidth,
+        radius,
+        scissorStack.peek()
+    )
+)
+
+fun GuiGraphicsExtractor.roundedRect(
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
     fillColor: Int,
     outlineColor: Int = 0,
     outlineWidth: Int = 0,

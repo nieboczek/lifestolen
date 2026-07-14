@@ -1,7 +1,5 @@
 package nieboczek.lifestolen.gui.widget
 
-import nieboczek.lifestolen.Lifestolen
-
 object ScreenState {
     const val OUTLINE_COLOR = 0x92888888.toInt()
     const val HOVERED_OUTLINE_COLOR = 0x92BBBBBB.toInt()
@@ -12,11 +10,6 @@ object ScreenState {
     const val FONT_EXTRA_SMALL_HEIGHT = 4
     const val SETTING_GAP = 6
     const val MODULE_INSIDE_V_PADDING = 4
-
-    val font = Lifestolen.font
-    val fontBig = Lifestolen.fontBig
-    val fontSmall = Lifestolen.fontSmall
-    val fontExtraSmall = Lifestolen.fontExtraSmall
 
     var currentlyConfiguring: ModuleWidget? = null
     var debugMode = false

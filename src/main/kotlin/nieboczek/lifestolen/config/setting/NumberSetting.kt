@@ -2,7 +2,7 @@ package nieboczek.lifestolen.config.setting
 
 import nieboczek.lifestolen.serializer.base.Serializer
 
-abstract class NumberSetting<T: Comparable<T>>(
+class NumberSetting<T: Comparable<T>>(
     name: String,
     default: T,
     val allowed: ClosedRange<T>,

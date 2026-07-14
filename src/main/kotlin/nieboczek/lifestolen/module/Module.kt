@@ -7,6 +7,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
+import nieboczek.lifestolen.serializer.base.DoubleSerializer
+import nieboczek.lifestolen.serializer.base.FloatSerializer
+import nieboczek.lifestolen.serializer.base.IntSerializer
 
 abstract class Module(val id: String, val category: Category) {
     val mc = Minecraft.getInstance()
@@ -59,7 +62,7 @@ abstract class Module(val id: String, val category: Category) {
     ) = addSetting(IntRangeSetting(name, default, allowed, suffix, step))
 
     fun int(name: String, default: Int, allowed: IntRange, suffix: String = "", step: Int = 1) =
-        addSetting(IntSetting(name, default, allowed, suffix, step))
+        addSetting(NumberSetting(name, default, allowed, suffix, step, IntSerializer()))
 
     fun double(
         name: String,
@@ -67,7 +70,7 @@ abstract class Module(val id: String, val category: Category) {
         allowed: ClosedFloatingPointRange<Double>,
         suffix: String = "",
         step: Double = 1.0
-    ) = addSetting(DoubleSetting(name, default, allowed, suffix, step))
+    ) = addSetting(NumberSetting(name, default, allowed, suffix, step, DoubleSerializer()))
 
     fun boolean(name: String, default: Boolean = true) = addSetting(BooleanSetting(name, default))
 
@@ -77,7 +80,7 @@ abstract class Module(val id: String, val category: Category) {
         allowed: ClosedFloatingPointRange<Float>,
         suffix: String = "",
         step: Float = 1f
-    ) = addSetting(FloatSetting(name, default, allowed, suffix, step))
+    ) = addSetting(NumberSetting(name, default, allowed, suffix, step, FloatSerializer()))
 
     fun color(name: String, default: Int = -1) = addSetting(ColorSetting(name, default))
 

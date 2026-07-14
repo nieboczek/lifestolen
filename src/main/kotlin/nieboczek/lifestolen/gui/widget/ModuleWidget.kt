@@ -1,6 +1,8 @@
 package nieboczek.lifestolen.gui.widget
 
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import nieboczek.lifestolen.Lifestolen.font
+import nieboczek.lifestolen.Lifestolen.fontSmall
 import nieboczek.lifestolen.gui.render.rect
 import nieboczek.lifestolen.gui.render.roundedRect
 import nieboczek.lifestolen.module.Module
@@ -37,13 +39,14 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
         clickHandler.bounds = Bounds(x, y, moduleWidth, moduleHeight)
         bounds = Bounds(x, y, moduleWidth, height)
 
-        val moduleNameX = x + moduleInsideHPadding + ((moduleWidth - ScreenState.font.width(live.id)) / 2)
+        val moduleNameX = x + moduleInsideHPadding + ((moduleWidth - font.width(live.id)) / 2)
         val color = blendModuleColor(ScreenState.darkRainbowColor, ScreenState.rainbowColor)
-        graphics.text(ScreenState.font, live.id, moduleNameX, y + ScreenState.MODULE_INSIDE_V_PADDING, color, false)
+        graphics.text(font, live.id, moduleNameX, y + ScreenState.MODULE_INSIDE_V_PADDING, color, false)
 
         if (expandProgress > 0f) {
             val settingX = x + moduleInsideHPadding
             val rightAlignedX = x + moduleWidth - moduleInsideHPadding
+            val settingWidth = moduleWidth - (moduleInsideHPadding * 2)
             var settingY =
                 y + ScreenState.MODULE_INSIDE_V_PADDING + ScreenState.FONT_HEIGHT + ScreenState.MODULE_INSIDE_V_PADDING
 
@@ -57,8 +60,8 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
             for (setting in settings) {
                 if (setting.live.id == "Enabled") continue
 
-                graphics.text(ScreenState.fontSmall, setting.live.name, settingX, settingY, -1, false)
-                setting.render(graphics, rightAlignedX, settingY)
+                graphics.text(fontSmall, setting.live.name, settingX, settingY, -1, false)
+                setting.render(graphics, rightAlignedX, settingY, settingWidth)
 
                 if (ScreenState.debugMode) {
                     val fx = x.toFloat()

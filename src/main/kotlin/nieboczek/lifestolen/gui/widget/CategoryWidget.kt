@@ -1,6 +1,7 @@
 package nieboczek.lifestolen.gui.widget
 
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import nieboczek.lifestolen.Lifestolen.fontBig
 import nieboczek.lifestolen.gui.render.blurredRoundedRect
 import nieboczek.lifestolen.gui.render.rect
 import kotlin.math.ceil
@@ -40,8 +41,8 @@ class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget
             16f,
         )
 
-        val nameX = categoryX + ((categoryWidth - ScreenState.fontBig.width(name)) / 2)
-        graphics.text(ScreenState.fontBig, name, nameX, marginTop + namePadding, ScreenState.rainbowColor, false)
+        val nameX = categoryX + ((categoryWidth - fontBig.width(name)) / 2)
+        graphics.text(fontBig, name, nameX, marginTop + namePadding, ScreenState.rainbowColor, false)
         graphics.rect(
             categoryX + (ScreenState.OUTLINE_WIDTH / ScreenState.guiScale),
             lineY.toFloat(),

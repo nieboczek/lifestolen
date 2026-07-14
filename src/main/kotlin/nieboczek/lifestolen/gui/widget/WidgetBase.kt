@@ -14,6 +14,13 @@ interface Hoverable {
     var hoverProgress: Float
 }
 
+interface Draggable {
+    var dragging: Boolean
+    var dragProgress: Float
+
+    fun drag(x: Double, y: Double)
+}
+
 interface Clickable {
     fun click(button: Int): Action
 
