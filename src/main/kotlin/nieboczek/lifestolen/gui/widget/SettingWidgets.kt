@@ -15,6 +15,7 @@ import nieboczek.lifestolen.gui.render.rect
 import nieboczek.lifestolen.gui.render.roundedRect
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_EXTRA_SMALL_HEIGHT
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_SMALL_HEIGHT
+import nieboczek.lifestolen.gui.widget.ScreenState.HOVERED_OUTLINE_COLOR
 import nieboczek.lifestolen.gui.widget.ScreenState.OUTLINE_COLOR
 import nieboczek.lifestolen.gui.widget.ScreenState.OUTLINE_WIDTH
 import nieboczek.lifestolen.gui.widget.ScreenState.lerpColor
@@ -284,10 +285,16 @@ class SliderWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Widget(),
     override fun getVisibleChildren() = listOf(hoverable)
 }
 
-class NumberSettingWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : SettingWidget<T>(setting), Hoverable {
-    override var hovered: Boolean = false
-    override var hoverProgress: Float = 0f
+class NumberSettingWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : SettingWidget<T>(setting), Hoverable,
+    Clickable, KeyCapturer {
+    override var hovered = false
+    override var hoverProgress = 0f
+
+    private var capturing = false
+    private var captureProgress = 0f
+
     private val slider = SliderWidget(setting)
+    private var tempStrVal = ""
 
     override fun render(graphics: GuiGraphicsExtractor, x: Int, y: Int, width: Int) {
         val boxWidth = 20
@@ -295,22 +302,87 @@ class NumberSettingWidget<T : Comparable<T>>(val setting: NumberSetting<T>) : Se
         val ax = x - boxWidth
         val ay = y - 2
 
-        val outlineColor = lerpOutlineColor(hoverProgress)
-        graphics.roundedRect(ax, ay, boxWidth, height, 0, outlineColor, OUTLINE_WIDTH, 3f)
+        val fillColor = lerpColor(0, 0x22FFFFFF, captureProgress)
+        val outlineColor = if (capturing) HOVERED_OUTLINE_COLOR else lerpOutlineColor(hoverProgress)
+        graphics.roundedRect(ax, ay, boxWidth, height, fillColor, outlineColor, OUTLINE_WIDTH, 3f)
         bounds = Bounds(ax, ay, boxWidth, height)
 
-        val text = if (live.value is Int) {
-            live.value.toString()
-        } else {
-            val decimalPlaces = setting.step.toString().substringAfter('.', "").length
-            "%.${decimalPlaces}f".format(live.value)
+        val text = when {
+            tempStrVal.isNotEmpty() -> tempStrVal
+            live.value is Int -> live.value.toString()
+            else -> {
+                val decimalPlaces = setting.step.toString().substringAfter('.', "").length
+                "%.${decimalPlaces}f".format(live.value)
+            }
         }
+
         val textX = ax + ((boxWidth - fontExtraSmall.width(text)) / 2)
         val textY = y + (FONT_SMALL_HEIGHT / 2) - (FONT_EXTRA_SMALL_HEIGHT / 2)
         val color = lerpColor(0xDDCCCCCC.toInt(), 0xDDFFFFFF.toInt(), hoverProgress)
         graphics.text(fontExtraSmall, text, textX, textY, color, false)
 
         slider.render(graphics, x, y, width)
+    }
+
+    override fun tick(dt: Float) {
+        captureProgress = if (capturing) (captureProgress + dt).coerceAtMost(1f)
+        else (captureProgress - dt).coerceAtLeast(0f)
+    }
+
+    override fun click(button: Int): Clickable.Action {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            capturing = true
+            return Clickable.Action.CAPTURE_KEY
+        }
+        return Clickable.Action.NONE
+    }
+
+    override fun captureKey(key: Int): KeyCapturer.Action {
+        @Suppress("KotlinConstantConditions")
+        when (key) {
+            GLFW.GLFW_KEY_ENTER -> {
+                try {
+                    val value = @Suppress("unchecked_cast") run {
+                        when (setting.value) {
+                            is Int -> tempStrVal.toInt()
+                            is Float -> tempStrVal.toFloat()
+                            is Double -> tempStrVal.toDouble()
+                            else -> error("NumberSetting is not Int, Float, or Double")
+                        } as T
+                    }
+                    setting.value = value.coerceIn(setting.allowed)
+                } catch (_: NumberFormatException) {
+                }
+                tempStrVal = ""
+                capturing = false
+                return KeyCapturer.Action.STOP_CAPTURING
+            }
+
+            GLFW.GLFW_KEY_ESCAPE -> {
+                tempStrVal = ""
+                capturing = false
+                return KeyCapturer.Action.STOP_CAPTURING
+            }
+
+            GLFW.GLFW_KEY_BACKSPACE -> tempStrVal = tempStrVal.substring(0, tempStrVal.length - 1)
+
+            in Int.MIN_VALUE..Int.MAX_VALUE if tempStrVal.length >= 40 -> {}
+
+            // kotlin throws a warning even though these are reachable
+            GLFW.GLFW_KEY_PERIOD if live.value !is Int && '.' !in tempStrVal -> tempStrVal += '.'
+            GLFW.GLFW_KEY_MINUS if tempStrVal.isEmpty() -> tempStrVal += '-'
+            GLFW.GLFW_KEY_0 -> tempStrVal += '0'
+            GLFW.GLFW_KEY_1 -> tempStrVal += '1'
+            GLFW.GLFW_KEY_2 -> tempStrVal += '2'
+            GLFW.GLFW_KEY_3 -> tempStrVal += '3'
+            GLFW.GLFW_KEY_4 -> tempStrVal += '4'
+            GLFW.GLFW_KEY_5 -> tempStrVal += '5'
+            GLFW.GLFW_KEY_6 -> tempStrVal += '6'
+            GLFW.GLFW_KEY_7 -> tempStrVal += '7'
+            GLFW.GLFW_KEY_8 -> tempStrVal += '8'
+            GLFW.GLFW_KEY_9 -> tempStrVal += '9'
+        }
+        return KeyCapturer.Action.NONE
     }
 
     override fun getVisibleChildren() = listOf(slider)
