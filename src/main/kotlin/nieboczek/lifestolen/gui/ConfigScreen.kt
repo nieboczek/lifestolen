@@ -55,7 +55,7 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.
 
     override fun keyPressed(event: KeyEvent): Boolean {
         currentlyCapturing?.let {
-            val action = it.captureKey(if (event.isEscape) 0 else event.key)
+            val action = it.captureKey(event.key)
             if (action == KeyCapturer.Action.STOP_CAPTURING) currentlyCapturing = null
             return true
         }

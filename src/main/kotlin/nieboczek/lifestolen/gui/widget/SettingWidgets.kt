@@ -202,7 +202,7 @@ class KeybindSettingWidget(setting: KeybindSetting) : SettingWidget<Int>(setting
     }
 
     override fun captureKey(key: Int): KeyCapturer.Action {
-        live.value = key
+        live.value = if (key == GLFW.GLFW_KEY_ESCAPE) 0 else key
         recording = false
         return KeyCapturer.Action.STOP_CAPTURING
     }
