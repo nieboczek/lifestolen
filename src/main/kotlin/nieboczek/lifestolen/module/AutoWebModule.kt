@@ -1,6 +1,6 @@
 package nieboczek.lifestolen.module
 
-object AutoWebModule : Module("AutoWeb", Category.COMBAT) {
+object AutoWebModule : Module("Auto Web", Category.COMBAT) {
     private val range by double("Range", 4.0, 1.0..6.0, "blocks", 0.01)
 
     override fun tick() {

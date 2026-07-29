@@ -12,7 +12,7 @@ import nieboczek.lifestolen.util.Renderer3d
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-object KillAuraModule : Module("KillAura", Category.COMBAT) {
+object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
     private val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
     private val attackOnlyPlayers by boolean("Attack Only Players")
     private val lookAtTarget by boolean("Look At Target")

@@ -6,7 +6,7 @@ import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.mixininterfaces.IKeyboardInput
 import nieboczek.lifestolen.module.util.RotationUtil
 
-object FreeCamModule : Module("FreeCam", Category.VISUALS) {
+object FreeCamModule : Module("Free Cam", Category.VISUALS) {
     private val baseHorizontalSpeed by double("Base Horizontal Speed", 0.8, 0.01..10.0, step = 0.01)
     private val baseVerticalSpeed by double("Base Vertical Speed", 0.6, 0.01..10.0, step = 0.01)
     private val sprintHorizontalSpeed by double("Sprint Horizontal Speed", 1.6, 0.01..10.0, step = 0.01)

@@ -9,7 +9,7 @@ import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.InventoryMenu
 
-object AutoTotemModule : Module("AutoTotem", Category.COMBAT) {
+object AutoTotemModule : Module("Auto Totem", Category.COMBAT) {
     private val healthThreshold by int("Health Threshold", 12, 0..40)
     private val switchDelay by int("Switch Delay", 50, 0..500, "ms")
 

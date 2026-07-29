@@ -17,8 +17,8 @@ import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
-import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.gui.ConfigScreen
+import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Commands
@@ -46,6 +46,7 @@ object Lifestolen : ClientModInitializer {
         private set
 
     var killSwitch = false
+        private set
 
     private var firstTickWithPlayer = false
     private var rainbowColorOffset = 0

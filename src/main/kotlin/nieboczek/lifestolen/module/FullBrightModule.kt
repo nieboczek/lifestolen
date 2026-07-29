@@ -2,7 +2,7 @@ package nieboczek.lifestolen.module
 
 import nieboczek.lifestolen.Lifestolen
 
-object FullBrightModule : Module("FullBright", Category.VISUALS) {
+object FullBrightModule : Module("Full Bright", Category.VISUALS) {
     private val affectedByKillSwitch by boolean("Affected By Kill Switch")
 
     @JvmStatic

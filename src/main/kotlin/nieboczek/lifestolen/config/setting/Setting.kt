@@ -1,11 +1,11 @@
 package nieboczek.lifestolen.config.setting
 
 import nieboczek.lifestolen.serializer.base.Serializer
-import nieboczek.lifestolen.util.StringUtils
+import nieboczek.lifestolen.util.titleCaseToPascalCase
 import kotlin.reflect.KProperty
 
 abstract class Setting<T>(val name: String, val default: T, val serializer: Serializer<T>) {
-    val id = StringUtils.titleCaseToPascalCase(name)
+    val id = name.titleCaseToPascalCase()
     var value = default
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {

@@ -39,9 +39,9 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
         clickHandler.bounds = Bounds(x, y, moduleWidth, moduleHeight)
         bounds = Bounds(x, y, moduleWidth, height)
 
-        val moduleNameX = x + moduleInsideHPadding + ((moduleWidth - font.width(live.id)) / 2)
+        val moduleNameX = x + moduleInsideHPadding + ((moduleWidth - font.width(live.name)) / 2)
         val color = blendModuleColor(ScreenState.darkRainbowColor, ScreenState.rainbowColor)
-        graphics.text(font, live.id, moduleNameX, y + ScreenState.MODULE_INSIDE_V_PADDING, color, false)
+        graphics.text(font, live.name, moduleNameX, y + ScreenState.MODULE_INSIDE_V_PADDING, color, false)
 
         if (expandProgress > 0f) {
             val settingX = x + moduleInsideHPadding

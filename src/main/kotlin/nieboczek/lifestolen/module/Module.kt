@@ -10,8 +10,10 @@ import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.serializer.base.DoubleSerializer
 import nieboczek.lifestolen.serializer.base.FloatSerializer
 import nieboczek.lifestolen.serializer.base.IntSerializer
+import nieboczek.lifestolen.util.titleCaseToPascalCase
 
-abstract class Module(val id: String, val category: Category) {
+abstract class Module(val name: String, val category: Category) {
+    val id = name.titleCaseToPascalCase()
     val mc = Minecraft.getInstance()
     val player get() = mc.player!!
 
