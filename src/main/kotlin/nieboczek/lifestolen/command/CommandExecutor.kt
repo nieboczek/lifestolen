@@ -121,6 +121,10 @@ object CommandExecutor {
         if (current.arguments.isNotEmpty()) {
             when (current.arguments[0].type) {
                 Argument.Type.MODULE -> Lifestolen.modules.forEach { builder.suggest(it.id) }
+                Argument.Type.CONFIG_KEY -> {
+                    builder.suggest("RenderClientBrandText")
+                    builder.suggest("CommandPrefix")
+                }
                 else -> {}
             }
         }

@@ -61,6 +61,23 @@ object Commands {
             Lifestolen.displayStatus(Component.literal("Module ${module.id} has been ").append(status))
         }.register()
 
+        Command("cfg").argument(Argument("key", Argument.Type.CONFIG_KEY)).argument(Argument("value", Argument.Type.STRING)).executes {
+            val key = it.getString("key")
+            val value = it.getString("value")
+
+            when (key.lowercase()) {
+                "renderclientbrandtext" -> {
+                    Lifestolen.cfg.renderClientBrandText = value.toBoolean()
+                    Lifestolen.displayStatus(Component.literal("Set RenderClientBrandText to $value"))
+                }
+                "commandprefix" -> {
+                    Lifestolen.cfg.commandPrefix = value
+                    Lifestolen.displayStatus(Component.literal("Set CommandPrefix to '$value'"))
+                }
+                else -> Lifestolen.displayStatus(Component.literal("Unknown config key: $key"))
+            }
+        }.register()
+
         Command("bind").argument(Argument("module", Argument.Type.MODULE))
             .argument(Argument("key", Argument.Type.STRING)).executes {
                 val module = it.getModule("module")
