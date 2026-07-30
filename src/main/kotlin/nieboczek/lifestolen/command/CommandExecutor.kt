@@ -33,17 +33,17 @@ object CommandExecutor {
         current.executeFn?.invoke(Command.Ctx(resolvedArgs))
     }
 
-    fun getUsageInfo(text: String): List<String> {
+    fun getUsageInfo(text: String): String? {
         val prefix = Lifestolen.cfg.commandPrefix
-        if (!text.startsWith(prefix)) return emptyList()
+        if (!text.startsWith(prefix)) return null
         val stripped = text.removePrefix(prefix)
-        if (stripped.isBlank()) return emptyList()
+        if (stripped.isBlank()) return null
 
         val tokens = stripped.split(" ")
         val tailIsWhitespace = stripped.endsWith(" ")
         val completeTokens = (if (tailIsWhitespace) tokens else tokens.dropLast(1)).filter { it.isNotEmpty() }
 
-        var current = Commands.commands.find { it.name == completeTokens.getOrNull(0) } ?: return emptyList()
+        var current = Commands.commands.find { it.name == completeTokens.getOrNull(0) } ?: return null
         val (resolved, idx) = traverseSubcommands(current, completeTokens)
         current = resolved
 
@@ -56,7 +56,8 @@ object CommandExecutor {
             argIdx++
         }
 
-        return current.arguments.drop(argIdx).map { "<${it.name}>" }
+        val arg = current.arguments[argIdx]
+        return "<${arg.name}>"
     }
 
     fun autocomplete(incomplete: String, cursor: Int): CompletableFuture<Suggestions> {

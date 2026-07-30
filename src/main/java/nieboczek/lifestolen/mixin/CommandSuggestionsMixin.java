@@ -60,16 +60,13 @@ public abstract class CommandSuggestionsMixin {
                 if (suggestions == null) showSuggestions(false);
             });
 
+            String line = CommandExecutor.INSTANCE.getUsageInfo(text);
             currentParse = null;
-            ci.cancel();
-
             commandUsage.clear();
-            List<String> usageLines = CommandExecutor.INSTANCE.getUsageInfo(text);
-            for (String line : usageLines) {
-                commandUsage.add(FormattedCharSequence.forward(line, CommandSuggestions.USAGE_FORMAT));
-            }
 
-            if (!commandUsage.isEmpty()) {
+            if (line != null) {
+                commandUsage.add(FormattedCharSequence.forward(line, CommandSuggestions.USAGE_FORMAT));
+
                 int startPos = text.lastIndexOf(' ') + 1;
                 commandUsageWidth = font.width(commandUsage.getFirst());
                 commandUsagePosition = Mth.clamp(
@@ -78,6 +75,8 @@ public abstract class CommandSuggestionsMixin {
                     input.getScreenX(0) + input.getInnerWidth() - commandUsageWidth
                 );
             }
+
+            ci.cancel();
         }
     }
 }

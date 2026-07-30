@@ -15,17 +15,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ChatScreenMixin {
     @Inject(method = "handleChatInput", at = @At("HEAD"), cancellable = true)
     private void handleChatInput(String msg, boolean addToRecent, CallbackInfo ci) {
-        if (msg.startsWith(Lifestolen.INSTANCE.getCfg().getCommandPrefix())) {
-            String command = msg.substring(Lifestolen.INSTANCE.getCfg().getCommandPrefix().length());
-            if (Lifestolen.INSTANCE.getKillSwitch() && !command.trim().equals("kys")) return;
+        Lifestolen mod = Lifestolen.INSTANCE;
+
+        if (msg.startsWith(mod.getCfg().getCommandPrefix())) {
+            String command = msg.substring(mod.getCfg().getCommandPrefix().length());
+            if (mod.getKillSwitch() && !command.trim().equals("kys")) return;
 
             try {
                 CommandExecutor.INSTANCE.execute(command);
             } catch (CommandError cmdError) {
-                Lifestolen.INSTANCE.displayStatus(cmdError.toComponent());
+                mod.displayStatus(cmdError.toComponent());
             } catch (Throwable t) {
-                Lifestolen.INSTANCE.displayStatus(Component.literal(t.toString()));
-                Lifestolen.INSTANCE.getLog().error("Error while executing command", t);
+                mod.displayStatus(Component.literal(t.toString()));
+                mod.getLog().error("Error while executing command", t);
             }
 
             Minecraft.getInstance().gui.hud.getChat().addRecentChat(msg); // TODO: clear the evidence
