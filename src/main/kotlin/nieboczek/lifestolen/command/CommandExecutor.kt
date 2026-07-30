@@ -44,6 +44,41 @@ object CommandExecutor {
         current.executeFn?.invoke(Command.Ctx(resolvedArgs))
     }
 
+    fun getUsageInfo(text: String): List<String> {
+        val prefix = Lifestolen.cfg.commandPrefix
+        if (!text.startsWith(prefix)) return emptyList()
+        val stripped = text.removePrefix(prefix)
+        if (stripped.isBlank()) return emptyList()
+
+        val tokens = stripped.split(" ")
+        val tailIsWhitespace = stripped.endsWith(" ")
+        val completeTokens = (if (tailIsWhitespace) tokens else tokens.dropLast(1)).filter { it.isNotEmpty() }
+
+        var current = Commands.commands.find { it.name == completeTokens.getOrNull(0) } ?: return emptyList()
+
+        var idx = 1
+        while (idx < completeTokens.size) {
+            val sub = current.subcommands.find { it.name == completeTokens[idx] }
+            if (sub != null) {
+                current = sub
+                idx++
+            } else {
+                break
+            }
+        }
+
+        val remaining = completeTokens.drop(idx)
+        var tokenIdx = 0
+        var argIdx = 0
+        while (argIdx < current.arguments.size && tokenIdx < remaining.size) {
+            val def = current.arguments[argIdx]
+            tokenIdx += if (def.type == Argument.Type.GREEDY_STRING) remaining.size - tokenIdx else 1
+            argIdx++
+        }
+
+        return current.arguments.drop(argIdx).map { "<${it.name}>" }
+    }
+
     fun autocomplete(incomplete: String, cursor: Int): CompletableFuture<Suggestions> {
         val text = incomplete.substring(0, cursor.coerceAtMost(incomplete.length))
         val prefixLength = Lifestolen.cfg.commandPrefix.length

@@ -2,9 +2,12 @@ package nieboczek.lifestolen.mixin;
 
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.suggestion.Suggestions;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.command.CommandExecutor;
 import org.jspecify.annotations.Nullable;
@@ -15,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Mixin(CommandSuggestions.class)
@@ -30,6 +34,16 @@ public abstract class CommandSuggestionsMixin {
     public abstract void showSuggestions(boolean immediateNarration);
     @Shadow
     private CommandSuggestions.@Nullable SuggestionsList suggestions;
+    @Shadow
+    @Final
+    private Font font;
+    @Final
+    @Shadow
+    private List<FormattedCharSequence> commandUsage;
+    @Shadow
+    private int commandUsagePosition;
+    @Shadow
+    private int commandUsageWidth;
 
     @Inject(
             method = "updateCommandInfo",
@@ -38,14 +52,32 @@ public abstract class CommandSuggestionsMixin {
     )
     private void updateCommandInfo(CallbackInfo ci) {
         if (Lifestolen.INSTANCE.getKillSwitch()) return;
-        if (input.getValue().startsWith(Lifestolen.INSTANCE.getCfg().getCommandPrefix())) {
-            pendingSuggestions = CommandExecutor.INSTANCE.autocomplete(input.getValue(), input.getCursorPosition());
+        String text = input.getValue();
+
+        if (text.startsWith(Lifestolen.INSTANCE.getCfg().getCommandPrefix())) {
+            pendingSuggestions = CommandExecutor.INSTANCE.autocomplete(text, input.getCursorPosition());
             pendingSuggestions.thenRun(() -> {
                 if (suggestions == null) showSuggestions(false);
             });
 
             currentParse = null;
             ci.cancel();
+
+            commandUsage.clear();
+            List<String> usageLines = CommandExecutor.INSTANCE.getUsageInfo(text);
+            for (String line : usageLines) {
+                commandUsage.add(FormattedCharSequence.forward(line, CommandSuggestions.USAGE_FORMAT));
+            }
+
+            if (!commandUsage.isEmpty()) {
+                int startPos = text.lastIndexOf(' ') + 1;
+                commandUsageWidth = font.width(commandUsage.getFirst());
+                commandUsagePosition = Mth.clamp(
+                    input.getScreenX(startPos),
+                    0,
+                    input.getScreenX(0) + input.getInnerWidth() - commandUsageWidth
+                );
+            }
         }
     }
 }
