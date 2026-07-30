@@ -2,7 +2,6 @@ package nieboczek.lifestolen
 
 import com.mojang.authlib.GameProfile
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
@@ -15,13 +14,13 @@ import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Entity
+import nieboczek.lifestolen.command.Commands
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
-import nieboczek.lifestolen.util.Commands
 import nieboczek.lifestolen.util.FontLoader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -88,12 +87,12 @@ object Lifestolen : ClientModInitializer {
 
     override fun onInitializeClient() {
         FriedSvg.initialize()
+        Commands.initialize()
         ClientLifecycleEvents.CLIENT_STARTED.register { this.clientStarted() }
         ClientLifecycleEvents.CLIENT_STOPPING.register { this.clientStopping() }
         ClientTickEvents.END_CLIENT_TICK.register { mc -> this.clientTick(mc) }
         ClientPlayConnectionEvents.INIT.register { listener, _ -> this.initializeConnection(listener) }
         ClientReceiveMessageEvents.CHAT.register { _, _, sender, bound, _ -> this.receiveChatMessage(sender, bound) }
-        ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ -> Commands.register(dispatcher) }
     }
 
     private fun clientStarted() {

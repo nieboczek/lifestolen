@@ -5,8 +5,10 @@
   "client": [
     "BlockMixin",
     "CameraMixin",
+    "ChatScreenMixin",
     "ClientLevelMixin",
     "ClientPacketListenerMixin",
+    "CommandSuggestionsMixin",
     "ConnectionMixin",
     "EntityFluidInteractionMixin",
     "GameRendererMixin",

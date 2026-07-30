@@ -8,6 +8,7 @@ class ClientConfig {
     var renderClientBrandText = false
     var textScale = 1f
     var friends = mutableListOf<String>()
+    var commandPrefix = "."
 
     companion object {
         const val ID: String = "Client"
@@ -15,5 +16,6 @@ class ClientConfig {
             .field("RenderClientBrandText", BooleanSerializer(), { it.renderClientBrandText }, { c, v -> c.renderClientBrandText = v })
             .field("TextScale", FloatSerializer(), { it.textScale }, { c, v -> c.textScale = v })
             .field("Friends", ListSerializer(StringSerializer()), { it.friends }, { c, v -> c.friends = v })
+            .field("CommandPrefix", StringSerializer(), { it.commandPrefix }, { c, v -> c.commandPrefix = v })
     }
 }
