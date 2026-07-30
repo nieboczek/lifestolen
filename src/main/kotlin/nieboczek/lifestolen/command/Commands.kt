@@ -27,7 +27,7 @@ object Commands {
                 if (Lifestolen.cfg.friends.remove(name)) {
                     Lifestolen.displayStatus(Component.literal("Removed $name from friends"))
                 } else {
-                    Lifestolen.displayStatus(Component.literal("$name isn't a friend"))
+                    throw CommandError("$name isn't a friend")
                 }
             }).subcommand(
             Command("list").executes {
@@ -47,7 +47,7 @@ object Commands {
 
                 mc.player!!.connection.sendCommand("$command $lastSender $message")
             } else {
-                Lifestolen.displayStatus(Component.literal("No one to reply to"))
+                throw CommandError("No one to reply to")
             }
         }.register()
 
@@ -74,7 +74,7 @@ object Commands {
                     Lifestolen.cfg.commandPrefix = value
                     Lifestolen.displayStatus(Component.literal("Set CommandPrefix to '$value'"))
                 }
-                else -> Lifestolen.displayStatus(Component.literal("Unknown config key: $key"))
+                else -> throw CommandError("Unknown config key: $key")
             }
         }.register()
 

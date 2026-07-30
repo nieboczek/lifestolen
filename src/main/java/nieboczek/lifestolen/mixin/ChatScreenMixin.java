@@ -2,7 +2,9 @@ package nieboczek.lifestolen.mixin;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.network.chat.Component;
 import nieboczek.lifestolen.Lifestolen;
+import nieboczek.lifestolen.command.CommandError;
 import nieboczek.lifestolen.command.CommandExecutor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,8 +21,11 @@ public class ChatScreenMixin {
 
             try {
                 CommandExecutor.INSTANCE.execute(command);
+            } catch (CommandError cmdError) {
+                Lifestolen.INSTANCE.displayStatus(cmdError.toComponent());
             } catch (Throwable t) {
-                throw t; // TODO: handle it
+                Lifestolen.INSTANCE.displayStatus(Component.literal(t.toString()));
+                Lifestolen.INSTANCE.getLog().error("Error while executing command", t);
             }
 
             Minecraft.getInstance().gui.hud.getChat().addRecentChat(msg); // TODO: clear the evidence

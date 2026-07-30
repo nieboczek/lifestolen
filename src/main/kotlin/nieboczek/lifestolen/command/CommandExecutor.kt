@@ -12,22 +12,12 @@ object CommandExecutor {
         val parts = noPrefix.split(" ")
         val root = Commands.commands.find { it.name == parts[0] } ?: return
 
-        var current = root
-        var i = 1
-        while (i < parts.size) {
-            val sub = current.subcommands.find { it.name == parts[i] }
-            if (sub != null) {
-                current = sub
-                i++
-            } else {
-                break
-            }
-        }
-
+        val (current, i) = traverseSubcommands(root, parts)
         val remaining = parts.drop(i)
         val resolvedArgs = mutableListOf<Argument>()
         var argIdx = 0
         var tokenIdx = 0
+
         while (argIdx < current.arguments.size && tokenIdx < remaining.size) {
             val def = current.arguments[argIdx]
             val value = when (def.type) {
@@ -39,8 +29,7 @@ object CommandExecutor {
             argIdx++
         }
 
-        if (tokenIdx < remaining.size) error("Too many arguments")
-
+        if (tokenIdx < remaining.size) throw CommandError("Too many arguments")
         current.executeFn?.invoke(Command.Ctx(resolvedArgs))
     }
 
@@ -55,17 +44,8 @@ object CommandExecutor {
         val completeTokens = (if (tailIsWhitespace) tokens else tokens.dropLast(1)).filter { it.isNotEmpty() }
 
         var current = Commands.commands.find { it.name == completeTokens.getOrNull(0) } ?: return emptyList()
-
-        var idx = 1
-        while (idx < completeTokens.size) {
-            val sub = current.subcommands.find { it.name == completeTokens[idx] }
-            if (sub != null) {
-                current = sub
-                idx++
-            } else {
-                break
-            }
-        }
+        val (resolved, idx) = traverseSubcommands(current, completeTokens)
+        current = resolved
 
         val remaining = completeTokens.drop(idx)
         var tokenIdx = 0
@@ -101,19 +81,12 @@ object CommandExecutor {
             return builder.buildFuture()
         }
 
-        var current = Commands.commands.find { it.name == completeTokens[0] }
+        val resolved = Commands.commands.find { it.name == completeTokens[0] }
             ?: return Suggestions.empty()
 
-        var i = 1
-        while (i < completeTokens.size) {
-            val sub = current.subcommands.find { it.name == completeTokens[i] }
-            if (sub != null) {
-                current = sub
-                i++
-            } else {
-                return Suggestions.empty()
-            }
-        }
+        val (traversed, i) = traverseSubcommands(resolved, completeTokens)
+        if (i < completeTokens.size) return Suggestions.empty()
+        var current = traversed
 
         val builder = FilteredSuggestionBuilder(text, prefixLength + start)
         current.subcommands.forEach { builder.suggest(it.name) }
@@ -130,6 +103,21 @@ object CommandExecutor {
         }
 
         return builder.buildFuture()
+    }
+
+    private fun traverseSubcommands(current: Command, tokens: List<String>, startIdx: Int = 1): Pair<Command, Int> {
+        var node = current
+        var i = startIdx
+        while (i < tokens.size) {
+            val sub = node.subcommands.find { it.name == tokens[i] }
+            if (sub != null) {
+                node = sub
+                i++
+            } else {
+                break
+            }
+        }
+        return node to i
     }
 
     private class FilteredSuggestionBuilder(input: String, start: Int) : SuggestionsBuilder(input, start) {
