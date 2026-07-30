@@ -107,7 +107,7 @@ object Commands {
         "home" -> GLFW.GLFW_KEY_HOME
         "end" -> GLFW.GLFW_KEY_END
         "pgup", "pageup" -> GLFW.GLFW_KEY_PAGE_UP
-        "pgdn", "pagedown" -> GLFW.GLFW_KEY_PAGE_DOWN
+        "pgdn", "pagedn", "pagedown" -> GLFW.GLFW_KEY_PAGE_DOWN
         "up" -> GLFW.GLFW_KEY_UP
         "down" -> GLFW.GLFW_KEY_DOWN
         "left" -> GLFW.GLFW_KEY_LEFT
@@ -120,6 +120,13 @@ object Commands {
         "'" -> GLFW.GLFW_KEY_APOSTROPHE
         "\\" -> GLFW.GLFW_KEY_BACKSLASH
         "/" -> GLFW.GLFW_KEY_SLASH
+        "[" -> GLFW.GLFW_KEY_LEFT_BRACKET
+        "]" -> GLFW.GLFW_KEY_RIGHT_BRACKET
+        "," -> GLFW.GLFW_KEY_COMMA
+        "." -> GLFW.GLFW_KEY_PERIOD
+        "-" -> GLFW.GLFW_KEY_MINUS
+        "=" -> GLFW.GLFW_KEY_EQUAL
+        "`" -> GLFW.GLFW_KEY_GRAVE_ACCENT
         "f1" -> GLFW.GLFW_KEY_F1
         "f2" -> GLFW.GLFW_KEY_F2
         "f3" -> GLFW.GLFW_KEY_F3
