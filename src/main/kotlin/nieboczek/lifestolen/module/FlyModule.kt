@@ -10,15 +10,20 @@ object FlyModule : Module("Fly", Category.MOVEMENT) {
     private val sprintVerticalSpeed by double("Sprint Vertical Speed", 1.2, 0.01..10.0, step = 0.01)
 
     private var targetY = 0.0
+    private var wasMovingVertically = false
 
     override fun enable() {
         targetY = player.y
+        wasMovingVertically = false
     }
 
     override fun tick() {
         val input = player.input.keyPresses
         val horizontalSpeed = if (input.sprint) sprintHorizontalSpeed else baseHorizontalSpeed
         val verticalSpeed = if (input.sprint) sprintVerticalSpeed else baseVerticalSpeed
+
+        if (wasMovingVertically) targetY = player.y
+        wasMovingVertically = input.jump != input.shift
 
         val shouldBypassCheck = bypassVanillaCheck && player.tickCount % 40 == 0
         val deltaY = when {
@@ -30,8 +35,5 @@ object FlyModule : Module("Fly", Category.MOVEMENT) {
         }
 
         player.deltaMovement = RotationUtil.getMovementDeltaFromInput(deltaY, horizontalSpeed, input)
-        if ((input.shift || input.jump) && (!input.shift || !input.jump)) {
-            targetY = player.y
-        }
     }
 }
