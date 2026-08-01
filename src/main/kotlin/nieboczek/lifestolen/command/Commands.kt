@@ -86,12 +86,7 @@ object Commands {
         Command("t").argument(Argument("module", Argument.Type.MODULE)).executes {
             val module = it.getModule("module")
             module.toggle()
-
-            Notifications.add(
-                FormattedText.composite(
-                    FormattedText.of("${module.name} "), formattedBoolean(module.enabled)
-                )
-            )
+            Notifications.addModuleToggleNotification(module)
         }.register()
 
         Command("cfg").argument(Argument("key", Argument.Type.CONFIG_KEY))

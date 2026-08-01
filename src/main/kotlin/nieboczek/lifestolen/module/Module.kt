@@ -3,8 +3,6 @@ package nieboczek.lifestolen.module
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.blaze3d.platform.Window
 import net.minecraft.client.Minecraft
-import net.minecraft.network.chat.FormattedText
-import nieboczek.lifestolen.command.Commands
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.Notifications
 import nieboczek.lifestolen.serializer.base.DoubleSerializer
@@ -42,13 +40,7 @@ abstract class Module(val name: String, val category: Category) {
 
         if (shouldToggle) {
             toggle()
-
-            Notifications.add(
-                FormattedText.composite(
-                    FormattedText.of("$name "),
-                    Commands.formattedBoolean(enabled),
-                )
-            )
+            Notifications.addModuleToggleNotification(this)
         }
     }
 

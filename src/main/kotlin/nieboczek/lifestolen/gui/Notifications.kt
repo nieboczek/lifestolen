@@ -4,8 +4,10 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.FormattedText
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.command.Commands
 import nieboczek.lifestolen.gui.render.blurredRoundedRect
 import nieboczek.lifestolen.gui.widget.ScreenState
+import nieboczek.lifestolen.module.Module
 import kotlin.math.min
 
 object Notifications {
@@ -46,8 +48,7 @@ object Notifications {
 
         for (notification in notifications.asReversed()) {
             val slideProgress = min(
-                1f,
-                min(TOTAL_TICKS - notification.visibilityTimer, notification.visibilityTimer) / SLIDE_TICKS
+                1f, min(TOTAL_TICKS - notification.visibilityTimer, notification.visibilityTimer) / SLIDE_TICKS
             )
             val x = (targetX + (width - targetX) * (1f - slideProgress)).toInt()
             val y = notification.y.toInt()
@@ -85,6 +86,13 @@ object Notifications {
     }
 
     fun clear() = notifications.clear()
+
+    fun addModuleToggleNotification(module: Module) = add(
+        FormattedText.composite(
+            FormattedText.of("${module.name} "),
+            Commands.formattedBoolean(module.enabled),
+        )
+    )
 
     private fun withAlpha(color: Int, alpha: Float): Int {
         val a = ((color ushr 24) and 0xFF) * alpha
