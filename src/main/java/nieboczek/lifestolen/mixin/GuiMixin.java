@@ -3,6 +3,8 @@ package nieboczek.lifestolen.mixin;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -16,8 +18,11 @@ public class GuiMixin {
             at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/state/gui/GuiRenderState;II)Lnet/minecraft/client/gui/GuiGraphicsExtractor;"),
             method = "extractRenderState"
     )
-    public GuiGraphicsExtractor render(GuiGraphicsExtractor original) {
-        Lifestolen.INSTANCE.render2d(original);
+    public GuiGraphicsExtractor render(
+            GuiGraphicsExtractor original,
+            @Local(name = "deltaTracker", argsOnly = true) DeltaTracker deltaTracker
+    ) {
+        Lifestolen.INSTANCE.render2d(original, deltaTracker.getGameTimeDeltaPartialTick(true));
         return original;
     }
 

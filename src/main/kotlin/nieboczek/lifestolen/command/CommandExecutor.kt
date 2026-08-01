@@ -2,11 +2,24 @@ package nieboczek.lifestolen.command
 
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
+import net.minecraft.network.chat.FormattedText
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.gui.Notifications
 import java.util.concurrent.CompletableFuture
 
 object CommandExecutor {
-    fun execute(command: String) {
+    fun tryExecute(command: String) {
+        try {
+            execute(command)
+        } catch (cmdError: CommandError) {
+            Notifications.add(cmdError.toFormattedText())
+        } catch (t: Throwable) {
+            Notifications.add(FormattedText.of(t.toString()))
+            Lifestolen.log.error("Error while executing command", t)
+        }
+    }
+
+    private fun execute(command: String) {
         if (command.isBlank()) return
         val noPrefix = command.trim().removePrefix(Lifestolen.cfg.commandPrefix)
         val parts = noPrefix.split(" ")

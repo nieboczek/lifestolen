@@ -2,11 +2,16 @@ package nieboczek.lifestolen.command
 
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.Minecraft
-import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.FormattedText
+import net.minecraft.network.chat.Style
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.gui.Notifications
 import org.lwjgl.glfw.GLFW
 
 object Commands {
+    private val colorStyle = Style.EMPTY.withColor(0xBBAAE0)
+    private val greenStyle = Style.EMPTY.withColor(0x00FF00)
+    private val redStyle = Style.EMPTY.withColor(0xFF3636)
     private val mc = Minecraft.getInstance()
 
     // Populated by Command.register
@@ -20,18 +25,45 @@ object Commands {
             Command("add").argument(Argument("player", Argument.Type.STRING)).executes {
                 val name = it.getString("player")
                 Lifestolen.cfg.friends.add(name)
-                Lifestolen.displayStatus(Component.literal("Added $name to friends"))
+                Notifications.add(
+                    FormattedText.composite(
+                        FormattedText.of("Added "), FormattedText.of(name, colorStyle), FormattedText.of(" to friends"),
+                    )
+                )
             }).subcommand(
             Command("remove").argument(Argument("player", Argument.Type.STRING)).executes {
                 val name = it.getString("player")
                 if (Lifestolen.cfg.friends.remove(name)) {
-                    Lifestolen.displayStatus(Component.literal("Removed $name from friends"))
+                    Notifications.add(
+                        FormattedText.composite(
+                            FormattedText.of("Removed "),
+                            FormattedText.of(name, colorStyle),
+                            FormattedText.of(" from friends"),
+                        )
+                    )
                 } else {
-                    throw CommandError("$name isn't a friend")
+                    Notifications.add(
+                        FormattedText.composite(
+                            FormattedText.of(name, colorStyle), FormattedText.of(" isn't a friend")
+                        )
+                    )
                 }
             }).subcommand(
             Command("list").executes {
-                Lifestolen.displayStatus(Component.literal(Lifestolen.cfg.friends.toString()))
+                if (Lifestolen.cfg.friends.isEmpty()) {
+                    Notifications.add(FormattedText.of("You have no friends :("))
+                    return@executes
+                }
+
+                val parts = mutableListOf(FormattedText.of("Friends: "))
+
+                for (friend in Lifestolen.cfg.friends) {
+                    parts.add(FormattedText.of(friend, colorStyle))
+                    parts.add(FormattedText.of(", "))
+                }
+
+                parts.removeLast() // remove last comma
+                Notifications.add(FormattedText.composite(parts))
             }).register()
 
         Command("kys").executes {
@@ -41,11 +73,11 @@ object Commands {
         Command("r").argument(Argument("message", Argument.Type.GREEDY_STRING)).executes {
             if (lastSender != null) {
                 val message = it.getString("message")
+                val connection = mc.player!!.connection
                 val command =
-                    if (mc.player!!.connection.commands.findNode(listOf("minecraft:msg")) != null) "minecraft:msg"
-                    else "msg"
+                    if (connection.commands.findNode(listOf("minecraft:msg")) != null) "minecraft:msg" else "msg"
 
-                mc.player!!.connection.sendCommand("$command $lastSender $message")
+                connection.sendCommand("$command $lastSender $message")
             } else {
                 throw CommandError("No one to reply to")
             }
@@ -55,28 +87,49 @@ object Commands {
             val module = it.getModule("module")
             module.toggle()
 
-            val status = if (module.enabled) Component.literal("enabled").withColor(0x00FF00)
-            else Component.literal("disabled").withColor(0xFF3636)
-
-            Lifestolen.displayStatus(Component.literal("Module ${module.id} has been ").append(status))
+            Notifications.add(
+                FormattedText.composite(
+                    FormattedText.of("${module.name} "), formattedBoolean(module.enabled)
+                )
+            )
         }.register()
 
-        Command("cfg").argument(Argument("key", Argument.Type.CONFIG_KEY)).argument(Argument("value", Argument.Type.STRING)).executes {
-            val key = it.getString("key")
-            val value = it.getString("value")
+        Command("cfg").argument(Argument("key", Argument.Type.CONFIG_KEY))
+            .argument(Argument("value", Argument.Type.STRING)).executes {
+                val key = it.getString("key")
+                val value = it.getString("value")
 
-            when (key.lowercase()) {
-                "renderclientbrandtext" -> {
-                    Lifestolen.cfg.renderClientBrandText = value.toBoolean()
-                    Lifestolen.displayStatus(Component.literal("Set RenderClientBrandText to $value"))
+                when (key.lowercase()) {
+                    "renderclientbrandtext" -> {
+                        val bl = value.toBoolean()
+                        Lifestolen.cfg.renderClientBrandText = bl
+
+                        Notifications.add(
+                            FormattedText.composite(
+                                FormattedText.of("Set "),
+                                FormattedText.of("RenderClientBrandText", colorStyle),
+                                FormattedText.of(" to "),
+                                formattedBoolean(bl, "true", "false"),
+                            )
+                        )
+                    }
+
+                    "commandprefix" -> {
+                        Lifestolen.cfg.commandPrefix = value
+
+                        Notifications.add(
+                            FormattedText.composite(
+                                FormattedText.of("Set "),
+                                FormattedText.of("CommandPrefix", colorStyle),
+                                FormattedText.of(" to "),
+                                FormattedText.of(value, colorStyle),
+                            )
+                        )
+                    }
+
+                    else -> throw CommandError("Unknown config key: $key")
                 }
-                "commandprefix" -> {
-                    Lifestolen.cfg.commandPrefix = value
-                    Lifestolen.displayStatus(Component.literal("Set CommandPrefix to '$value'"))
-                }
-                else -> throw CommandError("Unknown config key: $key")
-            }
-        }.register()
+            }.register()
 
         Command("bind").argument(Argument("module", Argument.Type.MODULE))
             .argument(Argument("key", Argument.Type.STRING)).executes {
@@ -86,10 +139,21 @@ object Commands {
 
                 val label =
                     if (keycode == 0) "None" else InputConstants.Type.KEYSYM.getOrCreate(keycode).displayName.string
-                val coloredLabel = Component.literal(label).withColor(0xBBAAE0)
-                Lifestolen.displayStatus(Component.literal("Bound module ${module.id} to ").append(coloredLabel))
+
+                Notifications.add(
+                    FormattedText.composite(
+                        FormattedText.of("Bound "),
+                        FormattedText.of(module.name, colorStyle),
+                        FormattedText.of(" to "),
+                        FormattedText.of(label, colorStyle)
+                    )
+                )
             }.register()
     }
+
+    fun formattedBoolean(
+        bl: Boolean, enabledText: String = "enabled", disabledText: String = "disabled"
+    ): FormattedText = if (bl) FormattedText.of(enabledText, greenStyle) else FormattedText.of(disabledText, redStyle)
 
     private fun parseKeycode(label: String) = when (val lowerCaseLabel = label.lowercase()) {
         "space" -> GLFW.GLFW_KEY_SPACE
@@ -190,7 +254,8 @@ object Commands {
         "9" -> GLFW.GLFW_KEY_9
         else -> {
             try {
-                lowerCaseLabel.replace("key", "").toInt()
+                val stripped = lowerCaseLabel.removePrefix("key")
+                if (stripped != lowerCaseLabel) stripped.toInt() else 0
             } catch (_: NumberFormatException) {
                 0
             }

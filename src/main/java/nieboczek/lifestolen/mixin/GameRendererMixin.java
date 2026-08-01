@@ -5,13 +5,10 @@ import com.mojang.blaze3d.resource.CrossFrameResourcePool;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.gui.render.BlurredRectRenderer;
-import nieboczek.lifestolen.gui.ConfigScreen;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.util.Renderer3d;
@@ -30,14 +27,12 @@ public class GameRendererMixin {
     @Shadow
     @Final
     private Camera mainCamera;
-
     @Shadow
     @Final
     private RenderTarget mainRenderTarget;
-
     @Shadow
     @Final
-    private CrossFrameResourcePool resourcePool;
+    public CrossFrameResourcePool resourcePool;
 
     @Inject(
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD),
@@ -74,11 +69,11 @@ public class GameRendererMixin {
     }
 
     @Inject(method = "processBlurEffect", at = @At("HEAD"), cancellable = true)
-    private void onProcessBlurEffect(CallbackInfo ci) {
-        Screen screen = Minecraft.getInstance().gui.screen();
-        if (!(screen instanceof ConfigScreen) || !BlurredRectRenderer.isActive()) return;
-
-        BlurredRectRenderer.INSTANCE.renderOnConfigScreen(mainRenderTarget, resourcePool);
-        ci.cancel();
+    private void processBlurEffect(CallbackInfo ci) {
+        BlurredRectRenderer renderer = BlurredRectRenderer.INSTANCE;
+        if (renderer.isActive()) {
+            renderer.render(mainRenderTarget, resourcePool);
+            ci.cancel();
+        }
     }
 }

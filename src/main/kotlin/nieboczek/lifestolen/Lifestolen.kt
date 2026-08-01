@@ -9,15 +9,17 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.screens.TitleScreen
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.network.chat.ChatType
-import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.FormattedText
 import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Entity
 import nieboczek.lifestolen.command.Commands
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
+import nieboczek.lifestolen.gui.Notifications
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
@@ -29,6 +31,8 @@ import java.awt.Color
 object Lifestolen : ClientModInitializer {
     const val MOD_ID = "lifestolen"
     const val CLIENT_NAME = "Lifestolen"
+
+    private const val CLIENT_BRAND_TEXT = "$CLIENT_NAME v${BuildInfo.MOD_VERSION}"
 
     val log: Logger = LoggerFactory.getLogger(CLIENT_NAME)
     val modules = mutableListOf<Module>()
@@ -47,28 +51,41 @@ object Lifestolen : ClientModInitializer {
     var killSwitch = false
         private set
 
+    private val mc = Minecraft.getInstance()
     private var firstTickWithPlayer = false
+    private var seenTitleScreen: Byte = 0
     private var rainbowColorOffset = 0
 
     fun identifier(path: String) = Identifier.fromNamespaceAndPath(MOD_ID, path)
     fun isFriend(player: Entity) = cfg.friends.contains(player.name.string)
 
-    // TODO: remove this function and switch to GUI widgets completely
-    fun displayStatus(msg: Component) {
-        Minecraft.getInstance().player?.sendOverlayMessage(msg)
-    }
-
-    fun render2d(context: GuiGraphicsExtractor) {
+    fun render2d(graphics: GuiGraphicsExtractor, dt: Float) {
         if (killSwitch) return
 
-        if (cfg.renderClientBrandText && Minecraft.getInstance().gui.screen() !is ConfigScreen) {
+        val screen = mc.gui.screen()
+
+        // Stages:
+        //  0: Mojang boot screen, don't show so the player can press the kill switch key without getting caught
+        //  1: TitleScreen just seen, don't show so the player can press the kill switch key without getting caught
+        //  2: just left TitleScreen, show the GUI as per the user preferences
+        if (seenTitleScreen == 0.toByte()) {
+            if (screen is TitleScreen) seenTitleScreen = 1
+            return
+        } else if (seenTitleScreen == 1.toByte()) {
+            if (screen !is TitleScreen) seenTitleScreen = 2
+            else return
+        }
+
+        if (screen is ConfigScreen) return
+
+        if (cfg.renderClientBrandText) {
             rainbowColorOffset += 2
             val hue = (rainbowColorOffset % 360) / 360f
             val color = Color.HSBtoRGB(hue, 1f, 1f)
-            context.text(font, "$CLIENT_NAME v${BuildInfo.MOD_VERSION}", 4, 4, color, true)
+            graphics.text(font, CLIENT_BRAND_TEXT, 4, 4, color, true)
         }
 
-        modules.forEach { if (it.enabled) it.render2d(context) }
+        if (screen == null) Notifications.render(graphics, dt)
     }
 
     fun render3d() {
@@ -80,9 +97,12 @@ object Lifestolen : ClientModInitializer {
         killSwitch = !killSwitch
         if (!firstTickWithPlayer) return
 
-        // we never set Module#enabled, that's intended
-        if (killSwitch) modules.forEach { if (it.enabled) it.disable() }
-        else modules.forEach { if (it.enabled) it.enable() }
+        if (killSwitch) {
+            Notifications.clear()
+            modules.forEach { if (it.enabled) it.disable() }
+        } else {
+            modules.forEach { if (it.enabled) it.enable() }
+        }
     }
 
     override fun onInitializeClient() {
@@ -148,14 +168,15 @@ object Lifestolen : ClientModInitializer {
 
     private fun initializeConnection(listener: ClientPacketListener) {
         val pipeline = listener.getConnection().channel.pipeline()
-        if (pipeline.get("lifestolen_packet_intercept") == null)
-            pipeline.addBefore("packet_handler", "lifestolen_packet_intercept", FakeLagChannelHandler())
+        if (pipeline.get("lifestolen_packet_intercept") == null) pipeline.addBefore(
+            "packet_handler", "lifestolen_packet_intercept", FakeLagChannelHandler()
+        )
     }
 
     private fun receiveChatMessage(sender: GameProfile?, bound: ChatType.Bound?) {
         if (bound!!.chatType().`is`(ChatType.MSG_COMMAND_INCOMING)) {
             if (sender == null) {
-                displayStatus(Component.literal("Sender was not set correctly due to being null"))
+                Notifications.add(FormattedText.of("/msg sender was not set correctly, was null"))
                 return
             }
             Commands.lastSender = sender.name()

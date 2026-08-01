@@ -23,7 +23,6 @@ object BlurredRectRenderer {
     private const val MAX_RECTS = 8
     private val rects = mutableListOf<BlurRectData>()
 
-    @JvmStatic
     fun isActive() = rects.isNotEmpty()
 
     fun addRect(data: BlurRectData) {
@@ -51,7 +50,7 @@ object BlurredRectRenderer {
         }
     }
 
-    fun renderOnConfigScreen(renderTarget: RenderTarget, resourcePool: GraphicsResourceAllocator) {
+    fun render(renderTarget: RenderTarget, resourcePool: GraphicsResourceAllocator) {
         val chain = Minecraft.getInstance().shaderManager.getPostChain(
             identifier("rounded_rect_blur"),
             LevelTargetBundle.MAIN_TARGETS
