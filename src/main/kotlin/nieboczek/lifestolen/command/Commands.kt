@@ -31,7 +31,7 @@ object Commands {
                     )
                 )
             }).subcommand(
-            Command("remove").argument(Argument("player", Argument.Type.STRING)).executes {
+            Command("remove").argument(Argument("player", Argument.Type.FRIENDS)).executes {
                 val name = it.getString("player")
                 if (Lifestolen.cfg.friends.remove(name)) {
                     Notifications.add(

@@ -106,14 +106,7 @@ object CommandExecutor {
         current.subcommands.forEach { builder.suggest(it.name) }
 
         if (current.arguments.isNotEmpty()) {
-            when (current.arguments[0].type) {
-                Argument.Type.MODULE -> Lifestolen.modules.forEach { builder.suggest(it.id) }
-                Argument.Type.CONFIG_KEY -> {
-                    builder.suggest("RenderClientBrandText")
-                    builder.suggest("CommandPrefix")
-                }
-                else -> {}
-            }
+            current.arguments[0].suggest(builder)
         }
 
         return builder.buildFuture()
@@ -134,9 +127,19 @@ object CommandExecutor {
         return node to i
     }
 
-    private class FilteredSuggestionBuilder(input: String, start: Int) : SuggestionsBuilder(input, start) {
+    internal class FilteredSuggestionBuilder(input: String, start: Int) : SuggestionsBuilder(input, start) {
         override fun suggest(text: String): SuggestionsBuilder {
             if (text.lowercase().startsWith(remainingLowerCase)) super.suggest(text)
+            return this
+        }
+
+        fun suggest(vararg strings: String): FilteredSuggestionBuilder {
+            for (string in strings) suggest(string)
+            return this
+        }
+
+        fun suggest(strings: List<String>): FilteredSuggestionBuilder {
+            for (string in strings) suggest(string)
             return this
         }
     }
