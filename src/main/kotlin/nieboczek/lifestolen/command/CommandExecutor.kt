@@ -69,8 +69,7 @@ object CommandExecutor {
             argIdx++
         }
 
-        val arg = current.arguments[argIdx]
-        return "<${arg.name}>"
+        return current.arguments.getOrNull(argIdx)?.let { "<${it.name}>" }
     }
 
     fun autocomplete(incomplete: String, cursor: Int): CompletableFuture<Suggestions> {
