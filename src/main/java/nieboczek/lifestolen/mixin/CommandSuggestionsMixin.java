@@ -60,17 +60,15 @@ public abstract class CommandSuggestionsMixin {
                 if (suggestions == null) showSuggestions(false);
             });
 
-            String line = CommandExecutor.INSTANCE.getUsageInfo(text);
+            CommandExecutor.UsageInfo usageInfo = CommandExecutor.INSTANCE.getUsageInfo(text);
             currentParse = null;
             commandUsage.clear();
 
-            if (line != null) {
-                commandUsage.add(FormattedCharSequence.forward(line, CommandSuggestions.USAGE_FORMAT));
-
-                int startPos = text.lastIndexOf(' ') + 1;
+            if (usageInfo != null && !text.endsWith("  ")) {
+                commandUsage.add(FormattedCharSequence.forward(usageInfo.getLine(), CommandSuggestions.USAGE_FORMAT));
                 commandUsageWidth = font.width(commandUsage.getFirst());
                 commandUsagePosition = Mth.clamp(
-                    input.getScreenX(startPos),
+                    input.getScreenX(usageInfo.getStartPos()),
                     0,
                     input.getScreenX(0) + input.getInnerWidth() - commandUsageWidth
                 );

@@ -46,7 +46,7 @@ object CommandExecutor {
         current.executeFn?.invoke(Command.Ctx(resolvedArgs))
     }
 
-    fun getUsageInfo(text: String): String? {
+    fun getUsageInfo(text: String): UsageInfo? {
         val prefix = Lifestolen.cfg.commandPrefix
         if (!text.startsWith(prefix)) return null
         val stripped = text.removePrefix(prefix)
@@ -65,11 +65,15 @@ object CommandExecutor {
         var argIdx = 0
         while (argIdx < current.arguments.size && tokenIdx < remaining.size) {
             val def = current.arguments[argIdx]
-            tokenIdx += if (def.type == Argument.Type.GREEDY_STRING) remaining.size - tokenIdx else 1
+            if (def.type == Argument.Type.GREEDY_STRING) {
+                val greedyStart = prefix.length + completeTokens.take(idx).joinToString(" ").length + 1
+                return UsageInfo("<${def.name}>", greedyStart)
+            }
+            tokenIdx++
             argIdx++
         }
 
-        return current.arguments.getOrNull(argIdx)?.let { "<${it.name}>" }
+        return current.arguments.getOrNull(argIdx)?.let { UsageInfo("<${it.name}>", text.lastIndexOf(' ') + 1) }
     }
 
     fun autocomplete(incomplete: String, cursor: Int): CompletableFuture<Suggestions> {
@@ -77,6 +81,7 @@ object CommandExecutor {
         val prefixLength = Lifestolen.cfg.commandPrefix.length
         val stripped = text.removePrefix(Lifestolen.cfg.commandPrefix)
 
+        if (text.endsWith("  ")) return Suggestions.empty()
         if (stripped.isBlank()) {
             val builder = FilteredSuggestionBuilder(text, prefixLength)
             Commands.commands.forEach { builder.suggest(it.name) }
@@ -125,6 +130,8 @@ object CommandExecutor {
         }
         return node to i
     }
+
+    class UsageInfo(val line: String, val startPos: Int)
 
     internal class FilteredSuggestionBuilder(input: String, start: Int) : SuggestionsBuilder(input, start) {
         override fun suggest(text: String): SuggestionsBuilder {
