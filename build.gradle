@@ -27,6 +27,7 @@ dependencies {
     compileOnly "net.caffeinemc:sodium-fabric:0.9.1+mc26.2"
 
     implementation "com.github.weisj:jsvg:2.1.0"
+    include "com.github.weisj:jsvg:2.1.0"
 }
 
 processResources {
