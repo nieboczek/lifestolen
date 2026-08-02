@@ -16,12 +16,16 @@ public abstract class CameraMixin {
     protected abstract void setPosition(Vec3 position);
 
     @Shadow
+    protected abstract void setRotation(float yRot, float xRot);
+
+    @Shadow
     private boolean detached;
 
     @Inject(method = "alignWithEntity", at = @At("RETURN"))
     private void alignWithEntity(float partialTicks, CallbackInfo ci) {
         if (FreeCamModule.INSTANCE.getEnabled() && !Lifestolen.INSTANCE.getKillSwitch()) {
             setPosition(FreeCamModule.INSTANCE.computeLerpedPos(partialTicks));
+            setRotation(FreeCamModule.INSTANCE.getCamYRot(), FreeCamModule.INSTANCE.getCamXRot());
             detached = true;
         }
     }

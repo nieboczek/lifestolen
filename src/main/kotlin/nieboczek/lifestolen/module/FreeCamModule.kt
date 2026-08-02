@@ -17,11 +17,21 @@ object FreeCamModule : Module("Free Cam", Category.VISUALS) {
     private var oldCamPos = Vec3.ZERO
     private var camPos = Vec3.ZERO
 
+    var camYRot = 0f
+        private set
+    var camXRot = 0f
+        private set
+
     fun isEnabled(): Boolean = enabled && !Lifestolen.killSwitch
 
     fun computeLerpedPos(partialTicks: Float): Vec3 {
         val partial = partialTicks.toDouble()
         return oldCamPos.add(camPos.subtract(oldCamPos).multiply(partial, partial, partial))
+    }
+
+    fun turnCamera(deltaYaw: Double, deltaPitch: Double) {
+        camYRot += (deltaYaw * 0.15).toFloat()
+        camXRot = (camXRot + (deltaPitch * 0.15).toFloat()).coerceIn(-90f, 90f)
     }
 
     override fun enable() {
@@ -30,6 +40,9 @@ object FreeCamModule : Module("Free Cam", Category.VISUALS) {
 
         camPos = player.eyePosition
         oldCamPos = camPos
+
+        camYRot = player.yRot
+        camXRot = player.xRot
     }
 
     override fun disable() {
@@ -52,6 +65,6 @@ object FreeCamModule : Module("Free Cam", Category.VISUALS) {
         }
 
         oldCamPos = camPos
-        camPos = camPos.add(RotationUtil.getMovementDeltaFromInput(deltaY, horizontalSpeed, input))
+        camPos = camPos.add(RotationUtil.getMovementDeltaFromInput(deltaY, horizontalSpeed, input, camYRot))
     }
 }

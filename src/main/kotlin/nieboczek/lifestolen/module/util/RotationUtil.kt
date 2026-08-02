@@ -50,23 +50,22 @@ object RotationUtil {
         }
     }
 
-    fun getMovementDeltaFromInput(deltaY: Double, horizontalSpeed: Double, input: Input): Vec3 {
-        val x = if (input.left && input.right) 0f else (if (input.left) -1f else (if (input.right) 1f else 0f))
-        val y = if (input.backward && input.forward) 0f else (if (input.backward) -1f else (if (input.forward) 1f else 0f))
-
-        return if (x == 0f && y == 0f) {
+    fun getMovementDeltaFromInput(
+        deltaY: Double, horizontalSpeed: Double, input: Input, yRot: Float = mc.player!!.yRot
+    ): Vec3 {
+        val isMoving = input.forward || input.backward || input.left || input.right
+        return if (!isMoving) {
             Vec3(0.0, deltaY, 0.0)
         } else {
-            val yaw = Math.toRadians(getMovementYawOfInput(input).toDouble())
+            val yaw = Math.toRadians(getMovementYawOfInput(input, yRot).toDouble())
             val x = -Mth.sin(yaw) * horizontalSpeed
             val z = Mth.cos(yaw) * horizontalSpeed
             Vec3(x, deltaY, z)
         }
     }
 
-    fun getMovementYawOfInput(input: Input): Float {
-        val player = mc.player!!
-        var movementYaw = player.yRot
+    fun getMovementYawOfInput(input: Input, yRot: Float): Float {
+        var movementYaw = yRot
 
         val diagonalMultiplier = when {
             input.backward && !input.forward -> {
