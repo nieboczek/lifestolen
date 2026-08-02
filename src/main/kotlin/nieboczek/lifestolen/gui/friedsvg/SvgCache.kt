@@ -43,13 +43,7 @@ class SvgCache(private val maxEntries: Int) {
     }
 
     fun clear() {
-        val iter = entries.values.iterator()
-        while (iter.hasNext()) {
-            val entry = iter.next()
-            iter.remove()
-            accessOrder.remove(entry.key)
-            entry.texture.close()
-        }
+        entries.clear()
         accessOrder.clear()
     }
 

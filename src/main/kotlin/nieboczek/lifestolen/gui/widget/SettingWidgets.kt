@@ -421,9 +421,11 @@ class BooleanSettingWidget(setting: BooleanSetting) : SettingWidget<Boolean>(set
 
         if (enableProgress > 0f) {
             val clipWidth = (size * enableProgress).toInt()
-            graphics.enableScissor(ax - 1, ay, ax + clipWidth, ay + size)
-            graphics.blitPixel(checkmarkTexture!!, ax, ay, size, size)
-            graphics.disableScissor()
+            checkmarkTexture?.let { tex ->
+                graphics.enableScissor(ax - 1, ay, ax + clipWidth, ay + size)
+                graphics.blitPixel(tex, ax, ay, size, size)
+                graphics.disableScissor()
+            }
         }
 
         bounds = Bounds(ax, ay, size, size)
