@@ -12,7 +12,7 @@ object ESPModule : Module("ESP", Category.VISUALS) {
     private val showOnlyPlayers by boolean("Show Only Players")
     private val color by color("Color", 0x55FFFFFF)
     private val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
-    private val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
+    private val lineWidth by float("Line Width", 2f, 0f..8f, step = 0.1f)
     private val fillOpacity by float("Fill Opacity", 0f, 0f..1f, step = 0.01f)
 
     override fun render3d() {
@@ -38,7 +38,7 @@ object ESPModule : Module("ESP", Category.VISUALS) {
                 Renderer3d.renderBoxFill(aabb, fillColor, pos)
             }
 
-            Renderer3d.renderBoxOutline(aabb, color, pos, lineWidth)
+            if (lineWidth > 0f) Renderer3d.renderBoxOutline(aabb, color, pos, lineWidth)
         }
     }
 }
