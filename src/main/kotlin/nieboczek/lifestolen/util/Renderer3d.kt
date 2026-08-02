@@ -45,7 +45,7 @@ object Renderer3d {
 
     private val quadPipeline: RenderPipeline = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
         .withLocation(Lifestolen.identifier("quads"))
-        .withCull(false)
+        .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
         .build()
 
     private val viewMatrix = Matrix4f()
@@ -236,6 +236,36 @@ object Renderer3d {
                 .setLineWidth(lineWidth)
             builder.addVertex(xEnd, yEnd, zEnd).setColor(color).setNormal(normal.x, normal.y, normal.z)
                 .setLineWidth(lineWidth)
+        }
+    }
+
+    fun renderBoxFill(boxDimensions: AABB, color: Int, pos: Vec3) {
+        val builder = quadBuilder ?: return
+        quadHasVertices = true
+
+        val x0 = boxDimensions.minX.toFloat() + pos.x.toFloat()
+        val y0 = boxDimensions.minY.toFloat() + pos.y.toFloat()
+        val z0 = boxDimensions.minZ.toFloat() + pos.z.toFloat()
+        val x1 = boxDimensions.maxX.toFloat() + pos.x.toFloat()
+        val y1 = boxDimensions.maxY.toFloat() + pos.y.toFloat()
+        val z1 = boxDimensions.maxZ.toFloat() + pos.z.toFloat()
+
+        val faces = arrayOf(
+            floatArrayOf(x0, y0, z0, x1, y0, z0, x1, y1, z0, x0, y1, z0),
+            floatArrayOf(x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1),
+            floatArrayOf(x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1),
+            floatArrayOf(x0, y1, z0, x1, y1, z0, x1, y1, z1, x0, y1, z1),
+            floatArrayOf(x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0),
+            floatArrayOf(x1, y0, z0, x1, y0, z1, x1, y1, z1, x1, y1, z0)
+        )
+
+        for (face in faces) {
+            repeat(2) {
+                builder.addVertex(face[0], face[1], face[2]).setColor(color)
+                builder.addVertex(face[3], face[4], face[5]).setColor(color)
+                builder.addVertex(face[6], face[7], face[8]).setColor(color)
+                builder.addVertex(face[9], face[10], face[11]).setColor(color)
+            }
         }
     }
 

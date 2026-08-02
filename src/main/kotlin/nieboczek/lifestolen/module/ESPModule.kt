@@ -13,6 +13,7 @@ object ESPModule : Module("ESP", Category.VISUALS) {
     private val color by color("Color", 0x55FFFFFF)
     private val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
     private val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
+    private val fillOpacity by float("Fill Opacity", 0f, 0f..1f, step = 0.01f)
 
     override fun render3d() {
         val pos = player.position()
@@ -29,6 +30,13 @@ object ESPModule : Module("ESP", Category.VISUALS) {
 
             val cameraPos = mc.entityRenderDispatcher.camera!!.position()
             val pos = Renderer3d.computeSmoothRelativeToCameraPos(entity.oldPosition(), entity.position(), cameraPos)
+
+            if (fillOpacity > 0f) {
+                val baseAlpha = (color ushr 24) and 0xFF
+                val fillAlpha = (baseAlpha * fillOpacity).toInt()
+                val fillColor = (fillAlpha shl 24) or (color and 0x00FFFFFF)
+                Renderer3d.renderBoxFill(aabb, fillColor, pos)
+            }
 
             Renderer3d.renderBoxOutline(aabb, color, pos, lineWidth)
         }
