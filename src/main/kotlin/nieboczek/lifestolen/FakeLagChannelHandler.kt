@@ -9,7 +9,6 @@ import net.minecraft.network.protocol.common.CommonPacketTypes
 import net.minecraft.network.protocol.configuration.ConfigurationPacketTypes
 import net.minecraft.network.protocol.game.GamePacketTypes
 import net.minecraft.network.protocol.handshake.HandshakePacketTypes
-import net.minecraft.network.protocol.ping.PingPacketTypes
 import net.minecraft.network.protocol.status.StatusPacketTypes
 import nieboczek.lifestolen.module.FakeLagModule
 import java.util.*
@@ -20,6 +19,7 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
             GamePacketTypes.SERVERBOUND_INTERACT,
             GamePacketTypes.SERVERBOUND_SWING,
             GamePacketTypes.SERVERBOUND_USE_ITEM_ON,
+            GamePacketTypes.SERVERBOUND_USE_ITEM,
             GamePacketTypes.SERVERBOUND_PLAYER_ACTION,
             GamePacketTypes.CLIENTBOUND_SET_HEALTH,
             GamePacketTypes.CLIENTBOUND_PLAYER_POSITION,
