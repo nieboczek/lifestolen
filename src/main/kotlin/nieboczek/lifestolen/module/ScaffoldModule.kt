@@ -7,6 +7,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.module.util.PlacementUtil
+import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.Renderer3d
 
 object ScaffoldModule : Module("Scaffold", Category.MOVEMENT) {
@@ -20,9 +21,9 @@ object ScaffoldModule : Module("Scaffold", Category.MOVEMENT) {
         if (player.mainHandItem.isEmpty && player.offhandItem.isEmpty) return
 
         targetPos = findPlaceTarget()
-        val pos = targetPos ?: return
+        val pos = targetPos ?: run { RotationUtil.cancel(this); return }
 
-        val placed = PlacementUtil.placeOnNeighbour(pos)
+        val placed = PlacementUtil.placeOnNeighbour(this, pos)
         if (placed) {
             player.swing(InteractionHand.MAIN_HAND)
         }

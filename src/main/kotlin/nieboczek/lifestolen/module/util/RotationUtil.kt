@@ -5,10 +5,26 @@ import net.minecraft.util.Mth
 import net.minecraft.world.entity.player.Input
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.module.Module
 import kotlin.math.abs
+import kotlin.math.pow
 
 object RotationUtil {
+    const val PRIORITY_COMBAT = 100
+    const val PRIORITY_PLACEMENT = 50
+    const val PRIORITY_DEFAULT = 0
+
+    private const val MIN_PITCH = -90f
+    private const val MAX_PITCH = 90f
+
+    private const val YAW_SPEED_PER_TICK = 0.35f
+    private const val PITCH_SPEED_PER_TICK = 0.2f
+
+    private class RotationTarget(val module: Module, val rotation: Rotation, val priority: Int)
+    class Rotation(val x: Float, val y: Float)
+
     private val mc = Minecraft.getInstance()
+    private val targets = HashMap<Module, RotationTarget>()
 
     var lerpedRotation: Rotation? = null
         get() {
@@ -16,39 +32,58 @@ object RotationUtil {
             return field
         }
 
-    private var targetRotation: Rotation? = null
-    private var moduleTargeted = false
-
-    fun target(x: Float, y: Float) {
-        targetRotation = Rotation(x, y)
-        moduleTargeted = true
+    fun request(module: Module, x: Float, y: Float, priority: Int = PRIORITY_DEFAULT) {
+        targets[module] = RotationTarget(module, Rotation(x, y), priority)
     }
 
-    fun tick() {
-        val player = mc.player!!
-        val target = targetRotation ?: Rotation(player.xRot, player.yRot)
+    fun cancel(module: Module) {
+        targets.remove(module)
+    }
+
+    fun reset() {
+        targets.clear()
+        lerpedRotation = null
+    }
+
+    private fun activeTarget(): RotationTarget? {
+        targets.entries.removeIf { it.value.module.enabled.not() }
+        return targets.values.maxByOrNull { it.priority }
+    }
+
+    fun lerpRotation(partialTick: Float) {
+        val player = mc.player ?: return
+        val active = activeTarget()
+        val target = active?.rotation ?: Rotation(player.xRot, player.yRot)
         val current = lerpedRotation ?: Rotation(player.xRot, player.yRot)
 
-        if (target == current) return
-
-        val factor = 0.6f
-        val newPitch = current.x + (target.x - current.x) * factor
-
-        var deltaYaw = target.y - current.y
-        deltaYaw = (deltaYaw + 180f).mod(360f) - 180f
-        val newYaw = current.y + deltaYaw * factor
-
-        val normalizedYaw = (newYaw.mod(360f) + 360f).mod(360f)
-        val finalYaw = if (normalizedYaw > 180f) normalizedYaw - 360f else normalizedYaw
-
-        lerpedRotation = Rotation(newPitch, finalYaw)
-        if (roughlyEqual(target, lerpedRotation!!)) {
-            targetRotation = null
-            // only lerp if exiting from module-targeted state
-            if (!moduleTargeted) lerpedRotation = null
-            moduleTargeted = false
+        if (target == current) {
+            if (active == null) lerpedRotation = null
+            return
         }
+
+        val yawFactor = frameFactor(YAW_SPEED_PER_TICK, partialTick)
+        val pitchFactor = frameFactor(PITCH_SPEED_PER_TICK, partialTick)
+
+        val newPitch = current.x + (target.x - current.x) * pitchFactor
+        val newYaw = current.y + Mth.wrapDegrees(target.y - current.y) * yawFactor
+
+        val rotation = Rotation(newPitch.coerceIn(MIN_PITCH, MAX_PITCH), Mth.wrapDegrees(newYaw))
+
+        if (roughlyEqual(rotation, target)) {
+            lerpedRotation = target
+            if (active == null) lerpedRotation = null
+            return
+        }
+
+        lerpedRotation = rotation
     }
+
+    private fun frameFactor(speedPerTick: Float, partialTick: Float) =
+        1f - (1f - speedPerTick).toDouble().pow(partialTick.toDouble()).toFloat()
+
+    private fun roughlyEqual(a: Rotation, b: Rotation) = abs(a.x - b.x) < 0.01f && abs(a.y - b.y) < 0.01f
+
+    // ==== ACTUAL UTILITY FUNCTIONS ==========================================
 
     fun getMovementDeltaFromInput(
         deltaY: Double, horizontalSpeed: Double, input: Input, yRot: Float = mc.player!!.yRot
@@ -82,10 +117,4 @@ object RotationUtil {
 
         return movementYaw
     }
-
-    private fun roughlyEqual(a: Rotation, b: Rotation): Boolean {
-        return abs(a.x - b.x) < 0.0001f && abs(a.y - b.y) < 0.0001f
-    }
-
-    data class Rotation(val x: Float, val y: Float)
 }

@@ -19,11 +19,15 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
     private val renderRangeOutline by boolean("Render Range Outline")
 
     override fun tick() {
-        val target = findNearestEntity() ?: return
-        if (lookAtTarget) {
+        val target = findNearestEntity()
+        if (target == null || !lookAtTarget) {
+            RotationUtil.cancel(this)
+        } else {
             val targetVec = target.eyePosition
-            RotationUtil.target(getXRot(targetVec), getYRot(targetVec))
+            RotationUtil.request(this, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_COMBAT)
         }
+
+        if (target == null) return
 
         if (!player.gameMode()!!.isSurvival || player.isBlocking) return
 

@@ -59,6 +59,11 @@ object Lifestolen : ClientModInitializer {
     fun identifier(path: String) = Identifier.fromNamespaceAndPath(MOD_ID, path)
     fun isFriend(player: Entity) = cfg.friends.contains(player.name.string)
 
+    fun reset() {
+        if (FreeCamModule.isEnabled()) FreeCamModule.toggle()
+        RotationUtil.reset()
+    }
+
     fun render2d(graphics: GuiGraphicsExtractor, dt: Float) {
         if (killSwitch) return
 
@@ -158,7 +163,6 @@ object Lifestolen : ClientModInitializer {
             firstTickWithPlayer = true
             modules.forEach { if (it.enabled) it.enable() }
         }
-        RotationUtil.tick()
 
         val window = mc.window
         for (module in modules) {

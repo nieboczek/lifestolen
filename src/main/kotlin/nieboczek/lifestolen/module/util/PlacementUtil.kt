@@ -9,6 +9,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import nieboczek.lifestolen.module.Module
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -30,7 +31,7 @@ object PlacementUtil {
         return false
     }
 
-    fun placeOnNeighbour(target: BlockPos): Boolean {
+    fun placeOnNeighbour(provider: Module, target: BlockPos): Boolean {
         val player = mc.player ?: return false
         val itemStack = player.mainHandItem
         if (itemStack.isEmpty) return false
@@ -54,11 +55,12 @@ object PlacementUtil {
             if (!context.canPlace()) continue
 
             val targetVec = Vec3.atCenterOf(neighbourPos)
-            RotationUtil.target(getXRot(targetVec), getYRot(targetVec))
+            RotationUtil.request(provider, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_PLACEMENT)
 
             return mc.gameMode!!.useItemOn(mc.player!!, InteractionHand.MAIN_HAND, hitResult) != InteractionResult.FAIL
         }
 
+        RotationUtil.cancel(provider)
         return false
     }
 

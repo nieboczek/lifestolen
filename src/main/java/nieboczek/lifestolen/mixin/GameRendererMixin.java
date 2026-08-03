@@ -11,6 +11,7 @@ import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.gui.render.BlurredRectRenderer;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.TracersModule;
+import nieboczek.lifestolen.module.util.RotationUtil;
 import nieboczek.lifestolen.util.Renderer3d;
 import org.joml.Matrix4f;
 import org.objectweb.asm.Opcodes;
@@ -33,6 +34,11 @@ public class GameRendererMixin {
     @Shadow
     @Final
     public CrossFrameResourcePool resourcePool;
+
+    @Inject(method = "update", at = @At("HEAD"))
+    private void update(DeltaTracker deltaTracker, CallbackInfo ci) {
+        RotationUtil.INSTANCE.lerpRotation(deltaTracker.getGameTimeDeltaPartialTick(false));
+    }
 
     @Inject(
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD),

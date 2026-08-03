@@ -25,12 +25,12 @@ object AutoTrapModule : Module("Auto Trap", Category.COMBAT) {
         for (wallSpot in wallSpots) {
             if (mc.level!!.getBlockState(wallSpot).canBeReplaced()) {
                 if (!PlacementUtil.switchHotbarToItem(Blocks.OBSIDIAN.asItem())) return
-                PlacementUtil.placeOnNeighbour(wallSpot)
+                PlacementUtil.placeOnNeighbour(this, wallSpot)
             }
             val wallSpotAbove = wallSpot.above()
             if (mc.level!!.getBlockState(wallSpotAbove).canBeReplaced()) {
                 if (!PlacementUtil.switchHotbarToItem(Blocks.OBSIDIAN.asItem())) return
-                PlacementUtil.placeOnNeighbour(wallSpotAbove)
+                PlacementUtil.placeOnNeighbour(this, wallSpotAbove)
             }
         }
 
@@ -38,7 +38,7 @@ object AutoTrapModule : Module("Auto Trap", Category.COMBAT) {
             val roofSpot = spot.above(2)
             if (mc.level!!.getBlockState(roofSpot).canBeReplaced()) {
                 if (!PlacementUtil.switchHotbarToItem(Blocks.OBSIDIAN.asItem())) return
-                PlacementUtil.placeOnNeighbour(roofSpot)
+                PlacementUtil.placeOnNeighbour(this, roofSpot)
             }
         }
     }
@@ -127,12 +127,12 @@ object AutoTrapModule : Module("Auto Trap", Category.COMBAT) {
         for (spot in spots) {
             if (mc.level!!.getBlockState(spot).canBeReplaced()) {
                 if (!PlacementUtil.switchHotbarToItem(Blocks.COBWEB.asItem())) return
-                PlacementUtil.placeOnNeighbour(spot)
+                PlacementUtil.placeOnNeighbour(this, spot)
             }
             val spotAbove = spot.above()
             if (mc.level!!.getBlockState(spotAbove).canBeReplaced()) {
                 if (!PlacementUtil.switchHotbarToItem(Blocks.COBWEB.asItem())) return
-                PlacementUtil.placeOnNeighbour(spotAbove)
+                PlacementUtil.placeOnNeighbour(this, spotAbove)
             }
         }
     }
