@@ -3,6 +3,7 @@ package nieboczek.lifestolen.module
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.blaze3d.platform.Window
 import net.minecraft.client.Minecraft
+import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.Notifications
 import nieboczek.lifestolen.serializer.base.DoubleSerializer
@@ -14,7 +15,6 @@ abstract class Module(val name: String, val category: Category) {
     val id = name.titleCaseToPascalCase()
     val mc = Minecraft.getInstance()
     val player get() = mc.player!!
-
     val settings = mutableListOf<Setting<*>>()
 
     var enabled by boolean("Enabled", false)
@@ -27,6 +27,9 @@ abstract class Module(val name: String, val category: Category) {
     open fun render3d() {}
     open fun enable() {}
     open fun disable() {}
+
+    fun isEnabled() = enabled && !Lifestolen.killSwitch
+    fun isDisabled() = !enabled || Lifestolen.killSwitch
 
     fun handleBindPress(window: Window) {
         if (keybind <= 0) {

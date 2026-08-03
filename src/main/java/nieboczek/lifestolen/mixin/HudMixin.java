@@ -20,8 +20,6 @@ public class HudMixin {
 
     @Inject(method = "extractCrosshair", at = @At("HEAD"), cancellable = true)
     private void extractCrosshair(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (minecraft.gui.screen() instanceof ConfigScreen) {
-            ci.cancel();
-        }
+        if (minecraft.gui.screen() instanceof ConfigScreen) ci.cancel();
     }
 }

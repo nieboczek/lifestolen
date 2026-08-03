@@ -18,7 +18,7 @@ public class EntityFluidInteractionMixin {
     )
     private Vec3 update(Vec3 original, @Local(argsOnly = true, name = "entity") Entity entity) {
         NoPushModule noPush = NoPushModule.INSTANCE;
-        if (entity != Minecraft.getInstance().player || !noPush.isEnabled()) return original;
+        if (entity != Minecraft.getInstance().player || noPush.isDisabled()) return original;
         return noPush.getNoPushByFluids() ? Vec3.ZERO : original;
     }
 }

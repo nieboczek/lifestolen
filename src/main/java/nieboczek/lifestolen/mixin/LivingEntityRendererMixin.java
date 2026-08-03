@@ -18,7 +18,7 @@ public class LivingEntityRendererMixin {
             method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;isUpsideDown:Z", opcode = Opcodes.PUTFIELD)
     )
-    public void extractRenderState(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
+    public void extractRenderState(LivingEntity entity, LivingEntityRenderState state, float partialTicks, CallbackInfo ci) {
         if (entity == Minecraft.getInstance().player) {
             RotationUtil.Rotation rot = RotationUtil.INSTANCE.getLerpedRotation();
             if (rot == null) return;

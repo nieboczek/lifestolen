@@ -1,11 +1,8 @@
 package nieboczek.lifestolen.module
 
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
-import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.BlockListSetting
-import nieboczek.lifestolen.serializer.minecraft.ResourceSerializer
 
 object XRayModule : Module("XRay", Category.VISUALS) {
     val fullBright by boolean("Full Bright")
@@ -93,7 +90,6 @@ object XRayModule : Module("XRay", Category.VISUALS) {
 
     private val blocks by addSetting(BlockListSetting("Blocks", defaultBlocks.toMutableList()))
 
-    fun isEnabled(): Boolean = enabled && !Lifestolen.killSwitch
     fun shouldRender(state: BlockState): Boolean = state.block in blocks
 
     override fun enable() = mc.levelExtractor.allChanged()

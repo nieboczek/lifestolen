@@ -13,9 +13,7 @@ public abstract class BlockMixin {
     @ModifyReturnValue(method = "shouldRenderFace", at = @At("RETURN"))
     private static boolean shouldRenderFace(boolean original, BlockState state, BlockState neighborState, Direction direction) {
         var xRay = XRayModule.INSTANCE;
-        if (xRay.isEnabled()) {
-            return xRay.shouldRender(state);
-        }
+        if (xRay.isEnabled()) return xRay.shouldRender(state);
         return original;
     }
 }

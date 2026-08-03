@@ -2,7 +2,6 @@ package nieboczek.lifestolen.module
 
 import net.minecraft.client.CameraType
 import net.minecraft.world.phys.Vec3
-import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.mixininterfaces.IKeyboardInput
 import nieboczek.lifestolen.module.util.RotationUtil
 
@@ -21,8 +20,6 @@ object FreeCamModule : Module("Free Cam", Category.VISUALS) {
         private set
     var camXRot = 0f
         private set
-
-    fun isEnabled(): Boolean = enabled && !Lifestolen.killSwitch
 
     fun computeLerpedPos(partialTicks: Float): Vec3 {
         val partial = partialTicks.toDouble()

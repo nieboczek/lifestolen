@@ -47,8 +47,6 @@ public class LocalPlayerMixin {
     @Inject(method = "moveTowardsClosestSpace", at = @At("HEAD"), cancellable = true)
     private void moveTowardsClosestSpace(double x, double z, CallbackInfo ci) {
         NoPushModule noPush = NoPushModule.INSTANCE;
-        if (noPush.isEnabled() && noPush.getNoPushByBlocks()) {
-            ci.cancel();
-        }
+        if (noPush.isEnabled() && noPush.getNoPushByBlocks()) ci.cancel();
     }
 }

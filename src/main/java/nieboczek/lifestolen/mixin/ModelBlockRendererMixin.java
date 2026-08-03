@@ -16,7 +16,7 @@ public abstract class ModelBlockRendererMixin {
     )
     private boolean tesselateBlock(boolean original) {
         var xRay = XRayModule.INSTANCE;
-        if ((!xRay.isEnabled() || !xRay.getFullBright()) && !FullBrightModule.isEnabled()) {
+        if ((xRay.isDisabled() || !xRay.getFullBright()) && FullBrightModule.INSTANCE.isDisabled()) {
             return original;
         }
         return false;

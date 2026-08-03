@@ -62,9 +62,7 @@ public class GameRendererMixin {
 
     @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
     private void bobView(CameraRenderState cameraState, PoseStack poseStack, CallbackInfo ci) {
-        if (TracersModule.INSTANCE.getEnabled() && !Lifestolen.INSTANCE.getKillSwitch()) {
-            ci.cancel();
-        }
+        if (TracersModule.INSTANCE.isEnabled()) ci.cancel();
     }
 
     @Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)

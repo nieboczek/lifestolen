@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(Gui.class)
 public class GuiMixin {
     @ModifyExpressionValue(
-            at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/state/gui/GuiRenderState;II)Lnet/minecraft/client/gui/GuiGraphicsExtractor;"),
-            method = "extractRenderState"
+            method = "extractRenderState",
+            at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/state/gui/GuiRenderState;II)Lnet/minecraft/client/gui/GuiGraphicsExtractor;")
     )
     public GuiGraphicsExtractor render(
             GuiGraphicsExtractor original,

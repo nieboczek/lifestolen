@@ -12,8 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class VisGraphMixin {
     @Inject(method = "setOpaque", at = @At("HEAD"), cancellable = true)
     private void setOpaque(BlockPos pos, CallbackInfo ci) {
-        if (XRayModule.INSTANCE.isEnabled()) {
-            ci.cancel();
-        }
+        if (XRayModule.INSTANCE.isEnabled()) ci.cancel();
     }
 }

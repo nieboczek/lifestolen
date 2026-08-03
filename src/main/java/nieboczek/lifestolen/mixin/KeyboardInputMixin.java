@@ -8,7 +8,6 @@ import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.world.entity.player.Input;
-import nieboczek.lifestolen.Lifestolen;
 import nieboczek.lifestolen.mixininterfaces.IKeyboardInput;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.InvMoveModule;
@@ -36,7 +35,7 @@ public class KeyboardInputMixin implements IKeyboardInput {
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
         InvMoveModule invMove = InvMoveModule.INSTANCE;
-        if (!invMove.getEnabled() || Lifestolen.INSTANCE.getKillSwitch()) return;
+        if (invMove.isDisabled()) return;
 
         Screen screen = Minecraft.getInstance().gui.screen();
         if (screen == null || screen instanceof ChatScreen) return;

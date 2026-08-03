@@ -47,7 +47,7 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
     private var currentDelay = 0
 
     override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-        if (msg !is Packet<*> || !FakeLagModule.enabled) {
+        if (msg !is Packet<*> || FakeLagModule.isDisabled()) {
             super.write(ctx, msg, promise)
             return
         }

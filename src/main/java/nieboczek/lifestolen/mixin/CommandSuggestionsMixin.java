@@ -51,10 +51,11 @@ public abstract class CommandSuggestionsMixin {
             cancellable = true
     )
     private void updateCommandInfo(CallbackInfo ci) {
-        if (Lifestolen.INSTANCE.getKillSwitch()) return;
-        String text = input.getValue();
+        Lifestolen mod = Lifestolen.INSTANCE;
+        if (mod.getKillSwitch()) return;
 
-        if (text.startsWith(Lifestolen.INSTANCE.getCfg().getCommandPrefix())) {
+        String text = input.getValue();
+        if (text.startsWith(mod.getCfg().getCommandPrefix())) {
             pendingSuggestions = CommandExecutor.INSTANCE.autocomplete(text, input.getCursorPosition());
             pendingSuggestions.thenRun(() -> {
                 if (suggestions == null) showSuggestions(false);

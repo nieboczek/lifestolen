@@ -16,12 +16,12 @@ public class MinecraftMixin {
     }
 
     @Inject(method = "pickBlockOrEntity", at = @At("HEAD"), cancellable = true)
-    private void onDoItemPick(CallbackInfo ci) {
+    private void pickBlockOrEntity(CallbackInfo ci) {
         if (FreeCamModule.INSTANCE.isEnabled()) ci.cancel();
     }
 
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
-    private void onHandleBlockBreaking(CallbackInfo ci) {
+    private void continueAttack(CallbackInfo ci) {
         if (FreeCamModule.INSTANCE.isEnabled()) ci.cancel();
     }
 }
