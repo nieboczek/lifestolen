@@ -14,6 +14,7 @@ import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.module.util.RotationUtil;
 import nieboczek.lifestolen.util.Renderer3d;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,19 +42,21 @@ public class GameRendererMixin {
     }
 
     @Inject(
-            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD),
-            method = "renderLevel"
+            method = "renderLevel",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD)
     )
     void renderLevel(DeltaTracker deltaTracker, CallbackInfo ci) {
-        Renderer3d.tickDelta = deltaTracker.getGameTimeDeltaPartialTick(false);
-        Renderer3d.camera = mainCamera;
-        Renderer3d.setViewMatrix(new Matrix4f().rotation(mainCamera.rotation().conjugate(new org.joml.Quaternionf())));
-        Renderer3d.beginFrame(mainRenderTarget, mainCamera);
+        Renderer3d renderer = Renderer3d.INSTANCE;
+
+        renderer.setTickDelta(deltaTracker.getGameTimeDeltaPartialTick(false));
+        renderer.setCamera(mainCamera);
+        renderer.setViewMatrix(new Matrix4f().rotation(mainCamera.rotation().conjugate(new Quaternionf())));
+        renderer.beginFrame(mainRenderTarget, mainCamera);
 
         try {
             Lifestolen.INSTANCE.render3d();
         } finally {
-            Renderer3d.endFrame();
+            renderer.endFrame();
         }
     }
 

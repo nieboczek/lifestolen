@@ -22,12 +22,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object Renderer3d {
-    @JvmField
     var tickDelta: Float = 0f
-
-    @JvmField
     var camera: Camera? = null
 
+    private val viewMatrix = Matrix4f()
     private var renderTarget: RenderTarget? = null
 
     private val byteBufferBuilder = ByteBufferBuilder(0x400000)
@@ -48,14 +46,10 @@ object Renderer3d {
         .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
         .build()
 
-    private val viewMatrix = Matrix4f()
-
-    @JvmStatic
     fun setViewMatrix(matrix: Matrix4f) {
         viewMatrix.set(matrix)
     }
 
-    @JvmStatic
     fun beginFrame(target: RenderTarget, cam: Camera) {
         renderTarget = target
         camera = cam
@@ -75,7 +69,6 @@ object Renderer3d {
         quadHasVertices = false
     }
 
-    @JvmStatic
     fun endFrame() {
         val target = renderTarget ?: return
         renderTarget = null
@@ -128,8 +121,6 @@ object Renderer3d {
                     pass.setUniform("DynamicTransforms", dynamicTransforms)
                     pass.setVertexBuffer(0, vertexBuffer.slice())
                     pass.setIndexBuffer(indexSlice, sequentialBuffer.type())
-                    // signature 26.1.2: void drawIndexed(final int baseVertex, final int firstIndex, final int indexCount, final int instanceCount)
-                    // signature 26.2: void drawIndexed(final int indexCount, final int instanceCount, final int firstIndex, final int vertexOffset, final int firstInstance)
                     pass.drawIndexed(indexCount, 1, 0, 0, 0)
                 }
             } finally {
