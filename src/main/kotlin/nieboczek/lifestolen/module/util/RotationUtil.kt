@@ -8,6 +8,7 @@ import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.Module
 import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 object RotationUtil {
     const val PRIORITY_COMBAT = 100
@@ -20,7 +21,9 @@ object RotationUtil {
     private const val YAW_SPEED_PER_TICK = 0.35f
     private const val PITCH_SPEED_PER_TICK = 0.2f
 
-    private class RotationTarget(val module: Module, val rotation: Rotation, val priority: Int)
+    private class RotationTarget(
+        val module: Module, val rotation: Rotation, val priority: Int, val correctYaw: Boolean
+    )
     class Rotation(val x: Float, val y: Float)
 
     private val mc = Minecraft.getInstance()
@@ -32,8 +35,14 @@ object RotationUtil {
             return field
         }
 
-    fun request(module: Module, x: Float, y: Float, priority: Int = PRIORITY_DEFAULT) {
-        targets[module] = RotationTarget(module, Rotation(x, y), priority)
+    fun request(
+        module: Module,
+        x: Float,
+        y: Float,
+        priority: Int = PRIORITY_DEFAULT,
+        correctYaw: Boolean = true,
+    ) {
+        targets[module] = RotationTarget(module, Rotation(x, y), priority, correctYaw)
     }
 
     fun cancel(module: Module) {
@@ -45,9 +54,25 @@ object RotationUtil {
         lerpedRotation = null
     }
 
-    private fun activeTarget(): RotationTarget? {
-        targets.entries.removeIf { it.value.module.enabled.not() }
-        return targets.values.maxByOrNull { it.priority }
+    fun computeCorrectedYaw(): Float? {
+        val active = activeTarget() ?: return null
+        if (!active.correctYaw) return null
+        val player = mc.player ?: return null
+        val fakeYaw = lerpedRotation?.y ?: return null
+
+        val yawDelta = Mth.wrapDegrees(player.yRot - fakeYaw)
+        val snappedOffset = 45.0 * (yawDelta / 45.0).roundToInt()
+        return fakeYaw + snappedOffset.toFloat()
+    }
+
+    fun shouldKeepSprinting(input: Input): Boolean {
+        if (!input.forward || input.backward) return false
+
+        val correctedYaw = computeCorrectedYaw() ?: return true
+        val fakeYaw = lerpedRotation?.y ?: return true
+
+        val movementRelToLerped = Mth.wrapDegrees(correctedYaw + getMovementYawOfInput(input, 0f) - fakeYaw)
+        return abs(movementRelToLerped) <= 45f
     }
 
     fun lerpRotation(partialTick: Float) {
@@ -76,6 +101,11 @@ object RotationUtil {
         }
 
         lerpedRotation = rotation
+    }
+
+    private fun activeTarget(): RotationTarget? {
+        targets.entries.removeIf { it.value.module.enabled.not() }
+        return targets.values.maxByOrNull { it.priority }
     }
 
     private fun frameFactor(speedPerTick: Float, partialTick: Float) =

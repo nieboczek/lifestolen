@@ -39,23 +39,18 @@ object PlacementUtil {
         for (direction in Direction.entries) {
             val neighbourPos = target.relative(direction)
             val hitVec = Vec3.atCenterOf(neighbourPos)
-            val hitResult = BlockHitResult(
-                hitVec,
-                direction.opposite,
-                neighbourPos,
-                false
-            )
+            val hitResult = BlockHitResult(hitVec, direction.opposite, neighbourPos, false)
 
             val context = BlockPlaceContext.at(
-                BlockPlaceContext(player, InteractionHand.MAIN_HAND, itemStack, hitResult),
-                target,
-                direction.opposite
+                BlockPlaceContext(player, InteractionHand.MAIN_HAND, itemStack, hitResult), target, direction.opposite
             )
 
             if (!context.canPlace()) continue
 
             val targetVec = Vec3.atCenterOf(neighbourPos)
-            RotationUtil.request(provider, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_PLACEMENT)
+            RotationUtil.request(
+                provider, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_PLACEMENT, false
+            )
 
             return mc.gameMode!!.useItemOn(mc.player!!, InteractionHand.MAIN_HAND, hitResult) != InteractionResult.FAIL
         }
