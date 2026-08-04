@@ -52,11 +52,10 @@ class PixelBlitRenderState(
 
 fun GuiGraphicsExtractor.blitPixel(texture: Identifier, x: Int, y: Int, width: Int, height: Int) {
     val texture = Minecraft.getInstance().textureManager.getTexture(texture)
-    val textureView = texture.textureView ?: return
     guiRenderState.addGuiElement(
         PixelBlitRenderState(
             RenderPipelines.GUI_TEXTURED,
-            TextureSetup.singleTexture(textureView, texture.sampler),
+            TextureSetup.singleTexture(texture.textureView, texture.sampler),
             x,
             y,
             width,

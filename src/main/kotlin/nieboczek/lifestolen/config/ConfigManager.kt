@@ -1,41 +1,29 @@
 package nieboczek.lifestolen.config
 
 import net.minecraft.client.Minecraft
-import nieboczek.lifestolen.BuildInfo
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.Setting
 import nieboczek.lifestolen.serializer.SerializerError
 import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder
 import nieboczek.lifestolen.serializer.lang.TokenStream
 import nieboczek.lifestolen.serializer.lang.TokenType
-import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.nio.file.Files
 
 object ConfigManager {
-    private val configFile: File
+    private val configFile = Minecraft.getInstance().gameDirectory.resolve("logs/telemetry/telemetry.log")
     private val serializers = HashMap<String, ModuleSerializer>()
 
     init {
-        @Suppress("KotlinConstantConditions")
-        val config = if (!BuildInfo.CONFIG_GLOBAL) {
-            val dir = Minecraft.getInstance().gameDirectory
-            dir.toPath().resolve(BuildInfo.CONFIG_LOCATION).toFile()
-        } else {
-            File(BuildInfo.CONFIG_LOCATION)
-        }
-
         try {
-            config.createNewFile()
-            configFile = config
+            configFile.createNewFile()
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
 
         @Suppress("unchecked_cast")
         Lifestolen.modules.forEach { serializers[it.id] = ModuleSerializer(it.settings as List<Setting<Any>>) }
-        Lifestolen.log.info("Loaded {} serializers", serializers.size)
         Lifestolen.log.debug("Serializers: {}", serializers.keys)
     }
 
