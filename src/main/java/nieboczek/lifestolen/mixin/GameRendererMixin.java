@@ -46,15 +46,17 @@ public class GameRendererMixin {
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/CameraEntityRenderState;isSleeping:Z", opcode = Opcodes.GETFIELD)
     )
     void renderLevel(DeltaTracker deltaTracker, CallbackInfo ci) {
-        Renderer3d renderer = Renderer3d.INSTANCE;
+        Lifestolen mod = Lifestolen.INSTANCE;
+        if (mod.getKillSwitch()) return;
 
+        Renderer3d renderer = Renderer3d.INSTANCE;
         renderer.setTickDelta(deltaTracker.getGameTimeDeltaPartialTick(false));
         renderer.setCamera(mainCamera);
         renderer.setViewMatrix(new Matrix4f().rotation(mainCamera.rotation().conjugate(new Quaternionf())));
         renderer.beginFrame(mainRenderTarget, mainCamera);
 
         try {
-            Lifestolen.INSTANCE.render3d();
+            mod.render3d();
         } finally {
             renderer.endFrame();
         }

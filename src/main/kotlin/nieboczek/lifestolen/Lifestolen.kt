@@ -51,6 +51,8 @@ object Lifestolen : ClientModInitializer {
     var killSwitch = false
         private set
 
+    /** Modules that have been enabled before the kill switch was activated. */
+    private val killSwitchedModules = mutableListOf<Module>()
     private val mc = Minecraft.getInstance()
     private var firstTickWithPlayer = false
     private var seenTitleScreen: Byte = 0
@@ -94,7 +96,7 @@ object Lifestolen : ClientModInitializer {
     }
 
     fun render3d() {
-        if (killSwitch) return
+        // killSwitch checked for in caller
         modules.forEach { if (it.enabled) it.render3d() }
     }
 
@@ -104,9 +106,15 @@ object Lifestolen : ClientModInitializer {
 
         if (killSwitch) {
             Notifications.clear()
-            modules.forEach { if (it.enabled) it.disable() }
+            modules.forEach {
+                if (it.enabled) {
+                    it.toggle()
+                    killSwitchedModules.add(it)
+                }
+            }
         } else {
-            modules.forEach { if (it.enabled) it.enable() }
+            modules.forEach { if (killSwitchedModules.contains(it)) it.toggle() }
+            killSwitchedModules.clear()
         }
     }
 
