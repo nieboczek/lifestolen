@@ -17,7 +17,14 @@ object ChestESPModule : Module("Chest ESP", Category.VISUALS) {
     private val range by int("Range", 128, 8..512, "blocks")
     private val color by color("Color", 0x55FFFFFF)
     private val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)
-    private val lineWidth by float("Line Width", 2f, 0.5f..8f, step = 0.1f)
+    private val lineWidth by float("Line Width", 2f, 0f..8f, step = 0.1f)
+    private val fillOpacity by float("Fill Opacity", 0f, 0f..1f, step = 0.01f)
+
+    private fun fillColor(): Int {
+        val baseAlpha = (color ushr 24) and 0xFF
+        val fillAlpha = (baseAlpha * fillOpacity).toInt()
+        return (fillAlpha shl 24) or (color and 0x00FFFFFF)
+    }
 
     private val showChests by boolean("Show Chests")
     private val showBarrels by boolean("Show Barrels")
@@ -100,7 +107,10 @@ object ChestESPModule : Module("Chest ESP", Category.VISUALS) {
             )
             val min = 1.0 - (1.0 * boxScale)
             val max = 1.0 * boxScale
-            Renderer3d.renderBoxOutline(AABB(min, min, min, max, max, max), alphaColor, pos, lineWidth)
+
+            val box = AABB(min, min, min, max, max, max)
+            if (fillOpacity > 0f) Renderer3d.renderBoxFill(box, fillColor(), pos)
+            if (lineWidth > 0f) Renderer3d.renderBoxOutline(box, alphaColor, pos, lineWidth)
         }
 
         for (entityRef in entityRefs) {
@@ -111,7 +121,10 @@ object ChestESPModule : Module("Chest ESP", Category.VISUALS) {
             val dimensions = entity.getDimensions(entity.pose).scale(boxScale)
             val w = dimensions.width / 2.0
             val h = dimensions.height.toDouble()
-            Renderer3d.renderBoxOutline(AABB(-w, 0.0, -w, w, h, w), alphaColor, entityPos, lineWidth)
+
+            val box = AABB(-w, 0.0, -w, w, h, w)
+            if (fillOpacity > 0f) Renderer3d.renderBoxFill(box, fillColor(), entityPos)
+            if (lineWidth > 0f) Renderer3d.renderBoxOutline(box, alphaColor, entityPos, lineWidth)
         }
     }
 
