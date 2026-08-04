@@ -33,8 +33,10 @@ jobs:
       - name: Build
         run: ./gradlew build
 
-      - name: Capture build artifacts
+      - name: Capture build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Artifacts
-          path: build/libs/
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+          archive: false
