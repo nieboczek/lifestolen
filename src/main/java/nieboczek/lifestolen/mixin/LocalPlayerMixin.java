@@ -19,9 +19,8 @@ public class LocalPlayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getYRot()F")
     )
     public float getYRot(float original) {
-        RotationUtil.Rotation rot = RotationUtil.INSTANCE.getLerpedRotation();
-        if (rot == null) return original;
-        return rot.getY();
+        RotationUtil.Rotation spoofed = RotationUtil.INSTANCE.spoofedRotation();
+        return spoofed == null ? original : spoofed.getY();
     }
 
     @ModifyExpressionValue(
@@ -29,9 +28,8 @@ public class LocalPlayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getXRot()F")
     )
     public float getXRot(float original) {
-        RotationUtil.Rotation rot = RotationUtil.INSTANCE.getLerpedRotation();
-        if (rot == null) return original;
-        return rot.getX();
+        RotationUtil.Rotation spoofed = RotationUtil.INSTANCE.spoofedRotation();
+        return spoofed == null ? original : spoofed.getX();
     }
 
     @ModifyExpressionValue(

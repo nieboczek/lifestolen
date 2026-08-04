@@ -60,7 +60,20 @@ object RotationUtil {
         val player = mc.player ?: return null
         val fakeYaw = lerpedRotation?.y ?: return null
 
-        val yawDelta = Mth.wrapDegrees(player.yRot - fakeYaw)
+        return correctedYaw(fakeYaw, player.yRot)
+    }
+
+    fun spoofedRotation(): Rotation? {
+        val active = activeTarget() ?: return null
+        val player = mc.player ?: return null
+        val fake = lerpedRotation ?: return null
+
+        val yaw = if (active.correctYaw) correctedYaw(fake.y, player.yRot) else player.yRot
+        return Rotation(fake.x, yaw)
+    }
+
+    private fun correctedYaw(fakeYaw: Float, playerYaw: Float): Float {
+        val yawDelta = Mth.wrapDegrees(playerYaw - fakeYaw)
         val snappedOffset = 45.0 * (yawDelta / 45.0).roundToInt()
         return fakeYaw + snappedOffset.toFloat()
     }
