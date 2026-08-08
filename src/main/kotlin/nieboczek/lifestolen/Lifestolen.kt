@@ -1,26 +1,21 @@
 package nieboczek.lifestolen
 
-import com.mojang.authlib.GameProfile
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.TitleScreen
-import net.minecraft.client.multiplayer.ClientPacketListener
-import net.minecraft.network.chat.ChatType
-import net.minecraft.network.chat.FormattedText
 import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Entity
+import nieboczek.lifestolen.Lifestolen.toggleKillSwitch
 import nieboczek.lifestolen.command.Commands
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
-import nieboczek.lifestolen.gui.Notifications
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
+import nieboczek.lifestolen.gui.notification.Notifications
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
 import nieboczek.lifestolen.util.FontLoader
@@ -96,15 +91,23 @@ object Lifestolen : ClientModInitializer {
     }
 
     fun render3d() {
-        // killSwitch checked for in caller
+        // killSwitch checked for in caller (GameRendererMixin#renderLevel)
         modules.forEach { if (it.enabled) it.render3d() }
+    }
+
+    /** Omits function calls that might require a player, unlike [toggleKillSwitch] */
+    fun toggleKillSwitchInMenu() {
+        killSwitch = !killSwitch
     }
 
     fun toggleKillSwitch() {
         killSwitch = !killSwitch
-        if (!firstTickWithPlayer) return
+        toggleKillSwitchedModules()
+    }
 
+    private fun toggleKillSwitchedModules() {
         if (killSwitch) {
+            reset()
             Notifications.clear()
             modules.forEach {
                 if (it.enabled) {
@@ -119,13 +122,13 @@ object Lifestolen : ClientModInitializer {
     }
 
     override fun onInitializeClient() {
-        FriedSvg.initialize()
-        Commands.initialize()
+        FakeLagChannelHandler.init()
+        FriedSvg.init()
+        Commands.init()
+
         ClientLifecycleEvents.CLIENT_STARTED.register { this.clientStarted() }
         ClientLifecycleEvents.CLIENT_STOPPING.register { this.clientStopping() }
         ClientTickEvents.END_CLIENT_TICK.register { mc -> this.clientTick(mc) }
-        ClientPlayConnectionEvents.INIT.register { listener, _ -> this.initializeConnection(listener) }
-        ClientReceiveMessageEvents.CHAT.register { _, _, sender, bound, _ -> this.receiveChatMessage(sender, bound) }
     }
 
     private fun clientStarted() {
@@ -157,7 +160,9 @@ object Lifestolen : ClientModInitializer {
         fontExtraSmall = FontLoader.loadUiFont(6f, -3f, "ui_font_extra_small")
     }
 
-    private fun clientStopping() = ConfigManager.saveConfig()
+    private fun clientStopping() {
+        ConfigManager.saveConfig()
+    }
 
     private fun clientTick(mc: Minecraft) {
         val noScreen = mc.gui.screen() == null
@@ -169,30 +174,13 @@ object Lifestolen : ClientModInitializer {
         if (killSwitch || mc.player == null) return
         if (!firstTickWithPlayer) {
             firstTickWithPlayer = true
-            modules.forEach { if (it.enabled) it.enable() }
+            toggleKillSwitchedModules()
         }
 
         val window = mc.window
         for (module in modules) {
             if (module.enabled) module.tick()
             if (noScreen) module.handleBindPress(window)
-        }
-    }
-
-    private fun initializeConnection(listener: ClientPacketListener) {
-        val pipeline = listener.getConnection().channel.pipeline()
-        if (pipeline.get("lifestolen_packet_intercept") == null) pipeline.addBefore(
-            "packet_handler", "lifestolen_packet_intercept", FakeLagChannelHandler()
-        )
-    }
-
-    private fun receiveChatMessage(sender: GameProfile?, bound: ChatType.Bound?) {
-        if (bound!!.chatType().`is`(ChatType.MSG_COMMAND_INCOMING)) {
-            if (sender == null) {
-                Notifications.add(FormattedText.of("/msg sender was not set correctly, was null"))
-                return
-            }
-            Commands.lastSender = sender.name()
         }
     }
 }

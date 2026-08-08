@@ -4,7 +4,7 @@ import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.minecraft.network.chat.FormattedText
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.gui.Notifications
+import nieboczek.lifestolen.gui.notification.Notifications
 import java.util.concurrent.CompletableFuture
 
 object CommandExecutor {

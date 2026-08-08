@@ -23,7 +23,7 @@ object FriedSvg {
         Thread(task, "friedsvg-worker").also { it.isDaemon = true }
     }
 
-    fun initialize() {
+    fun init() {
         ClientLifecycleEvents.CLIENT_STARTED.register { mc ->
             mc.execute { SvgRasterizer.getOrCreateErrorTexture() }
 

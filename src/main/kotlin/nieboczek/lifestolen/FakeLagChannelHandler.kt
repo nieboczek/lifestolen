@@ -3,6 +3,7 @@ package nieboczek.lifestolen
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.PacketType
 import net.minecraft.network.protocol.common.CommonPacketTypes
@@ -39,6 +40,15 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
             ConfigurationPacketTypes.SERVERBOUND_FINISH_CONFIGURATION,
             ConfigurationPacketTypes.CLIENTBOUND_FINISH_CONFIGURATION
         )
+
+        fun init() {
+            ClientPlayConnectionEvents.INIT.register { listener, _ ->
+                val pipeline = listener.getConnection().channel.pipeline()
+                if (pipeline.get("lifestolen_packet_intercept") == null) pipeline.addBefore(
+                    "packet_handler", "lifestolen_packet_intercept", FakeLagChannelHandler()
+                )
+            }
+        }
     }
 
     private val packetQueue = ArrayDeque<QueuedPacket>()
@@ -94,5 +104,5 @@ class FakeLagChannelHandler : ChannelDuplexHandler() {
         }
     }
 
-    private data class QueuedPacket(val packet: Packet<*>, val timestamp: Long)
+    private class QueuedPacket(val packet: Packet<*>, val timestamp: Long)
 }

@@ -1,11 +1,13 @@
 package nieboczek.lifestolen.command
 
 import com.mojang.blaze3d.platform.InputConstants
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.ChatType
 import net.minecraft.network.chat.FormattedText
 import net.minecraft.network.chat.Style
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.gui.Notifications
+import nieboczek.lifestolen.gui.notification.Notifications
 import org.lwjgl.glfw.GLFW
 
 object Commands {
@@ -20,7 +22,17 @@ object Commands {
     // Used for reply command
     var lastSender: String? = null
 
-    fun initialize() {
+    fun init() {
+        ClientReceiveMessageEvents.CHAT.register { _, _, sender, bound, _ ->
+            if (bound.chatType.`is`(ChatType.MSG_COMMAND_INCOMING)) {
+                if (sender == null) {
+                    Notifications.add(FormattedText.of("/msg sender was not set correctly, was null"))
+                    return@register
+                }
+                lastSender = sender.name()
+            }
+        }
+
         Command("friends").subcommand(
             Command("add").argument(Argument("player", Argument.Type.STRING)).executes {
                 val name = it.getString("player")

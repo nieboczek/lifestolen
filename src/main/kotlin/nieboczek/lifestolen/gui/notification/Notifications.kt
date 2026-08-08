@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.gui
+package nieboczek.lifestolen.gui.notification
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor

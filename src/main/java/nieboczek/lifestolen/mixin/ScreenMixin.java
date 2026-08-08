@@ -23,7 +23,7 @@ public class ScreenMixin {
     public void keyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         if (((Object) this) instanceof TitleScreen && minecraft.options.keySocialInteractions.matches(event)) {
             Lifestolen mod = Lifestolen.INSTANCE;
-            mod.toggleKillSwitch();
+            mod.toggleKillSwitchInMenu();
             mod.getLog().info("Set kill switch in title screen to {}", mod.getKillSwitch());
             cir.setReturnValue(true);
         }
