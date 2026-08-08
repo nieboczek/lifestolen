@@ -75,7 +75,7 @@ object RotationUtil {
     private fun correctedYaw(fakeYaw: Float, playerYaw: Float): Float {
         val yawDelta = Mth.wrapDegrees(playerYaw - fakeYaw)
         val snappedOffset = 45.0 * (yawDelta / 45.0).roundToInt()
-        return fakeYaw + snappedOffset.toFloat()
+        return Mth.wrapDegrees(fakeYaw + snappedOffset.toFloat())
     }
 
     fun shouldKeepSprinting(input: Input): Boolean {
