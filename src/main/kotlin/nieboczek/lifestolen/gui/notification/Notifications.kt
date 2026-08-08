@@ -11,7 +11,7 @@ import nieboczek.lifestolen.module.Module
 import kotlin.math.min
 
 object Notifications {
-    private const val TOTAL_TICKS = 20f * 5f
+    private const val TOTAL_TICKS = 120f
     private const val SLIDE_TICKS = 10f
 
     private val mc = Minecraft.getInstance()
@@ -48,7 +48,11 @@ object Notifications {
 
         for (notification in notifications.asReversed()) {
             val slideProgress = min(
-                1f, min(TOTAL_TICKS - notification.visibilityTimer, notification.visibilityTimer) / SLIDE_TICKS
+                1f,
+                min(
+                    notification.totalTicks - notification.visibilityTimer,
+                    notification.visibilityTimer
+                ) / SLIDE_TICKS
             )
             val x = (targetX + (width - targetX) * (1f - slideProgress)).toInt()
             val y = notification.y.toInt()
@@ -77,8 +81,8 @@ object Notifications {
         }
     }
 
-    fun add(message: FormattedText) {
-        notifications.add(Notification(message))
+    fun add(message: FormattedText, visibilityTicks: Float = TOTAL_TICKS) {
+        notifications.add(Notification(message, visibilityTicks))
         if (notifications.size > 6) {
             val notif = notifications.first()
             notif.visibilityTimer = min(notif.visibilityTimer, SLIDE_TICKS)
@@ -99,8 +103,9 @@ object Notifications {
         return (color and 0xFFFFFF) or (a.toInt() shl 24)
     }
 
-    private class Notification(val message: FormattedText) {
-        var visibilityTimer = TOTAL_TICKS
+    private class Notification(val message: FormattedText, visibilityTicks: Float) {
+        val totalTicks = visibilityTicks
+        var visibilityTimer = visibilityTicks
         var y = 0f
         var yFrom = 0f
         var yTo = Float.NaN

@@ -15,6 +15,7 @@ import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
+import nieboczek.lifestolen.gui.notification.AntiCheatDetector
 import nieboczek.lifestolen.gui.notification.Notifications
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
@@ -123,6 +124,7 @@ object Lifestolen : ClientModInitializer {
 
     override fun onInitializeClient() {
         FakeLagChannelHandler.init()
+        AntiCheatDetector.init()
         FriedSvg.init()
         Commands.init()
 

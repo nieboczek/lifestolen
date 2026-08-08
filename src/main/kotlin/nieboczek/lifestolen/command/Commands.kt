@@ -13,7 +13,7 @@ import org.lwjgl.glfw.GLFW
 object Commands {
     private val colorStyle = Style.EMPTY.withColor(0xBBAAE0)
     private val greenStyle = Style.EMPTY.withColor(0x00FF00)
-    private val redStyle = Style.EMPTY.withColor(0xFF3636)
+    private val redStyle = Style.EMPTY.withColor(0xFF6060)
     private val mc = Minecraft.getInstance()
 
     // Populated by Command.register
