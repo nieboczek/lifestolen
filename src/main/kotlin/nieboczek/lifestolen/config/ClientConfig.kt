@@ -1,9 +1,9 @@
 package nieboczek.lifestolen.config
 
-import nieboczek.lifestolen.serializer.base.BooleanSerializer
-import nieboczek.lifestolen.serializer.base.ClassSerializer
-import nieboczek.lifestolen.serializer.base.ListSerializer
-import nieboczek.lifestolen.serializer.base.StringSerializer
+import nieboczek.lifestolen.config.serializer.base.BooleanSerializer
+import nieboczek.lifestolen.config.serializer.base.ClassSerializer
+import nieboczek.lifestolen.config.serializer.base.ListSerializer
+import nieboczek.lifestolen.config.serializer.base.StringSerializer
 
 /** Access instance at [nieboczek.lifestolen.Lifestolen.cfg] */
 class ClientConfig {

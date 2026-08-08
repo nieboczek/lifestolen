@@ -5,9 +5,9 @@ import com.mojang.blaze3d.platform.Window
 import net.minecraft.client.Minecraft
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.Notifications
-import nieboczek.lifestolen.serializer.base.DoubleSerializer
-import nieboczek.lifestolen.serializer.base.FloatSerializer
-import nieboczek.lifestolen.serializer.base.IntSerializer
+import nieboczek.lifestolen.config.serializer.base.DoubleSerializer
+import nieboczek.lifestolen.config.serializer.base.FloatSerializer
+import nieboczek.lifestolen.config.serializer.base.IntSerializer
 import nieboczek.lifestolen.util.titleCaseToPascalCase
 
 abstract class Module(val name: String, val category: Category) {

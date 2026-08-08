@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.serializer.lang
+package nieboczek.lifestolen.config.serializer.lang
 
 class SerializedStringBuilder {
     private val builder = StringBuilder()

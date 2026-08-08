@@ -3,10 +3,10 @@ package nieboczek.lifestolen.config
 import net.minecraft.client.Minecraft
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.config.setting.Setting
-import nieboczek.lifestolen.serializer.SerializerError
-import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder
-import nieboczek.lifestolen.serializer.lang.TokenStream
-import nieboczek.lifestolen.serializer.lang.TokenType
+import nieboczek.lifestolen.config.serializer.SerializerException
+import nieboczek.lifestolen.config.serializer.lang.SerializedStringBuilder
+import nieboczek.lifestolen.config.serializer.lang.TokenStream
+import nieboczek.lifestolen.config.serializer.lang.TokenType
 import java.io.FileWriter
 import java.io.IOException
 import java.nio.file.Files
@@ -98,7 +98,7 @@ object ConfigManager {
                 }
 
                 else -> {
-                    val serializer = serializers[id] ?: throw SerializerError("Serializer for $id not found")
+                    val serializer = serializers[id] ?: throw SerializerException("Serializer for $id not found")
                     serializer.deserialize(stream)
                 }
             }
@@ -129,7 +129,7 @@ object ConfigManager {
 
             while (stream.continueIfNot(TokenType.R_BRACE)) {
                 val id = stream.nextTokenText(TokenType.IDENTIFIER)
-                val setting = settings.find { it.id == id } ?: throw SerializerError("Setting \"$id\" not found")
+                val setting = settings.find { it.id == id } ?: throw SerializerException("Setting \"$id\" not found")
                 stream.expect(TokenType.EQUAL)
                 setting.value = setting.serializer.deserialize(stream)
                 stream.expect(TokenType.SEMICOLON)

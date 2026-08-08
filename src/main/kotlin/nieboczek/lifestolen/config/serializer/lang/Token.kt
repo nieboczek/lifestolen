@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.serializer.lang
+package nieboczek.lifestolen.config.serializer.lang
 
 class Token(val type: TokenType, val text: String?) {
     constructor(type: TokenType) : this(type, null)

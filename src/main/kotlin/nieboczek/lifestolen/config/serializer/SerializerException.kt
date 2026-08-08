@@ -1,6 +1,6 @@
-package nieboczek.lifestolen.serializer
+package nieboczek.lifestolen.config.serializer
 
-class SerializerError : RuntimeException {
+class SerializerException : RuntimeException {
     constructor(message: String) : super(message)
     constructor(message: String, cause: Throwable) : super(message, cause)
 }

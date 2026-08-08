@@ -1,6 +1,6 @@
 package nieboczek.lifestolen.config.setting
 
-import nieboczek.lifestolen.serializer.base.IntRangeSerializer
+import nieboczek.lifestolen.config.serializer.base.IntRangeSerializer
 
 class IntRangeSetting(
     name: String,

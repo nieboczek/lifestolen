@@ -1,9 +1,9 @@
-package nieboczek.lifestolen.serializer.base
+package nieboczek.lifestolen.config.serializer.base
 
-import nieboczek.lifestolen.serializer.SerializerError
-import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder
-import nieboczek.lifestolen.serializer.lang.TokenStream
-import nieboczek.lifestolen.serializer.lang.TokenType
+import nieboczek.lifestolen.config.serializer.SerializerException
+import nieboczek.lifestolen.config.serializer.lang.SerializedStringBuilder
+import nieboczek.lifestolen.config.serializer.lang.TokenStream
+import nieboczek.lifestolen.config.serializer.lang.TokenType
 import java.util.function.Function
 import java.util.function.Supplier
 
@@ -50,7 +50,7 @@ class ClassSerializer<T>(val constructor: Supplier<T>) : Serializer<T>() {
                 }
             }
 
-            if (!found) throw SerializerError("[ObjectSerializer::deserialize] Unknown field: $fieldName")
+            if (!found) throw SerializerException("[ObjectSerializer::deserialize] Unknown field: $fieldName")
             stream.expect(TokenType.SEMICOLON)
         }
 

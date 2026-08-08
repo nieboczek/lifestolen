@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.serializer.lang
+package nieboczek.lifestolen.config.serializer.lang
 
 enum class TokenType {
     L_BRACE,

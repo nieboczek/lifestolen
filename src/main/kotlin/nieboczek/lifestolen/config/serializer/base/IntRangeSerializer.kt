@@ -1,9 +1,9 @@
-package nieboczek.lifestolen.serializer.base
+package nieboczek.lifestolen.config.serializer.base
 
-import nieboczek.lifestolen.serializer.SerializerError
-import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder
-import nieboczek.lifestolen.serializer.lang.TokenStream
-import nieboczek.lifestolen.serializer.lang.TokenType
+import nieboczek.lifestolen.config.serializer.SerializerException
+import nieboczek.lifestolen.config.serializer.lang.SerializedStringBuilder
+import nieboczek.lifestolen.config.serializer.lang.TokenStream
+import nieboczek.lifestolen.config.serializer.lang.TokenType
 
 class IntRangeSerializer : Serializer<IntRange>() {
     override fun serialize(value: IntRange, builder: SerializedStringBuilder) {
@@ -16,7 +16,7 @@ class IntRangeSerializer : Serializer<IntRange>() {
         try {
             start = startText.toInt()
         } catch (e: NumberFormatException) {
-            throw SerializerError("Invalid int value for start: \"$startText\"", e)
+            throw SerializerException("Invalid int value for start: \"$startText\"", e)
         }
 
         stream.expect(TokenType.RANGE_INFIX)
@@ -26,7 +26,7 @@ class IntRangeSerializer : Serializer<IntRange>() {
         try {
             end = endText.toInt()
         } catch (e: NumberFormatException) {
-            throw SerializerError("Invalid int value for end: \"$endText\"", e)
+            throw SerializerException("Invalid int value for end: \"$endText\"", e)
         }
 
         return start..end

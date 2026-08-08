@@ -1,6 +1,6 @@
-package nieboczek.lifestolen.serializer.lang
+package nieboczek.lifestolen.config.serializer.lang
 
-import nieboczek.lifestolen.serializer.SerializerError
+import nieboczek.lifestolen.config.serializer.SerializerException
 
 class TokenStream(private val src: String) {
     private var i = 0
@@ -8,12 +8,12 @@ class TokenStream(private val src: String) {
 
     fun expect(type: TokenType) {
         val actualType = next().type
-        if (actualType != type) throw SerializerError("[TokenStream::expect] Expected token $type but got $actualType")
+        if (actualType != type) throw SerializerException("[TokenStream::expect] Expected token $type but got $actualType")
     }
 
     fun nextTokenText(type: TokenType): String {
         val token = next()
-        if (token.type != type) throw SerializerError("[TokenStream::nextTokenText] Expected token $type but got ${token.type}")
+        if (token.type != type) throw SerializerException("[TokenStream::nextTokenText] Expected token $type but got ${token.type}")
         return token.text!!
     }
 
@@ -94,7 +94,7 @@ class TokenStream(private val src: String) {
             return readIdentifier()
         }
 
-        throw SerializerError("[TokenStream::next] Unexpected character: $c")
+        throw SerializerException("[TokenStream::next] Unexpected character: $c")
     }
 
     private fun readString(): Token {
@@ -110,7 +110,7 @@ class TokenStream(private val src: String) {
                     when (val ch = src[i]) {
                         '\\', '"' -> sb.append(ch)
                         'n' -> sb.append("\n")
-                        else -> throw SerializerError("[TokenStream::readString] Invalid escape code: \\$ch")
+                        else -> throw SerializerException("[TokenStream::readString] Invalid escape code: \\$ch")
                     }
                     i++
                 }
@@ -141,7 +141,7 @@ class TokenStream(private val src: String) {
             return readNumberStartingWithDot()
         }
 
-        throw SerializerError("[TokenStream::readDotOrRange] Unexpected '.' character")
+        throw SerializerException("[TokenStream::readDotOrRange] Unexpected '.' character")
     }
 
     private fun readNumberStartingWithDot(): Token {

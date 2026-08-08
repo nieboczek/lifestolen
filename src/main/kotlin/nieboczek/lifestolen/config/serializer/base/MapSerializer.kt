@@ -1,8 +1,8 @@
-package nieboczek.lifestolen.serializer.base
+package nieboczek.lifestolen.config.serializer.base
 
-import nieboczek.lifestolen.serializer.lang.SerializedStringBuilder
-import nieboczek.lifestolen.serializer.lang.TokenStream
-import nieboczek.lifestolen.serializer.lang.TokenType
+import nieboczek.lifestolen.config.serializer.lang.SerializedStringBuilder
+import nieboczek.lifestolen.config.serializer.lang.TokenStream
+import nieboczek.lifestolen.config.serializer.lang.TokenType
 
 class MapSerializer<K, V>(
     private val keySerializer: Serializer<K>,

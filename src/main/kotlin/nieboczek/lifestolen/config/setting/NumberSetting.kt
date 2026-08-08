@@ -1,6 +1,6 @@
 package nieboczek.lifestolen.config.setting
 
-import nieboczek.lifestolen.serializer.base.Serializer
+import nieboczek.lifestolen.config.serializer.base.Serializer
 
 class NumberSetting<T: Comparable<T>>(
     name: String,

@@ -1,6 +1,6 @@
 package nieboczek.lifestolen.config.setting
 
-import nieboczek.lifestolen.serializer.base.Serializer
+import nieboczek.lifestolen.config.serializer.base.Serializer
 import nieboczek.lifestolen.util.titleCaseToPascalCase
 import kotlin.reflect.KProperty
 
