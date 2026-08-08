@@ -1,6 +1,7 @@
 package nieboczek.lifestolen.gui.notification
 
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.FormattedText
 import net.minecraft.network.chat.Style
@@ -8,10 +9,15 @@ import nieboczek.lifestolen.Lifestolen
 
 object AntiCheatDetector {
     private var waitingForCommandResponse = false
+    // prevent duplicate notifications, seems to happen with luckperms
+    private var canSendCommand = false
     private var pluginsLeft = 0
     private val pluginNames = mutableListOf<String>()
 
     fun sendPluginsCommand() {
+        if (!canSendCommand) return
+        canSendCommand = false
+
         val connection = Minecraft.getInstance().connection!!
         if (connection.commands.findNode(listOf("plugins")) != null) {
             Lifestolen.log.info("[AntiCheatDetector] Sending /plugins command")
@@ -23,6 +29,10 @@ object AntiCheatDetector {
     }
 
     fun init() {
+        ClientPlayConnectionEvents.JOIN.register { _, _, _ ->
+            canSendCommand = true
+        }
+
         ClientReceiveMessageEvents.ALLOW_GAME.register { component, overlay ->
             if (overlay || !waitingForCommandResponse) return@register true
 
