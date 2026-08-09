@@ -19,6 +19,7 @@
     "KeyBindsList$KeyEntryMixin",
     "KeyboardInputMixin",
     "LightmapRenderStateExtractorMixin",
+    "LivingEntityMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "MinecraftMixin",
