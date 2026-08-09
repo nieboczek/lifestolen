@@ -26,6 +26,7 @@
     "ModelBlockRendererMixin",
     "MultiPlayerGameModeMixin",
     "OptionsMixin",
+    "PlayerMixin",
     "PostPassMixin",
     "ScreenMixin",
     "VisGraphMixin",
