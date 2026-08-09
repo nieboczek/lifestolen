@@ -34,6 +34,8 @@ object FlyModule : Module("Fly", Category.MOVEMENT) {
             else -> targetY - player.y
         }
 
-        player.deltaMovement = RotationUtil.getMovementDeltaFromInput(deltaY, horizontalSpeed, input)
+        player.deltaMovement = RotationUtil.getMovementDeltaFromInput(
+            deltaY, horizontalSpeed, input, RotationUtil.computeCorrectedYaw() ?: player.yRot
+        )
     }
 }

@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Input;
 import nieboczek.lifestolen.mixininterfaces.IKeyboardInput;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.InvMoveModule;
+import nieboczek.lifestolen.module.util.RotationUtil;
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -51,7 +52,7 @@ public class KeyboardInputMixin implements IKeyboardInput {
     public Input tick2(Input original) {
         lifestolen$unmodified = original;
         if (FreeCamModule.INSTANCE.isEnabled()) return NO_INPUT;
-        return original;
+        return RotationUtil.INSTANCE.transformInput(original);
     }
 
     @Override

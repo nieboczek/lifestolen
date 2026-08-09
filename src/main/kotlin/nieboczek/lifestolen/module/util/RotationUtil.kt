@@ -24,6 +24,7 @@ object RotationUtil {
     private class RotationTarget(
         val module: Module, val rotation: Rotation, val priority: Int, val correctYaw: Boolean
     )
+
     class Rotation(val x: Float, val y: Float)
 
     private val mc = Minecraft.getInstance()
@@ -57,10 +58,7 @@ object RotationUtil {
     fun computeCorrectedYaw(): Float? {
         val active = activeTarget() ?: return null
         if (!active.correctYaw) return null
-        val player = mc.player ?: return null
-        val fakeYaw = lerpedRotation?.y ?: return null
-
-        return correctedYaw(fakeYaw, player.yRot)
+        return lerpedRotation?.y
     }
 
     fun spoofedRotation(): Rotation? {
@@ -68,23 +66,43 @@ object RotationUtil {
         val player = mc.player ?: return null
         val fake = lerpedRotation ?: return null
 
-        val yaw = if (active.correctYaw) correctedYaw(fake.y, player.yRot) else player.yRot
+        val yaw = if (active.correctYaw) fake.y else player.yRot
         return Rotation(fake.x, yaw)
     }
 
-    private fun correctedYaw(fakeYaw: Float, playerYaw: Float): Float {
-        val yawDelta = Mth.wrapDegrees(playerYaw - fakeYaw)
-        val snappedOffset = 45.0 * (yawDelta / 45.0).roundToInt()
-        return Mth.wrapDegrees(fakeYaw + snappedOffset.toFloat())
+    fun transformInput(input: Input): Input {
+        val player = mc.player ?: return input
+        val active = activeTarget() ?: return input
+        if (!active.correctYaw) return input
+        val fakeYaw = lerpedRotation?.y ?: return input
+
+        if (!input.forward && !input.backward && !input.left && !input.right) return input
+
+        val offset = Mth.wrapDegrees(getMovementYawOfInput(input, 0f))
+        val targetOffset = Mth.wrapDegrees(offset + player.yRot - fakeYaw)
+        val snapped = 45.0 * (targetOffset / 45.0).roundToInt()
+
+        return keysForOffset(snapped, input)
+    }
+
+    private fun keysForOffset(snapped: Double, input: Input): Input {
+        return when (Math.floorMod((snapped / 45.0).roundToInt(), 8)) {
+            0 -> Input(true, false, false, false, input.jump(), input.shift(), input.sprint())
+            1 -> Input(true, false, false, true, input.jump(), input.shift(), input.sprint())
+            2 -> Input(false, false, false, true, input.jump(), input.shift(), input.sprint())
+            3 -> Input(false, true, false, true, input.jump(), input.shift(), input.sprint())
+            4 -> Input(false, true, false, false, input.jump(), input.shift(), input.sprint())
+            5 -> Input(false, true, true, false, input.jump(), input.shift(), input.sprint())
+            6 -> Input(false, false, true, false, input.jump(), input.shift(), input.sprint())
+            else -> Input(true, false, true, false, input.jump(), input.shift(), input.sprint())
+        }
     }
 
     fun shouldKeepSprinting(input: Input): Boolean {
         if (!input.forward || input.backward) return false
+        if (computeCorrectedYaw() == null) return true
 
-        val correctedYaw = computeCorrectedYaw() ?: return true
-        val fakeYaw = lerpedRotation?.y ?: return true
-
-        val movementRelToLerped = Mth.wrapDegrees(correctedYaw + getMovementYawOfInput(input, 0f) - fakeYaw)
+        val movementRelToLerped = Mth.wrapDegrees(getMovementYawOfInput(input, 0f))
         return abs(movementRelToLerped) <= 45f
     }
 

@@ -27,9 +27,7 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
             RotationUtil.request(this, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_COMBAT)
         }
 
-        if (target == null) return
-
-        if (!player.gameMode()!!.isSurvival || player.isBlocking) return
+        if (target == null || player.isBlocking) return
 
         if (player.getAttackStrengthScale(0.5f) >= 0.95) {
             mc.gameMode!!.attack(player, target)
