@@ -18,8 +18,8 @@ object RotationUtil {
     private const val MIN_PITCH = -90f
     private const val MAX_PITCH = 90f
 
-    private const val YAW_SPEED_PER_TICK = 0.35f
-    private const val PITCH_SPEED_PER_TICK = 0.2f
+    private const val YAW_SPEED_PER_TICK = 0.9f
+    private const val PITCH_SPEED_PER_TICK = 0.9f
 
     private class RotationTarget(
         val module: Module, val rotation: Rotation, val priority: Int, val correctYaw: Boolean

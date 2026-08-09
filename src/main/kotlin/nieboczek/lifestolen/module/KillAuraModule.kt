@@ -30,9 +30,18 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
         if (target == null || player.isBlocking) return
 
         if (player.getAttackStrengthScale(0.5f) >= 0.95) {
+            val rotation = RotationUtil.spoofedRotation() ?: return
+            if (!isLookingAt(target, rotation)) return
+
             mc.gameMode!!.attack(player, target)
             player.swing(InteractionHand.MAIN_HAND)
         }
+    }
+
+    private fun isLookingAt(target: Entity, rotation: RotationUtil.Rotation): Boolean {
+        val eye = player.eyePosition
+        val to = eye.add(Vec3.directionFromRotation(rotation.x, rotation.y).scale(range))
+        return target.boundingBox.clip(eye, to).isPresent
     }
 
     override fun render3d() {
