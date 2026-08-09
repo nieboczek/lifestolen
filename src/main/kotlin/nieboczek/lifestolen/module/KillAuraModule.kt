@@ -18,6 +18,23 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
     private val lookAtTarget by boolean("Look At Target")
     private val renderRangeOutline by boolean("Render Range Outline")
 
+    private var queuedAttack: Entity? = null
+
+    fun callQueuedAttack() {
+        if (isDisabled()) return
+
+        val target = queuedAttack
+        if (target != null) {
+            mc.gameMode!!.attack(player, target)
+            player.swing(InteractionHand.MAIN_HAND)
+            queuedAttack = null
+        }
+    }
+
+    override fun disable() {
+        queuedAttack = null
+    }
+
     override fun tick() {
         val target = findNearestEntity()
         if (target == null || !lookAtTarget) {
@@ -32,9 +49,7 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
         if (player.getAttackStrengthScale(0.5f) >= 0.95) {
             val rotation = RotationUtil.spoofedRotation() ?: return
             if (!isLookingAt(target, rotation)) return
-
-            mc.gameMode!!.attack(player, target)
-            player.swing(InteractionHand.MAIN_HAND)
+            queuedAttack = target
         }
     }
 
