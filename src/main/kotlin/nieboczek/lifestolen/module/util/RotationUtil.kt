@@ -20,6 +20,7 @@ object RotationUtil {
 
     private const val YAW_SPEED_PER_TICK = 0.9f
     private const val PITCH_SPEED_PER_TICK = 0.9f
+    private const val SENT_YAW_FADE_SPEED = 0.9f
 
     private class RotationTarget(
         val module: Module, val rotation: Rotation, val priority: Int, val correctYaw: Boolean
@@ -29,6 +30,7 @@ object RotationUtil {
 
     private val mc = Minecraft.getInstance()
     private val targets = HashMap<Module, RotationTarget>()
+    private var sentYaw: Float? = null
 
     var lerpedRotation: Rotation? = null
         get() {
@@ -53,20 +55,41 @@ object RotationUtil {
     fun reset() {
         targets.clear()
         lerpedRotation = null
+        sentYaw = null
     }
 
     fun computeCorrectedYaw(): Float? {
+        if (Lifestolen.killSwitch) return null
         val active = activeTarget() ?: return null
         if (!active.correctYaw) return null
         return lerpedRotation?.y
     }
 
     fun spoofedRotation(): Rotation? {
-        val active = activeTarget() ?: return null
-        val player = mc.player ?: return null
-        val fake = lerpedRotation ?: return null
+        if (Lifestolen.killSwitch) {
+            sentYaw = null
+            return null
+        }
 
-        val yaw = if (active.correctYaw) fake.y else player.yRot
+        val active = activeTarget()
+        val player = mc.player ?: run { sentYaw = null; return null }
+        val fake = lerpedRotation ?: run { sentYaw = null; return null }
+
+        val yaw = when {
+            active?.correctYaw == true -> {
+                val base = sentYaw ?: player.yRot
+                (base + Mth.wrapDegrees(fake.y - base)).also { sentYaw = it }
+            }
+            active == null && sentYaw != null -> {
+                val base = sentYaw!!
+                (base + Mth.wrapDegrees(player.yRot - base) * SENT_YAW_FADE_SPEED).also { sentYaw = it }
+            }
+            else -> {
+                sentYaw = null
+                player.yRot
+            }
+        }
+
         return Rotation(fake.x, yaw)
     }
 
@@ -142,7 +165,8 @@ object RotationUtil {
     private fun frameFactor(speedPerTick: Float, partialTick: Float) =
         1f - (1f - speedPerTick).toDouble().pow(partialTick.toDouble()).toFloat()
 
-    private fun roughlyEqual(a: Rotation, b: Rotation) = abs(a.x - b.x) < 0.01f && abs(a.y - b.y) < 0.01f
+    private fun roughlyEqual(a: Rotation, b: Rotation) =
+        abs(a.x - b.x) < 0.01f && abs(Mth.wrapDegrees(a.y - b.y)) < 0.01f
 
     // ==== ACTUAL UTILITY FUNCTIONS ==========================================
 
