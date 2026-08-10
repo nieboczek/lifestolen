@@ -1,18 +1,31 @@
 package nieboczek.lifestolen.mixin;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.KillAuraModule;
-import org.spongepowered.asm.mixin.Debug;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Minecraft.class)
-@Debug(export = true)
 public class MinecraftMixin {
+    @Shadow
+    @Final
+    public Gui gui;
+
+    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;tick()V"))
+    private void tick(CallbackInfo ci) {
+        // If handleKeybinds won't be called, call it instead of it
+        if (gui.screen() != null || gui.overlay() != null) {
+            KillAuraModule.INSTANCE.callQueuedAttack();
+        }
+    }
+
     @Inject(
             method = "handleKeybinds",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z")
