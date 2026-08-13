@@ -1,7 +1,7 @@
 package nieboczek.lifestolen.gui.widget
 
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import nieboczek.lifestolen.Lifestolen.fontBig
+import nieboczek.lifestolen.gui.Fonts.fontBig
 import nieboczek.lifestolen.gui.render.blurredRoundedRect
 import nieboczek.lifestolen.gui.render.rect
 import kotlin.math.ceil

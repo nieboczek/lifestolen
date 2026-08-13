@@ -8,7 +8,7 @@ import nieboczek.lifestolen.config.serializer.base.FloatSerializer
 import nieboczek.lifestolen.config.serializer.base.IntSerializer
 import nieboczek.lifestolen.config.setting.*
 import nieboczek.lifestolen.gui.notification.Notifications
-import nieboczek.lifestolen.util.titleCaseToPascalCase
+import nieboczek.lifestolen.titleCaseToPascalCase
 
 abstract class Module(val name: String, val category: Category) {
     val id = name.titleCaseToPascalCase()

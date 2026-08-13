@@ -5,15 +5,11 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import net.minecraft.world.level.block.Block
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.Lifestolen.fontExtraSmall
 import nieboczek.lifestolen.config.setting.*
+import nieboczek.lifestolen.gui.Fonts.fontExtraSmall
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.gui.friedsvg.blitPixel
-import nieboczek.lifestolen.gui.render.ColorPickerRenderState
-import nieboczek.lifestolen.gui.render.colorPickerRect
-import nieboczek.lifestolen.gui.render.rect
-import nieboczek.lifestolen.gui.render.roundedRect
-import nieboczek.lifestolen.gui.render.scissor
+import nieboczek.lifestolen.gui.render.*
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_EXTRA_SMALL_HEIGHT
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_SMALL_HEIGHT
 import nieboczek.lifestolen.gui.widget.ScreenState.HOVERED_OUTLINE_COLOR

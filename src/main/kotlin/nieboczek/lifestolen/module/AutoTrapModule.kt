@@ -10,7 +10,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.module.util.PlacementUtil
-import nieboczek.lifestolen.util.Renderer3d
+import nieboczek.lifestolen.module.util.Renderer3d
 
 object AutoTrapModule : Module("Auto Trap", Category.COMBAT) {
     private val range by double("Range", 4.0, 1.0..6.0, "blocks", 0.01)

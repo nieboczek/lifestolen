@@ -1,7 +1,7 @@
 package nieboczek.lifestolen.config.setting
 
 import nieboczek.lifestolen.config.serializer.base.Serializer
-import nieboczek.lifestolen.util.titleCaseToPascalCase
+import nieboczek.lifestolen.titleCaseToPascalCase
 import kotlin.reflect.KProperty
 
 abstract class Setting<T>(val name: String, val default: T, val serializer: Serializer<T>) {

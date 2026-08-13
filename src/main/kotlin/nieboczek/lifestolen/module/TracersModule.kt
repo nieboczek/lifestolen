@@ -4,7 +4,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.util.Renderer3d
+import nieboczek.lifestolen.module.util.Renderer3d
 import org.joml.Vector3f
 
 object TracersModule : Module("Tracers", Category.VISUALS) {

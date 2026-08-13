@@ -4,7 +4,6 @@ import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.TitleScreen
 import net.minecraft.resources.Identifier
@@ -14,12 +13,12 @@ import nieboczek.lifestolen.command.Commands
 import nieboczek.lifestolen.config.ClientConfig
 import nieboczek.lifestolen.config.ConfigManager
 import nieboczek.lifestolen.gui.ConfigScreen
+import nieboczek.lifestolen.gui.Fonts
 import nieboczek.lifestolen.gui.friedsvg.FriedSvg
 import nieboczek.lifestolen.gui.notification.AntiCheatDetector
 import nieboczek.lifestolen.gui.notification.Notifications
 import nieboczek.lifestolen.module.*
 import nieboczek.lifestolen.module.util.RotationUtil
-import nieboczek.lifestolen.util.FontLoader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color
@@ -35,15 +34,6 @@ object Lifestolen : ClientModInitializer {
 
     lateinit var cfg: ClientConfig
         private set
-    lateinit var fontBig: Font
-        private set
-    lateinit var font: Font
-        private set
-    lateinit var fontSmall: Font
-        private set
-    lateinit var fontExtraSmall: Font
-        private set
-
     var killSwitch = false
         private set
 
@@ -85,7 +75,7 @@ object Lifestolen : ClientModInitializer {
             rainbowColorOffset += 2
             val hue = (rainbowColorOffset % 360) / 360f
             val color = Color.HSBtoRGB(hue, 1f, 1f)
-            graphics.text(font, CLIENT_BRAND_TEXT, 4, 4, color, true)
+            graphics.text(Fonts.font, CLIENT_BRAND_TEXT, 4, 4, color, true)
         }
 
         if (screen == null) Notifications.render(graphics, dt)
@@ -157,10 +147,7 @@ object Lifestolen : ClientModInitializer {
 
         log.info("Loaded {} modules", modules.size)
         cfg = ConfigManager.loadConfig()
-        fontBig = FontLoader.loadUiFont(16f, 5f, "ui_font_big")
-        font = FontLoader.loadUiFont(12f, 1f, "ui_font")
-        fontSmall = FontLoader.loadUiFont(8f, -1f, "ui_font_small")
-        fontExtraSmall = FontLoader.loadUiFont(6f, -3f, "ui_font_extra_small")
+        Fonts.load()
     }
 
     private fun clientStopping() {

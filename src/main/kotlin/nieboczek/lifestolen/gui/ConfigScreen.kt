@@ -13,7 +13,7 @@ import org.lwjgl.glfw.GLFW
 import java.awt.Color
 import java.util.*
 
-class ConfigScreen : Screen(Minecraft.getInstance(), Lifestolen.font, Component.literal(Lifestolen.CLIENT_NAME)) {
+class ConfigScreen : Screen(Minecraft.getInstance(), Fonts.font, Component.literal(Lifestolen.CLIENT_NAME)) {
     companion object {
         private val rootWidget = RootWidget()
     }

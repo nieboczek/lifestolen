@@ -7,8 +7,8 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.Lifestolen
+import nieboczek.lifestolen.module.util.Renderer3d
 import nieboczek.lifestolen.module.util.RotationUtil
-import nieboczek.lifestolen.util.Renderer3d
 import kotlin.math.atan2
 import kotlin.math.sqrt
 

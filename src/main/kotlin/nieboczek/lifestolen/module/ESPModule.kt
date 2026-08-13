@@ -5,7 +5,7 @@ import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import nieboczek.lifestolen.Lifestolen
-import nieboczek.lifestolen.util.Renderer3d
+import nieboczek.lifestolen.module.util.Renderer3d
 
 object ESPModule : Module("ESP", Category.VISUALS) {
     private val range by double("Range", 128.0, 8.0..512.0, "blocks", 0.1)

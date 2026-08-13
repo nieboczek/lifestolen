@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.util
+package nieboczek.lifestolen.gui
 
 import com.mojang.blaze3d.font.GlyphBitmap
 import com.mojang.blaze3d.font.GlyphProvider
@@ -24,8 +24,24 @@ import org.lwjgl.util.freetype.FreeType
 import java.io.IOException
 import java.lang.AutoCloseable
 
-object FontLoader {
-    fun loadUiFont(size: Float, shiftY: Float, textureId: String): Font {
+object Fonts {
+    lateinit var fontBig: Font
+        private set
+    lateinit var font: Font
+        private set
+    lateinit var fontSmall: Font
+        private set
+    lateinit var fontExtraSmall: Font
+        private set
+
+    fun load() {
+        fontBig = loadUiFont(16f, 5f, "ui_font_big")
+        font = loadUiFont(12f, 1f, "ui_font")
+        fontSmall = loadUiFont(8f, -1f, "ui_font_small")
+        fontExtraSmall = loadUiFont(6f, -3f, "ui_font_extra_small")
+    }
+
+    private fun loadUiFont(size: Float, shiftY: Float, textureId: String): Font {
         val manager = Minecraft.getInstance().resourceManager
         val fontIdentifier = Lifestolen.identifier("fonts/pt-root-ui.medium.ttf")
 

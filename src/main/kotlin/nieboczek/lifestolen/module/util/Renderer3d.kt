@@ -1,4 +1,4 @@
-package nieboczek.lifestolen.util
+package nieboczek.lifestolen.module.util
 
 import com.mojang.blaze3d.PrimitiveTopology
 import com.mojang.blaze3d.pipeline.DepthStencilState
@@ -20,6 +20,7 @@ import org.joml.Vector4f
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 object Renderer3d {
     var tickDelta: Float = 0f
@@ -162,7 +163,7 @@ object Renderer3d {
         val dx = to.x - from.x
         val dy = to.y - from.y
         val dz = to.z - from.z
-        val len = kotlin.math.sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat()
+        val len = sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat()
         if (len < 1e-6f) return Vector3f(0f, 1f, 0f)
         return Vector3f(dx / len, 0f, dz / len)
     }

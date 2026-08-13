@@ -12,7 +12,7 @@ import nieboczek.lifestolen.gui.render.BlurredRectRenderer;
 import nieboczek.lifestolen.module.FreeCamModule;
 import nieboczek.lifestolen.module.TracersModule;
 import nieboczek.lifestolen.module.util.RotationUtil;
-import nieboczek.lifestolen.util.Renderer3d;
+import nieboczek.lifestolen.module.util.Renderer3d;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.objectweb.asm.Opcodes;

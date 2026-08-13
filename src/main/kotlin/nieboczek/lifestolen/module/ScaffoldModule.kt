@@ -7,8 +7,8 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.module.util.PlacementUtil
+import nieboczek.lifestolen.module.util.Renderer3d
 import nieboczek.lifestolen.module.util.RotationUtil
-import nieboczek.lifestolen.util.Renderer3d
 
 object ScaffoldModule : Module("Scaffold", Category.MOVEMENT) {
     private val onlyInAir by boolean("Only In Air")

@@ -11,7 +11,7 @@ import net.minecraft.world.entity.vehicle.minecart.MinecartHopper
 import net.minecraft.world.level.block.entity.*
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import nieboczek.lifestolen.util.Renderer3d
+import nieboczek.lifestolen.module.util.Renderer3d
 
 object ChestESPModule : Module("Chest ESP", Category.VISUALS) {
     private val range by int("Range", 128, 8..512, "blocks")

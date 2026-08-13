@@ -3,8 +3,8 @@ package nieboczek.lifestolen.gui.notification
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.FormattedText
-import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.command.Commands
+import nieboczek.lifestolen.gui.Fonts
 import nieboczek.lifestolen.gui.render.blurredRoundedRect
 import nieboczek.lifestolen.gui.widget.ScreenState
 import nieboczek.lifestolen.module.Module
@@ -15,7 +15,7 @@ object Notifications {
     private const val SLIDE_TICKS = 10f
 
     private val mc = Minecraft.getInstance()
-    private val fontSmall = Lifestolen.fontSmall
+    private val fontSmall = Fonts.fontSmall
     private val notifications = mutableListOf<Notification>()
 
     fun render(graphics: GuiGraphicsExtractor, dt: Float) {

@@ -1,8 +1,8 @@
 package nieboczek.lifestolen.gui.widget
 
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import nieboczek.lifestolen.Lifestolen.font
-import nieboczek.lifestolen.Lifestolen.fontSmall
+import nieboczek.lifestolen.gui.Fonts.font
+import nieboczek.lifestolen.gui.Fonts.fontSmall
 import nieboczek.lifestolen.gui.render.rect
 import nieboczek.lifestolen.gui.render.roundedRect
 import nieboczek.lifestolen.gui.render.scissor
