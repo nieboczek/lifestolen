@@ -109,3 +109,12 @@ fun GuiGraphicsExtractor.colorPickerRect(
         scissorStack.peek()
     )
 )
+
+fun GuiGraphicsExtractor.scissor(x: Int, y: Int, width: Int, height: Int, block: () -> Unit) {
+    if (width <= 0 || height <= 0) error("Tried to scissor with ${width}x${height}")
+    if (x >= guiWidth() || y >= guiHeight() || x + width <= 0 || y + height <= 0) return
+
+    enableScissor(x, y, x + width, y + height)
+    block()
+    disableScissor()
+}

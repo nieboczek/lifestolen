@@ -13,6 +13,7 @@ import nieboczek.lifestolen.gui.render.ColorPickerRenderState
 import nieboczek.lifestolen.gui.render.colorPickerRect
 import nieboczek.lifestolen.gui.render.rect
 import nieboczek.lifestolen.gui.render.roundedRect
+import nieboczek.lifestolen.gui.render.scissor
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_EXTRA_SMALL_HEIGHT
 import nieboczek.lifestolen.gui.widget.ScreenState.FONT_SMALL_HEIGHT
 import nieboczek.lifestolen.gui.widget.ScreenState.HOVERED_OUTLINE_COLOR
@@ -422,9 +423,9 @@ class BooleanSettingWidget(setting: BooleanSetting) : SettingWidget<Boolean>(set
         if (enableProgress > 0f) {
             val clipWidth = (size * enableProgress).toInt()
             checkmarkTexture?.let { tex ->
-                graphics.enableScissor(ax - 1, ay, ax + clipWidth, ay + size)
-                graphics.blitPixel(tex, ax, ay, size, size)
-                graphics.disableScissor()
+                graphics.scissor(ax - 1, ay, clipWidth + 1, size) {
+                    graphics.blitPixel(tex, ax, ay, size, size)
+                }
             }
         }
 

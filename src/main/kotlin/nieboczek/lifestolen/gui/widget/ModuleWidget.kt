@@ -5,6 +5,7 @@ import nieboczek.lifestolen.Lifestolen.font
 import nieboczek.lifestolen.Lifestolen.fontSmall
 import nieboczek.lifestolen.gui.render.rect
 import nieboczek.lifestolen.gui.render.roundedRect
+import nieboczek.lifestolen.gui.render.scissor
 import nieboczek.lifestolen.module.Module
 import org.lwjgl.glfw.GLFW
 
@@ -43,20 +44,20 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
         val color = blendModuleColor(ScreenState.darkRainbowColor, ScreenState.rainbowColor)
         graphics.text(font, live.name, moduleNameX, y + ScreenState.MODULE_INSIDE_V_PADDING, color, false)
 
-        if (expandProgress > 0f) {
-            val settingX = x + moduleInsideHPadding
-            val rightAlignedX = x + moduleWidth - moduleInsideHPadding
-            val settingWidth = moduleWidth - (moduleInsideHPadding * 2)
-            var settingY =
-                y + ScreenState.MODULE_INSIDE_V_PADDING + ScreenState.FONT_HEIGHT + ScreenState.MODULE_INSIDE_V_PADDING
+        if (expandProgress <= 0f) return
 
-            graphics.enableScissor(
-                settingX,
-                settingY - ScreenState.MODULE_INSIDE_V_PADDING,
-                settingX + moduleWidth,
-                settingY + computeExpandedHeight()
-            )
+        val settingX = x + moduleInsideHPadding
+        val rightAlignedX = x + moduleWidth - moduleInsideHPadding
+        val settingWidth = moduleWidth - (moduleInsideHPadding * 2)
+        var settingY =
+            y + ScreenState.MODULE_INSIDE_V_PADDING + ScreenState.FONT_HEIGHT + ScreenState.MODULE_INSIDE_V_PADDING
 
+        graphics.scissor(
+            settingX,
+            settingY - ScreenState.MODULE_INSIDE_V_PADDING,
+            moduleWidth,
+            computeExpandedHeight() + ScreenState.MODULE_INSIDE_V_PADDING
+        ) {
             for (setting in settings) {
                 if (setting.live.id == "Enabled") continue
 
@@ -75,8 +76,6 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
 
                 settingY += ScreenState.SETTING_GAP + setting.calculateHeight()
             }
-
-            graphics.disableScissor()
         }
     }
 
