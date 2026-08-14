@@ -10,7 +10,7 @@ class Argument(val name: String, val type: Type, val value: String = "") {
     internal fun suggest(builder: CommandExecutor.FilteredSuggestionBuilder) {
         when (type) {
             Type.MODULE -> builder.suggest(Lifestolen.modules.map { it.id })
-            Type.CONFIG_KEY -> builder.suggest("RenderClientBrandText").suggest("CommandPrefix")
+            Type.CONFIG_KEY -> builder.suggest("RenderClientBrandText", "CommandPrefix", "CorrectYaw")
             Type.FRIENDS -> builder.suggest(Lifestolen.cfg.friends)
             else -> {}
         }

@@ -32,7 +32,7 @@ public class EntityMixin {
     )
     private float moveRelative(float original) {
         if (mc.player != (Object) this) return original;
-        Float correctedYaw = RotationUtil.INSTANCE.computeCorrectedYaw();
-        return correctedYaw == null ? original : correctedYaw;
+        RotationUtil.Rotation rot = RotationUtil.INSTANCE.spoofedRotation();
+        return rot == null ? original : rot.getY();
     }
 }

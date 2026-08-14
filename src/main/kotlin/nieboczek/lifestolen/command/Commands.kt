@@ -134,6 +134,20 @@ object Commands {
                         )
                     }
 
+                    "correctyaw" -> {
+                        val bl = value.toBoolean()
+                        Lifestolen.cfg.correctYaw = bl
+
+                        Notifications.add(
+                            FormattedText.composite(
+                                FormattedText.of("Set "),
+                                FormattedText.of("CorrectYaw", colorStyle),
+                                FormattedText.of(" to "),
+                                formattedBoolean(bl, "true", "false"),
+                            )
+                        )
+                    }
+
                     else -> throw CommandError("Unknown config key: $key")
                 }
             }.register()

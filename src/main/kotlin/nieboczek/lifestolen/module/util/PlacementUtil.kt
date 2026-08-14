@@ -49,7 +49,7 @@ object PlacementUtil {
 
             val targetVec = Vec3.atCenterOf(neighbourPos)
             RotationUtil.request(
-                provider, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_PLACEMENT, false
+                provider, getXRot(targetVec), getYRot(targetVec), RotationUtil.PRIORITY_PLACEMENT
             )
 
             return mc.gameMode!!.useItemOn(mc.player!!, InteractionHand.MAIN_HAND, hitResult) != InteractionResult.FAIL

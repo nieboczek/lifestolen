@@ -15,7 +15,7 @@ public class LivingEntityMixin {
     )
     private float jumpFromGround(float original) {
         if (Minecraft.getInstance().player != (Object) this) return original;
-        Float correctedYaw = RotationUtil.INSTANCE.computeCorrectedYaw();
-        return correctedYaw == null ? original : correctedYaw;
+        RotationUtil.Rotation rot = RotationUtil.INSTANCE.spoofedRotation();
+        return rot == null ? original : rot.getY();
     }
 }

@@ -22,10 +22,7 @@ object RotationUtil {
     private const val PITCH_SPEED_PER_TICK = 0.9f
     private const val SENT_YAW_FADE_SPEED = 0.9f
 
-    private class RotationTarget(
-        val module: Module, val rotation: Rotation, val priority: Int, val correctYaw: Boolean
-    )
-
+    private class RotationTarget(val module: Module, val rotation: Rotation, val priority: Int)
     class Rotation(val x: Float, val y: Float)
 
     private val mc = Minecraft.getInstance()
@@ -38,14 +35,8 @@ object RotationUtil {
             return field
         }
 
-    fun request(
-        module: Module,
-        x: Float,
-        y: Float,
-        priority: Int = PRIORITY_DEFAULT,
-        correctYaw: Boolean = true,
-    ) {
-        targets[module] = RotationTarget(module, Rotation(x, y), priority, correctYaw)
+    fun request(module: Module, x: Float, y: Float, priority: Int = PRIORITY_DEFAULT) {
+        targets[module] = RotationTarget(module, Rotation(x, y), priority)
     }
 
     fun cancel(module: Module) {
@@ -58,32 +49,23 @@ object RotationUtil {
         sentYaw = null
     }
 
-    fun computeCorrectedYaw(): Float? {
-        if (Lifestolen.killSwitch) return null
-        val active = activeTarget() ?: return null
-        if (!active.correctYaw) return null
-        return lerpedRotation?.y
-    }
-
     fun spoofedRotation(): Rotation? {
-        if (Lifestolen.killSwitch) {
-            sentYaw = null
-            return null
-        }
-
-        val active = activeTarget()
+        if (Lifestolen.killSwitch) { sentYaw = null; return null }
         val player = mc.player ?: run { sentYaw = null; return null }
         val fake = lerpedRotation ?: run { sentYaw = null; return null }
 
+        val active = activeTarget()
         val yaw = when {
-            active?.correctYaw == true -> {
+            Lifestolen.cfg.correctYaw && active != null -> {
                 val base = sentYaw ?: player.yRot
                 (base + Mth.wrapDegrees(fake.y - base)).also { sentYaw = it }
             }
-            active == null && sentYaw != null -> {
+
+            sentYaw != null -> {
                 val base = sentYaw!!
                 (base + Mth.wrapDegrees(player.yRot - base) * SENT_YAW_FADE_SPEED).also { sentYaw = it }
             }
+
             else -> {
                 sentYaw = null
                 player.yRot
@@ -94,9 +76,8 @@ object RotationUtil {
     }
 
     fun transformInput(input: Input): Input {
+        if (!Lifestolen.cfg.correctYaw) return input
         val player = mc.player ?: return input
-        val active = activeTarget() ?: return input
-        if (!active.correctYaw) return input
         val fakeYaw = lerpedRotation?.y ?: return input
 
         if (!input.forward && !input.backward && !input.left && !input.right) return input
@@ -123,7 +104,7 @@ object RotationUtil {
 
     fun shouldKeepSprinting(input: Input): Boolean {
         if (!input.forward || input.backward) return false
-        if (computeCorrectedYaw() == null) return true
+        if (spoofedRotation() == null) return true
 
         val movementRelToLerped = Mth.wrapDegrees(getMovementYawOfInput(input, 0f))
         return abs(movementRelToLerped) <= 45f
