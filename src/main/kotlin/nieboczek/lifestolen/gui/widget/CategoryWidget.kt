@@ -7,9 +7,8 @@ import nieboczek.lifestolen.gui.render.rect
 import kotlin.math.ceil
 
 class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget() {
-    fun render(graphics: GuiGraphicsExtractor, idx: Int, categoriesSize: Int, screenWidth: Int) {
+    fun render(graphics: GuiGraphicsExtractor, startY: Int, idx: Int, categoriesSize: Int, screenWidth: Int) {
         val categoryGap = 8
-        val marginTop = 8
         val namePadding = 2
         val moduleVPadding = 2
         val moduleHPadding = 4
@@ -18,7 +17,7 @@ class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget
             (screenWidth - (paddingHorizontal * 2) - ((categoriesSize - 1) * categoryGap)) / categoriesSize
         val moduleWidth = categoryWidth - (moduleHPadding * 2)
 
-        val lineY = marginTop + namePadding + ScreenState.FONT_BIG_HEIGHT + namePadding
+        val lineY = startY + namePadding + ScreenState.FONT_BIG_HEIGHT + namePadding
         val lineHeight = ScreenState.OUTLINE_WIDTH / ScreenState.guiScale * 1.5f
         val lineHeightCeil = ceil(lineHeight).toInt()
         val moduleStartY = lineY + lineHeightCeil + moduleVPadding
@@ -27,11 +26,11 @@ class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget
         val moduleHeight = ScreenState.FONT_HEIGHT + (ScreenState.MODULE_INSIDE_V_PADDING * 2)
         val lastModuleBottom = moduleStartY + ((moduleVPadding + moduleHeight) * modules.size)
         val expandedHeight = modules.fold(0) { acc, state -> acc + state.computeExpandedHeight() }
-        val neededHeight = lastModuleBottom - marginTop + moduleVPadding + expandedHeight
+        val neededHeight = lastModuleBottom - startY + moduleVPadding + expandedHeight
 
         graphics.blurredRoundedRect(
             categoryX,
-            marginTop,
+            startY,
             categoryWidth,
             neededHeight,
             0x92000000.toInt(),
@@ -42,7 +41,7 @@ class CategoryWidget(val name: String, val modules: List<ModuleWidget>) : Widget
         )
 
         val nameX = categoryX + ((categoryWidth - fontBig.width(name)) / 2)
-        graphics.text(fontBig, name, nameX, marginTop + namePadding, ScreenState.rainbowColor, false)
+        graphics.text(fontBig, name, nameX, startY + namePadding, ScreenState.rainbowColor, false)
         graphics.rect(
             categoryX + (ScreenState.OUTLINE_WIDTH / ScreenState.guiScale),
             lineY.toFloat(),

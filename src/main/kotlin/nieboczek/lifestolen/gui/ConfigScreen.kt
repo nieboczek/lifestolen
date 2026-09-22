@@ -11,7 +11,6 @@ import nieboczek.lifestolen.Lifestolen
 import nieboczek.lifestolen.gui.widget.*
 import org.lwjgl.glfw.GLFW
 import java.awt.Color
-import java.util.*
 
 class ConfigScreen : Screen(Minecraft.getInstance(), Fonts.font, Component.literal(Lifestolen.CLIENT_NAME)) {
     companion object {
@@ -126,6 +125,11 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Fonts.font, Component.liter
         return true
     }
 
+    override fun mouseScrolled(x: Double, y: Double, scrollX: Double, scrollY: Double): Boolean {
+        rootWidget.scroll(scrollY)
+        return true
+    }
+
     override fun onClose() {
         walkWidgets {
             if (it is Hoverable) {
@@ -138,11 +142,12 @@ class ConfigScreen : Screen(Minecraft.getInstance(), Fonts.font, Component.liter
     }
 
     private fun walkWidgets(walker: (Widget) -> Boolean) {
-        val stack = Stack<Widget>()
+        val stack = ArrayList<Widget>()
+        stack.add(rootWidget)
         stack.addAll(rootWidget.getVisibleChildren())
 
         while (stack.isNotEmpty()) {
-            val w = stack.pop()
+            val w = stack.removeLast()
             if (walker(w)) return
             stack.addAll(w.getVisibleChildren())
         }
