@@ -50,7 +50,7 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
         val rightAlignedX = x + moduleWidth - moduleInsideHPadding
         val settingWidth = moduleWidth - (moduleInsideHPadding * 2)
         var settingY =
-            y + ScreenState.MODULE_INSIDE_V_PADDING + ScreenState.FONT_HEIGHT + ScreenState.MODULE_INSIDE_V_PADDING
+            y + ScreenState.MODULE_INSIDE_V_PADDING * 2 + ScreenState.FONT_HEIGHT + ScreenState.MODULE_NAME_SETTINGS_GAP
 
         graphics.scissor(
             settingX,
@@ -111,9 +111,10 @@ class ModuleWidget(val live: Module, val settings: List<SettingWidget<*>>) : Wid
             if (state.live.id == "Enabled") return@fold acc
             acc + state.calculateHeight()
         }
-        val paddedHeight =
-            baseHeight + ScreenState.MODULE_INSIDE_V_PADDING + (ScreenState.SETTING_GAP * (settings.size - 2))
-        return (paddedHeight * expandProgress).toInt()
+
+        val paddedHeight = baseHeight + ScreenState.MODULE_INSIDE_V_PADDING + ScreenState.MODULE_NAME_SETTINGS_GAP
+        val finalHeight = paddedHeight + (ScreenState.SETTING_GAP * (settings.size - 2))
+        return (finalHeight * expandProgress).toInt()
     }
 
     private fun blendModuleColor(darkRainbowColor: Int, rainbowColor: Int): Int {

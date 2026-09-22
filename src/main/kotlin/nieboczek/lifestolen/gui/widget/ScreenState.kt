@@ -10,6 +10,7 @@ object ScreenState {
     const val FONT_EXTRA_SMALL_HEIGHT = 4
     const val SETTING_GAP = 6
     const val MODULE_INSIDE_V_PADDING = 4
+    const val MODULE_NAME_SETTINGS_GAP = 2
 
     var currentlyConfiguring: ModuleWidget? = null
     var debugMode = false
