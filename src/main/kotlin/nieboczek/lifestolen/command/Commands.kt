@@ -134,6 +134,20 @@ object Commands {
                         )
                     }
 
+                    "transforminput" -> {
+                        val bl = value.toBoolean()
+                        Lifestolen.cfg.transformInput = bl
+
+                        Notifications.add(
+                            FormattedText.composite(
+                                FormattedText.of("Set "),
+                                FormattedText.of("TransformInput", colorStyle),
+                                FormattedText.of(" to "),
+                                formattedBoolean(bl, "true", "false"),
+                            )
+                        )
+                    }
+
                     else -> throw CommandError("Unknown config key: $key")
                 }
             }.register()

@@ -15,7 +15,6 @@ import kotlin.math.sqrt
 object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
     private val range by double("Range", 3.0, 1.0..4.0, "blocks", 0.01)
     private val attackOnlyPlayers by boolean("Attack Only Players")
-    private val lookAtTarget by boolean("Look At Target")
     private val renderRangeOutline by boolean("Render Range Outline")
 
     private var queuedAttack: Entity? = null
@@ -37,7 +36,7 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
 
     override fun tick() {
         val target = findNearestEntity()
-        if (target == null || !lookAtTarget) {
+        if (target == null) {
             RotationUtil.cancel(this)
         } else {
             val targetVec = target.eyePosition
@@ -47,8 +46,10 @@ object KillAuraModule : Module("Kill Aura", Category.COMBAT) {
         if (target == null || player.isBlocking) return
 
         if (player.getAttackStrengthScale(0.5f) >= 0.95) {
-            val rotation = RotationUtil.spoofedRotation() ?: return
-            if (!isLookingAt(target, rotation)) return
+            if (Lifestolen.cfg.transformInput) {
+                val rotation = RotationUtil.spoofedRotation() ?: return
+                if (!isLookingAt(target, rotation)) return
+            }
             queuedAttack = target
         }
     }
