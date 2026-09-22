@@ -13,7 +13,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import nieboczek.lifestolen.module.util.Renderer3d
 
-object ChestESPModule : Module("Chest ESP", Category.VISUALS) {
+object StorageESPModule : Module("Storage ESP", Category.VISUALS) {
     private val range by int("Range", 128, 8..512, "blocks")
     private val color by color("Color", 0x55FFFFFF)
     private val boxScale by float("Box Scale", 1f, 0.1f..3f, step = 0.01f)

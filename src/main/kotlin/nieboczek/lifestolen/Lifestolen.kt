@@ -141,7 +141,7 @@ object Lifestolen : ClientModInitializer {
         modules.add(FreeCamModule)
         modules.add(TracersModule)
         modules.add(ESPModule)
-        modules.add(ChestESPModule)
+        modules.add(StorageESPModule)
         modules.add(FullBrightModule)
         modules.add(XRayModule)
 

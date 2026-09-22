@@ -6,6 +6,11 @@ import nieboczek.lifestolen.config.serializer.lang.TokenType
 
 class ListSerializer<T>(private val elementSerializer: Serializer<T>) : Serializer<MutableList<T>>() {
     override fun serialize(value: MutableList<T>, builder: SerializedStringBuilder) {
+        if (value.isEmpty()) {
+            builder.text("[]")
+            return
+        }
+
         builder.text('[').newLine()
         builder.indent()
         for (element in value) {
