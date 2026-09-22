@@ -81,7 +81,7 @@ fun GuiGraphicsExtractor.roundedRect(
 
 fun GuiGraphicsExtractor.rect(x: Float, y: Float, width: Float, height: Float, fillColor: Int) =
     guiRenderState.addGuiElement(
-        RectRenderState(x, y, (x + width), (y + height), fillColor)
+        RectRenderState(x, y, (x + width), (y + height), fillColor, scissorStack.peek())
     )
 
 fun GuiGraphicsExtractor.rect(x: Int, y: Int, width: Int, height: Int, fillColor: Int) =
